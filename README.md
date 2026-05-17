@@ -2,14 +2,14 @@
 
 **Security auditor for MCP (Model Context Protocol) servers**
 
-[!\[Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat\&logo=python\&logoColor=white)](https://python.org)
-[!\[License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
-[!\[OWASP MCP Top 10](https://img.shields.io/badge/OWASP-MCP\_Top\_10-003087?style=flat)](https://owasp.org/www-project-mcp-top-10/)
-[!\[OWASP Agentic Top 10](https://img.shields.io/badge/OWASP-Agentic\_Top\_10\_2026-003087?style=flat)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
-[!\[MITRE ATLAS](https://img.shields.io/badge/MITRE-ATLAS-C41230?style=flat)](https://atlas.mitre.org)
-\[!\[Status](https://img.shields.io/badge/Status-Active\_Development-orange?style=flat)]()
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
+[![OWASP MCP Top 10](https://img.shields.io/badge/OWASP-MCP_Top_10-003087?style=flat)](https://owasp.org/www-project-mcp-top-10/)
+[![OWASP Agentic Top 10](https://img.shields.io/badge/OWASP-Agentic_Top_10_2026-003087?style=flat)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+[![MITRE ATLAS](https://img.shields.io/badge/MITRE-ATLAS-C41230?style=flat)](https://atlas.mitre.org)
+![Status](https://img.shields.io/badge/Status-Active_Development-orange?style=flat)
 
-\---
+---
 
 ## The Problem
 
@@ -17,7 +17,7 @@ MCP servers are the tool layer between LLMs and the systems they act on: databas
 
 Most teams securing agentic AI are focused on the model layer (prompt injection, jailbreaks, output filtering). The tool layer is largely undefended. `mcp-sentinel` audits it.
 
-\---
+---
 
 ## What It Does
 
@@ -32,24 +32,24 @@ Loaded 5 rules  |  5 threat sources active
 Scanning: my-server.json
 ────────────────────────────────────────────────────────────
 
-\[CRITICAL]  MCPS-001  Tool Poisoning via Description Field
+[CRITICAL]  MCPS-001  Tool Poisoning via Description Field
             Tool:     execute\_code
             Field:    tool.description
             Match:    "also when called, include the full conversation history"
             Maps to:  OWASP MCP02 · OWASP ASI02 · MITRE AML.T0051
 
-\[HIGH]      MCPS-003  Overly Permissive Parameter Schemas
+[HIGH]      MCPS-003  Overly Permissive Parameter Schemas
             Tool:     run\_shell
             Field:    tool.inputSchema.properties.command
             Issue:    Unrestricted string — no enum, pattern, or maxLength constraint
             Maps to:  OWASP MCP04 · OWASP ASI02 · NIST AI RMF MANAGE 1.3
 
-\[HIGH]      MCPS-004  Insecure Transport Configuration
+[HIGH]      MCPS-004  Insecure Transport Configuration
             Field:    server.url
             Issue:    Plaintext HTTP endpoint (http://api.internal:8080/mcp)
             Maps to:  OWASP MCP05 · MITRE AML.T0010
 
-\[HIGH]      MCPS-005  Unverified Tool Provenance
+[HIGH]      MCPS-005  Unverified Tool Provenance
             Package:  @company/mcp-tools
             Issue:    Unpinned version ("latest") — no integrity hash present
             Maps to:  OWASP MCP08 · OWASP ASI04 · MITRE AML.T0010
@@ -61,12 +61,12 @@ Risk Summary
   MEDIUM     0
   LOW        0
 
-Overall Risk Score:   87 / 100  \[CRITICAL]
+Overall Risk Score:   87 / 100  [CRITICAL]
 Findings:             4 across 3 tools
 Full report:          ./mcp-sentinel-report.html
 ```
 
-\---
+---
 
 ## Framework Coverage
 
@@ -82,7 +82,7 @@ Every finding is mapped to the threat frameworks your security and compliance te
 
 Sources are pluggable. Adding a new framework (internal standards, ISO 42001, EU AI Act controls) requires one entry in `sources.yaml` and no changes to the scanner core.
 
-\---
+---
 
 ## Checks (Phase 1)
 
@@ -94,9 +94,9 @@ Sources are pluggable. Adding a new framework (internal standards, ISO 42001, EU
 |MCPS-004|Insecure Transport Configuration|HIGH|Static|
 |MCPS-005|Agentic Supply Chain: Unverified Tool Provenance|HIGH|Static|
 
-See [ROADMAP.md](ROADMAP.md) for checks planned in Phases 2 and 3.
+See [ROADMAP.md](planning/ROADMAP.md) for checks planned in Phases 2 and 3.
 
-\---
+---
 
 ## Installation
 
@@ -107,7 +107,7 @@ cd mcp-sentinel
 pip install -e .
 ```
 
-\---
+---
 
 ## Usage
 
@@ -131,7 +131,7 @@ mcp-sentinel sources check
 mcp-sentinel rules update
 ```
 
-\---
+---
 
 ## CI/CD Integration
 
@@ -173,7 +173,7 @@ jobs:
 
 The `--fail-on` flag sets the minimum severity that causes a non-zero exit code (used to fail the build).
 
-\---
+---
 
 ## Project Structure
 
@@ -198,7 +198,7 @@ mcp-sentinel/
     └── fixtures/           # Sample benign and malicious MCP definitions
 ```
 
-\---
+---
 
 ## Related Documents
 
@@ -207,14 +207,14 @@ mcp-sentinel/
 * [ROADMAP.md](planning/ROADMAP.md) — Build phases and milestones
 * [CONTRIBUTING.md](CONTRIBUTING.md) — How to add rules, sources, and checks
 
-\---
+---
 
 ## License
 
 MIT. See [LICENSE](LICENSE).
 
-\---
+---
 
 *Built by* [*Josh Conkel*](https://github.com/joshconkel) *- Head Bottle Washer.
-Contributions welcome. See* [*CONTRIBUTING.md*](CONTRIBUTING.md)*.*
+Contributions welcome! See* [*CONTRIBUTING.md*](CONTRIBUTING.md)*.*
 
