@@ -180,12 +180,16 @@ The `--fail-on` flag sets the minimum severity that causes a non-zero exit code 
 ```
 mcp-sentinel/
 ├── cli.py                  # Entry point (Typer)
+├── engine.py               # YAML loader and check registry coordinator
+├── models.py               # Core data models and classes
+├── reporter.py             # Output formatter for mcp-sentinel scan results
+├── pyproject.toml          # Python project configuration
 ├── loaders/
 │   ├── schema.py           # Parse MCP JSON/YAML definitions
 │   └── live.py             # Connect to live MCP server (Phase 3)
 ├── checks/
 │   ├── base.py             # Centralized check runner and pattern handler
-│   ├── tool\_poisoning.py   # MCPS-001
+│   ├── tool\_poisoning.py  # MCPS-001
 │   ├── secrets.py          # MCPS-002
 │   ├── parameters.py       # MCPS-003
 │   ├── transport.py        # MCPS-004
