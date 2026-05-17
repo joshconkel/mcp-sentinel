@@ -1,0 +1,43 @@
+name: "False Positive Report"
+description: "Report a rule that incorrectly flags a legitimate, non-vulnerable MCP server definition"
+title: "[FP] "
+labels: ["false-positive", "needs-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        False positives are treated as high priority. A rule that fires on legitimate configurations
+        causes security teams to distrust real findings. Thank you for reporting.
+
+  - type: input
+    id: rule-id
+    attributes:
+      label: Rule ID
+      placeholder: "e.g., MCPS-003"
+    validations:
+      required: true
+
+  - type: textarea
+    id: triggering-input
+    attributes:
+      label: MCP server definition that incorrectly triggers the rule
+      description: Paste a minimal reproducer. Remove sensitive data before submitting.
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: why-legitimate
+    attributes:
+      label: Why this is a false positive
+      description: Explain why this server definition is legitimate and non-vulnerable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: pattern-suggestion
+    attributes:
+      label: Suggested pattern refinement (optional)
+      description: If you have a suggestion for how to tighten the rule pattern to avoid this false positive, describe it here.
+    validations:
+      required: false

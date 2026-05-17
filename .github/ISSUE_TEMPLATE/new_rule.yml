@@ -1,0 +1,83 @@
+name: "New Rule Proposal"
+description: "Propose a new detection rule for mcp-sentinel"
+title: "[RULE] "
+labels: ["new-rule", "needs-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for proposing a new rule. Complete this template to help reviewers assess the proposal quickly.
+        If you already have a YAML rule definition and fixtures ready, open a Pull Request instead.
+
+  - type: input
+    id: rule-name
+    attributes:
+      label: Proposed rule name
+      placeholder: "e.g., Tool Poisoning via Annotation Field"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Proposed severity
+      options:
+        - CRITICAL
+        - HIGH
+        - MEDIUM
+        - LOW
+        - INFO
+    validations:
+      required: true
+
+  - type: textarea
+    id: vulnerability
+    attributes:
+      label: What vulnerability does this rule detect?
+      description: Describe the attack — what the attacker is doing, what field or configuration allows it, and what the impact is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: target-field
+    attributes:
+      label: Which MCP field(s) does this rule inspect?
+      placeholder: "e.g., tool.annotations, server.env"
+    validations:
+      required: true
+
+  - type: textarea
+    id: pattern
+    attributes:
+      label: Proposed detection pattern
+      description: Regex, keyword list, schema constraint, or description of the detection logic.
+    validations:
+      required: true
+
+  - type: textarea
+    id: source-mappings
+    attributes:
+      label: Source mappings
+      description: Which OWASP, MITRE ATLAS, or NIST AI RMF entries does this map to? Include the entry ID and a link.
+      placeholder: |
+        OWASP MCP Top 10: MCP0X - Entry name (https://...)
+        MITRE ATLAS: AML.Txxxx - Technique name (https://...)
+    validations:
+      required: false
+
+  - type: textarea
+    id: false-positive-risk
+    attributes:
+      label: False positive risk
+      description: In what legitimate, non-vulnerable cases might this rule incorrectly fire? How does the proposed pattern mitigate this?
+    validations:
+      required: true
+
+  - type: textarea
+    id: example
+    attributes:
+      label: Example triggering input
+      description: A minimal MCP server definition excerpt that should trigger this rule.
+      render: json
+    validations:
+      required: true

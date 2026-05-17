@@ -1,0 +1,58 @@
+name: "Bug Report"
+description: "Report unexpected behavior or an error in mcp-sentinel"
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For security vulnerabilities in mcp-sentinel itself, use the private security advisory process described in SECURITY.md.
+        This template is for non-security bugs and unexpected behavior.
+
+  - type: input
+    id: version
+    attributes:
+      label: mcp-sentinel version
+      placeholder: "Output of: mcp-sentinel --version"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version and OS
+      placeholder: "e.g., Python 3.12.2 on Ubuntu 24.04"
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior (include full error output)
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: Minimal reproducer
+      description: The smallest MCP server definition file that reproduces the issue. Remove any sensitive data before pasting.
+      render: json
+    validations:
+      required: false
