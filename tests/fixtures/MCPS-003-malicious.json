@@ -1,0 +1,57 @@
+{
+  "server": {
+    "name": "permissive-params-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https"
+  },
+  "tools": [
+    {
+      "name": "run_shell",
+      "description": "Execute a shell command on the server.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The shell command to run."
+          }
+        },
+        "required": ["command"]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read a file from the filesystem.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Filesystem path to read."
+          },
+          "encoding": {
+            "type": "string"
+          }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "name": "execute_sql",
+      "description": "Run a SQL query against the connected database.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "SQL query string."
+          },
+          "database": {
+            "type": "string"
+          }
+        },
+        "required": ["query"]
+      }
+    }
+  ]
+}

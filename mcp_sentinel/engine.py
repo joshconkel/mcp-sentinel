@@ -10,11 +10,23 @@ Responsibilities:
 The engine is the only component that knows about both the rule definitions
 (YAML) and the check implementations (Python). Loaders and reporters are
 independent of the engine.
+
+Security notes:
+  - yaml.safe_load is used throughout; yaml.load with arbitrary Loaders
+    is never called.
+  - The _active_sources_cache is protected by a threading.Lock so that
+    concurrent calls (e.g., from a future async/threaded CLI mode) do not
+    produce a race condition. The lock is intentionally lightweight; the
+    critical section only wraps cache population, not the full scan.
+  - Check exceptions are caught per-rule and logged via the logging module
+    rather than printed to stderr, allowing callers to control verbosity
+    via standard log configuration.
 """
 
 from __future__ import annotations
 
-import importlib.resources
+import logging
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -29,8 +41,9 @@ from mcp_sentinel.models import (
     RuleStatus,
     ServerDefinition,
     Severity,
-    SourceDefinition,
 )
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Path resolution: rules/ directory ships inside the package
@@ -38,11 +51,10 @@ from mcp_sentinel.models import (
 
 def _rules_dir() -> Path:
     """Return the path to the rules/ directory bundled with the package."""
-    # When installed: rules/ is alongside the mcp_sentinel/ package directory
     pkg_dir = Path(__file__).parent
     candidates = [
-        pkg_dir / "rules",          # development layout
-        pkg_dir.parent / "rules",   # installed layout
+        pkg_dir / "rules",          # development layout (mcp_sentinel/rules/)
+        pkg_dir.parent / "rules",   # alternate installed layout
     ]
     for candidate in candidates:
         if candidate.exists():
@@ -50,7 +62,7 @@ def _rules_dir() -> Path:
     raise FileNotFoundError(
         "Could not locate the rules/ directory. "
         "Ensure the package was installed with `pip install -e .` or that "
-        "rules/sources.yaml and rules/rules.yaml are present."
+        "mcp_sentinel/rules/sources.yaml and mcp_sentinel/rules/rules.yaml are present."
     )
 
 
@@ -136,16 +148,29 @@ def _parse_patterns(raw_patterns: list[dict[str, Any]]) -> list[PatternDefinitio
 
 # ---------------------------------------------------------------------------
 # Module-level cache for active sources (used by check modules)
+# Fix: protect with a threading.Lock to prevent race conditions if scan()
+#      is ever called concurrently (e.g., from a future async interface).
 # ---------------------------------------------------------------------------
 
 _active_sources_cache: dict[str, Any] | None = None
+_cache_lock: threading.Lock = threading.Lock()
 
 
 def _build_active_sources(path: Path | None = None) -> dict[str, Any]:
-    """Return (and cache) the active source registry."""
+    """
+    Return (and cache) the active source registry.
+
+    Thread-safe: uses a double-checked locking pattern so that concurrent
+    callers do not both enter load_sources() simultaneously.
+    """
     global _active_sources_cache
-    if _active_sources_cache is None:
-        _active_sources_cache = load_sources(path)
+    if _active_sources_cache is not None:
+        return _active_sources_cache
+    with _cache_lock:
+        # Second check inside the lock in case another thread populated
+        # the cache between our first check and acquiring the lock.
+        if _active_sources_cache is None:
+            _active_sources_cache = load_sources(path)
     return _active_sources_cache
 
 
@@ -170,7 +195,9 @@ def scan(
         RiskScore containing all findings and aggregated scores.
     """
     global _active_sources_cache
-    _active_sources_cache = load_sources(sources_path)
+    # Reset cache on each scan so --sources overrides take effect correctly.
+    with _cache_lock:
+        _active_sources_cache = load_sources(sources_path)
 
     rules = load_rules(rules_path)
 
@@ -183,18 +210,19 @@ def scan(
     for rule in rules:
         check_fn = get_check(rule.id)
         if check_fn is None:
-            # Rule defined in YAML but no Python check implementation yet
-            # (expected for rules added before their check module is written)
+            # Rule defined in YAML but no Python check implementation yet.
+            # Expected while a rule is being developed.
+            logger.debug("No check function registered for rule %s — skipping.", rule.id)
             continue
 
         try:
             findings = check_fn(server_def, rule)
             all_findings.extend(findings)
         except Exception as exc:
-            # A failing check should not abort the entire scan
-            # Log and continue; in production this would go to a structured logger
-            import sys
-            print(f"[WARNING] Check {rule.id} raised an exception: {exc}", file=sys.stderr)
+            # A failing check must not abort the entire scan.
+            # Fix: use logging instead of print(sys.stderr) so callers can
+            #      control verbosity and capture structured log records.
+            logger.warning("Check %s raised an unexpected exception: %s", rule.id, exc)
 
     return RiskScore.from_findings(all_findings)
 
@@ -219,7 +247,11 @@ def check_source_staleness(
     for source_id, source in sources.items():
         last_checked_str = source.get("last_checked", "")
         if not last_checked_str:
-            stale.append({"id": source_id, "name": source["name"], "reason": "no last_checked date"})
+            stale.append({
+                "id": source_id,
+                "name": source["name"],
+                "reason": "no last_checked date",
+            })
             continue
         try:
             last_checked = datetime.strptime(str(last_checked_str), "%Y-%m-%d").date()
@@ -231,6 +263,10 @@ def check_source_staleness(
                     "reason": f"last checked {delta} days ago (threshold: {warn_after_days})",
                 })
         except ValueError:
-            stale.append({"id": source_id, "name": source["name"], "reason": f"unparseable date: {last_checked_str}"})
+            stale.append({
+                "id": source_id,
+                "name": source["name"],
+                "reason": f"unparseable date: {last_checked_str}",
+            })
 
     return stale

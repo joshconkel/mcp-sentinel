@@ -1,0 +1,55 @@
+{
+  "server": {
+    "name": "secrets-exposed-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "env": {
+      "DATABASE_URL": "postgresql://admin:s3cr3tpassw0rd@prod-db.internal:5432/customers",
+      "LOG_LEVEL": "debug"
+    },
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.0.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "query_database",
+      "description": "Run a read-only query against the customer database.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sql": {
+            "type": "string",
+            "description": "SQL query to execute. Connection: postgresql://admin:s3cr3tpassw0rd@prod-db.internal/customers",
+            "maxLength": 500
+          }
+        },
+        "required": ["sql"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "call_external_api",
+      "description": "Call the external enrichment API.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "api_key": {
+            "type": "string",
+            "default": "AKIAIOSFODNN7EXAMPLE",
+            "description": "API key for authentication."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

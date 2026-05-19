@@ -14,10 +14,27 @@ Supported pattern types (Phase 1):
 
 Phase 3 will add:
     dynamic         - live server probe (loaders/live.py + checks/dynamic.py)
+
+Security notes:
+    - Regex patterns are compiled once at CheckRunner construction time
+      rather than at every call to run_pattern(). This catches malformed
+      patterns early and avoids redundant compilation.
+    - Regex flags are validated against an explicit allowlist (_SAFE_RE_FLAGS)
+      before use. getattr(re, flag_name) is not used to prevent arbitrary
+      attribute access on the re module (e.g., accessing re.purge, which is
+      a callable, would cause a TypeError when ORed into an int flags value).
+    - Regex execution uses a thread-based timeout (_REGEX_TIMEOUT_SECS) to
+      guard against catastrophic backtracking on attacker-controlled input.
+      When a pattern times out it is treated as a non-match and a WARNING
+      is logged; the scan continues.
+    - Pattern length is bounded by _MAX_PATTERN_LEN to provide a first line
+      of defence against complex patterns before execution begins.
 """
 
 from __future__ import annotations
 
+import concurrent.futures
+import logging
 import re
 import unicodedata
 from typing import Any
@@ -26,10 +43,46 @@ from mcp_sentinel.models import (
     Finding,
     PatternDefinition,
     RuleDefinition,
-    Severity,
     SourceMapping,
     ToolDefinition,
 )
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Security constants
+# ---------------------------------------------------------------------------
+
+# Maximum character length allowed for a compiled regex pattern.
+# Patterns longer than this are rejected at compile time.
+_MAX_PATTERN_LEN: int = 1_000
+
+# Seconds before a running regex match is considered timed out.
+# The match thread is abandoned (not killed), but the result is discarded
+# and treated as a non-match. Adjust upward if legitimate patterns are slow
+# on large inputs.
+_REGEX_TIMEOUT_SECS: float = 2.0
+
+# Explicit allowlist of regex flag names permitted in rule definitions.
+# Using an allowlist rather than getattr(re, flag_name) prevents:
+#   1. Access to callables on the re module (e.g., re.purge) which would
+#      raise TypeError when ORed into an integer flags value.
+#   2. Access to private or implementation attributes.
+_SAFE_RE_FLAGS: dict[str, re.RegexFlag] = {
+    "IGNORECASE": re.IGNORECASE,
+    "MULTILINE":  re.MULTILINE,
+    "DOTALL":     re.DOTALL,
+    "VERBOSE":    re.VERBOSE,
+    "ASCII":      re.ASCII,
+    "UNICODE":    re.UNICODE,
+    # Common abbreviations
+    "I": re.IGNORECASE,
+    "M": re.MULTILINE,
+    "S": re.DOTALL,
+    "X": re.VERBOSE,
+    "A": re.ASCII,
+    "U": re.UNICODE,
+}
 
 # ---------------------------------------------------------------------------
 # Invisible / zero-width Unicode codepoints flagged by the unicode check type
@@ -58,6 +111,97 @@ DANGEROUS_PARAM_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# Shared thread-pool executor for timed regex execution.
+# Using a module-level executor avoids creating a new pool per match call.
+# max_workers=1 keeps resource usage minimal; regex matches are sequential.
+_regex_executor = concurrent.futures.ThreadPoolExecutor(
+    max_workers=1,
+    thread_name_prefix="mcp-sentinel-regex",
+)
+
+
+# ---------------------------------------------------------------------------
+# Helper: build integer flags from an allowlisted list of flag name strings
+# ---------------------------------------------------------------------------
+
+def _build_re_flags(flag_names: list[str], pattern_desc: str = "") -> int:
+    """
+    Convert a list of flag name strings into a combined re.RegexFlag integer.
+
+    Only names in _SAFE_RE_FLAGS are accepted. Unrecognised names are logged
+    as warnings and skipped rather than raising an exception, so a single
+    bad flag does not abort the entire scan.
+    """
+    flags = 0
+    for name in flag_names:
+        flag = _SAFE_RE_FLAGS.get(name.upper())
+        if flag is None:
+            logger.warning(
+                "Unrecognised regex flag %r in pattern %r — skipping.",
+                name,
+                pattern_desc,
+            )
+            continue
+        flags |= flag
+    return flags
+
+
+# ---------------------------------------------------------------------------
+# Helper: compile and cache regex patterns
+# ---------------------------------------------------------------------------
+
+def _compile_pattern(expression: str, flags: int, description: str = "") -> re.Pattern[str] | None:
+    """
+    Compile expression into a re.Pattern, returning None on failure.
+
+    Validates pattern length before compilation to reject excessively
+    complex patterns that could cause slow compilation or catastrophic
+    backtracking.
+    """
+    if len(expression) > _MAX_PATTERN_LEN:
+        logger.warning(
+            "Regex pattern for %r exceeds maximum length (%d > %d) — skipping.",
+            description,
+            len(expression),
+            _MAX_PATTERN_LEN,
+        )
+        return None
+    try:
+        return re.compile(expression, flags)
+    except re.error as exc:
+        logger.warning("Invalid regex pattern for %r: %s — skipping.", description, exc)
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Helper: execute a compiled regex with a timeout
+# ---------------------------------------------------------------------------
+
+def _timed_search(
+    compiled: re.Pattern[str],
+    value: str,
+) -> re.Match[str] | None:
+    """
+    Run compiled.search(value) in a worker thread with a timeout.
+
+    Returns the Match object on success, or None if no match or if the
+    operation times out. Timeouts are logged as warnings.
+
+    The worker thread is not forcibly killed on timeout (Python does not
+    support that), but the result is discarded and the scan continues.
+    """
+    future = _regex_executor.submit(compiled.search, value)
+    try:
+        return future.result(timeout=_REGEX_TIMEOUT_SECS)
+    except concurrent.futures.TimeoutError:
+        logger.warning(
+            "Regex pattern %r timed out after %.1fs on input of length %d — treating as no-match.",
+            compiled.pattern,
+            _REGEX_TIMEOUT_SECS,
+            len(value),
+        )
+        return None
+
 
 # ---------------------------------------------------------------------------
 # Public entry point
@@ -67,11 +211,29 @@ class CheckRunner:
     """
     Dispatches PatternDefinitions to their appropriate handler and builds
     Finding objects with resolved source mappings.
+
+    All regex patterns are compiled once at construction time. A pattern
+    that fails to compile is skipped with a warning rather than aborting
+    the scan. Regex execution is subject to _REGEX_TIMEOUT_SECS to guard
+    against catastrophic backtracking.
     """
 
     def __init__(self, rule: RuleDefinition, active_sources: dict[str, Any]) -> None:
         self.rule = rule
         self.active_sources = active_sources
+        # Pre-compile all regex patterns; store compiled form keyed by pattern id.
+        # Patterns that fail to compile are stored as None and skipped at match time.
+        self._compiled: dict[int, re.Pattern[str] | None] = {}
+        for pattern in rule.patterns:
+            if pattern.type in {"regex", "schema_analysis"}:
+                expression = pattern.expression or ""
+                if not expression:
+                    self._compiled[id(pattern)] = None
+                    continue
+                flags = _build_re_flags(pattern.flags, pattern.description)
+                self._compiled[id(pattern)] = _compile_pattern(
+                    expression, flags, pattern.description
+                )
 
     def run_pattern(
         self,
@@ -124,15 +286,11 @@ class CheckRunner:
     # -----------------------------------------------------------------------
 
     def _check_regex(self, pattern: PatternDefinition, value: str) -> str | None:
-        if not pattern.expression:
+        compiled = self._compiled.get(id(pattern))
+        if compiled is None:
             return None
-        flags = 0
-        for f in pattern.flags:
-            flags |= getattr(re, f, 0)
-        m = re.search(pattern.expression, value, flags)
-        if m:
-            return m.group(0)
-        return None
+        m = _timed_search(compiled, value)
+        return m.group(0) if m else None
 
     def _check_length(self, pattern: PatternDefinition, value: str) -> str | None:
         threshold = pattern.threshold_chars or 0
@@ -157,9 +315,8 @@ class CheckRunner:
             return None
 
         # value_in: field value must be one of a set
-        if "value_in" in cond:
-            if str(value) in [str(v) for v in cond["value_in"]]:
-                return str(value)
+        if "value_in" in cond and str(value) in [str(v) for v in cond["value_in"]]:
+            return str(value)
 
         # missing_fields: a dict must be missing expected keys
         if "missing_fields" in cond and isinstance(value, dict):
@@ -168,9 +325,12 @@ class CheckRunner:
                 return f"missing: {', '.join(missing)}"
 
         # matches_unpinned: version string matches unpinned patterns
-        if cond.get("matches_unpinned") and isinstance(value, str):
-            if not value or UNPINNED_VERSION_PATTERNS.match(value):
-                return value or "(empty)"
+        if (
+            cond.get("matches_unpinned")
+            and isinstance(value, str)
+            and (not value or UNPINNED_VERSION_PATTERNS.match(value))
+        ):
+            return value or "(empty)"
 
         return None
 
@@ -183,16 +343,16 @@ class CheckRunner:
 
         # Flag string properties with dangerous names that lack constraints
         if "field_name_matches" in cond and "missing_constraints" in cond:
-            name_pattern = cond["field_name_matches"].get("regex", "")
-            name_flags = 0
-            for f in cond["field_name_matches"].get("flags", []):
-                name_flags |= getattr(re, f, 0)
+            compiled = self._compiled.get(id(pattern))
+            if compiled is None:
+                return None
             required_constraints = cond["missing_constraints"]
 
             for prop_name, prop_def in properties.items():
                 if not isinstance(prop_def, dict):
                     continue
-                if not re.search(name_pattern, prop_name, name_flags):
+                m = _timed_search(compiled, prop_name)
+                if not m:
                     continue
                 if prop_def.get("type") != cond.get("field_type", prop_def.get("type")):
                     continue

@@ -1,0 +1,87 @@
+{
+  "server": {
+    "name": "example-safe-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "1.4.2",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ],
+    "env": {
+      "LOG_LEVEL": "info",
+      "ENVIRONMENT": "production"
+    },
+    "websocket": {
+      "origins": ["https://app.example.com", "https://admin.example.com"]
+    }
+  },
+  "tools": [
+    {
+      "name": "search_knowledge_base",
+      "description": "Search the knowledge base for articles matching a keyword query.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search keywords to look up in the knowledge base.",
+            "maxLength": 200
+          },
+          "max_results": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 5
+          }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_article",
+      "description": "Retrieve a specific knowledge base article by its ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "article_id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "description": "The unique identifier of the article to retrieve."
+          }
+        },
+        "required": ["article_id"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "create_support_ticket",
+      "description": "Create a new support ticket with a title and description.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Short summary of the issue."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Full description of the problem."
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"],
+            "description": "Ticket priority level."
+          }
+        },
+        "required": ["title", "description"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
