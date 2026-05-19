@@ -134,7 +134,7 @@ rules:
           flags: [IGNORECASE]
         - type: regex
           description: "Connection string with embedded credentials"
-          expression: "(mongodb|postgres|mysql|redis|amqp)://[^:]+:[^@]+@"
+          expression: "(mongodb|postgres(?:ql)?|mysql|redis|amqp)://[^:]+:[^@]+@"
           flags: [IGNORECASE]
         - type: keyword
           description: "Plaintext placeholder that may be replaced with real value at runtime"
