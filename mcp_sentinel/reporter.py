@@ -113,9 +113,9 @@ class TerminalReporter(BaseFormatter):
         show_remediation: bool = False,
         **kwargs: Any,
     ) -> None:
-        import mcp_sentinel
         from rich.console import Console
         from rich.rule import Rule
+        import mcp_sentinel
 
         console = Console()
 
@@ -463,8 +463,8 @@ class HtmlReporter(BaseFormatter):
         # Fix: Use Environment(autoescape=True) instead of Template() directly.
         # Template() uses autoescape=False by default (Semgrep rule:
         # python.jinja2.security.audit.autoescape-disabled).
-        import mcp_sentinel
         from jinja2 import BaseLoader, Environment
+        import mcp_sentinel
 
         env = Environment(autoescape=True, loader=BaseLoader())
         template = env.from_string(HTML_TEMPLATE)

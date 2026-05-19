@@ -6,7 +6,6 @@ Nothing in this module has external dependencies beyond the standard library.
 """
 
 from __future__ import annotations
-
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
