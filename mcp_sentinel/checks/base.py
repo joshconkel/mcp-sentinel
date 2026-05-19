@@ -43,7 +43,6 @@ from mcp_sentinel.models import (
     Finding,
     PatternDefinition,
     RuleDefinition,
-    Severity,
     SourceMapping,
     ToolDefinition,
 )
@@ -316,9 +315,8 @@ class CheckRunner:
             return None
 
         # value_in: field value must be one of a set
-        if "value_in" in cond:
-            if str(value) in [str(v) for v in cond["value_in"]]:
-                return str(value)
+        if "value_in" in cond and str(value) in [str(v) for v in cond["value_in"]]:
+            return str(value)
 
         # missing_fields: a dict must be missing expected keys
         if "missing_fields" in cond and isinstance(value, dict):
@@ -327,9 +325,12 @@ class CheckRunner:
                 return f"missing: {', '.join(missing)}"
 
         # matches_unpinned: version string matches unpinned patterns
-        if cond.get("matches_unpinned") and isinstance(value, str):
-            if not value or UNPINNED_VERSION_PATTERNS.match(value):
-                return value or "(empty)"
+        if (
+            cond.get("matches_unpinned")
+            and isinstance(value, str)
+            and (not value or UNPINNED_VERSION_PATTERNS.match(value))
+        ):
+            return value or "(empty)"
 
         return None
 

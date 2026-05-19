@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 from mcp_sentinel.loaders.schema import load
-from mcp_sentinel.models import RuleDefinition, RuleStatus, Severity, DetectionType
+from mcp_sentinel.models import RuleDefinition, Severity
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -273,7 +273,7 @@ class TestEngineIntegration:
         assert score.risk_label == "CLEAN"
 
     def test_risk_score_capped_at_100(self):
-        from mcp_sentinel.models import Finding, RiskScore, Severity, SourceMapping
+        from mcp_sentinel.models import Finding, RiskScore, Severity
         findings = [
             Finding(
                 rule_id="MCPS-001", rule_name="Test", severity=Severity.CRITICAL,

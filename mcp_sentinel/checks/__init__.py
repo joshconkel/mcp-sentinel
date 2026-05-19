@@ -11,7 +11,8 @@ adding a new check requires only registering it here.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from mcp_sentinel.models import Finding, RuleDefinition, ServerDefinition
@@ -42,9 +43,9 @@ def _ensure_loaded() -> None:
     if _REGISTRY:
         return
     from mcp_sentinel.checks import (  # noqa: F401
-        tool_poisoning,
-        secrets,
         parameters,
-        transport,
         provenance,
+        secrets,
+        tool_poisoning,
+        transport,
     )

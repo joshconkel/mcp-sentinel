@@ -11,7 +11,7 @@ See THREAT-MODEL.md for the full attack scenario.
 from __future__ import annotations
 
 from mcp_sentinel.checks import register
-from mcp_sentinel.checks.base import INVISIBLE_CODEPOINTS, CheckRunner
+from mcp_sentinel.checks.base import CheckRunner
 from mcp_sentinel.models import Finding, RuleDefinition, ServerDefinition
 
 
@@ -34,11 +34,7 @@ def run(server_def: ServerDefinition, rule: RuleDefinition) -> list[Finding]:
         for pattern in rule.patterns:
             field_name = "tool.description"
 
-            if pattern.type == "unicode":
-                value_to_check = tool.description
-            elif pattern.type == "length":
-                value_to_check = tool.description
-            elif pattern.type == "regex":
+            if pattern.type in {"length", "regex", "unicode"}:
                 value_to_check = tool.description
             else:
                 continue

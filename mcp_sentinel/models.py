@@ -159,7 +159,7 @@ class RiskScore:
     findings:    list[Finding]
 
     @classmethod
-    def from_findings(cls, findings: list[Finding]) -> "RiskScore":
+    def from_findings(cls, findings: list[Finding]) -> RiskScore:
         raw_score = sum(f.severity.score for f in findings)
         by_sev: dict[Severity, int] = {s: 0 for s in Severity}
         by_tool: dict[str, int] = {}
@@ -196,7 +196,8 @@ class RiskScore:
 @dataclass
 class PatternDefinition:
     """A single detection pattern within a rule's detection block."""
-    type:              str                 # regex | value_check | schema_analysis | unicode | length
+    # pattern types: regex | value_check | schema_analysis | unicode | length
+    type:              str
     description:       str                 = ""
     # regex fields
     expression:        str | None          = None
@@ -256,7 +257,7 @@ class SourceDefinition:
     github:           str | None = None
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "SourceDefinition":
+    def from_dict(cls, data: dict[str, Any]) -> SourceDefinition:
         """Construct a SourceDefinition from a raw sources.yaml entry dict."""
         return cls(
             id=data["id"],

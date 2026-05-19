@@ -113,11 +113,9 @@ class TerminalReporter(BaseFormatter):
         show_remediation: bool = False,
         **kwargs: Any,
     ) -> None:
+        import mcp_sentinel
         from rich.console import Console
         from rich.rule import Rule
-        from rich.table import Table
-        from rich import box
-        import mcp_sentinel
 
         console = Console()
 
@@ -168,8 +166,8 @@ class TerminalReporter(BaseFormatter):
             console.print(f"{'':12}[dim]Remediation:[/dim] {f.remediation[:200]}")
 
     def _print_summary(self, console: Any, score: RiskScore) -> None:
-        from rich.table import Table
         from rich import box
+        from rich.table import Table
 
         console.print("\n[bold]Risk Summary[/bold]")
 
@@ -465,8 +463,8 @@ class HtmlReporter(BaseFormatter):
         # Fix: Use Environment(autoescape=True) instead of Template() directly.
         # Template() uses autoescape=False by default (Semgrep rule:
         # python.jinja2.security.audit.autoescape-disabled).
-        from jinja2 import Environment, BaseLoader
         import mcp_sentinel
+        from jinja2 import BaseLoader, Environment
 
         env = Environment(autoescape=True, loader=BaseLoader())
         template = env.from_string(HTML_TEMPLATE)
