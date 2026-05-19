@@ -83,6 +83,7 @@ def scan(
         mcp-sentinel scan --schema ./my-server.json --report json --fail-on HIGH
     """
     from mcp_sentinel.engine import scan as engine_scan
+
     from mcp_sentinel.loaders.schema import LoadError, load
     from mcp_sentinel.models import Severity
     from mcp_sentinel.reporter import get_reporter
@@ -144,6 +145,7 @@ def rules_list(
 ) -> None:
     """List all active rules with their severity and source mappings."""
     from mcp_sentinel.engine import load_rules, load_sources
+
     from mcp_sentinel.models import Severity
 
     rules = load_rules(rules_path)
