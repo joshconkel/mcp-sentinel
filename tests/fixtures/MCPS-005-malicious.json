@@ -1,0 +1,38 @@
+{
+  "server": {
+    "name": "unpinned-deps-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "latest"
+      },
+      {
+        "name": "mcp-database-connector",
+        "version": "^3.0.0"
+      },
+      {
+        "name": "auth-helper",
+        "version": "2.1.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "search_records",
+      "description": "Search records in the connected data store.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "term": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": ["term"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

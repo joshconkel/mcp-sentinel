@@ -6,6 +6,15 @@ Three formatters derive from BaseFormatter:
   JsonReporter      - Machine-readable JSON for CI/CD pipelines
   HtmlReporter      - Stakeholder-facing HTML report with Jinja2
 
+Security notes:
+  - HtmlReporter uses Jinja2 Environment(autoescape=True) to prevent XSS.
+    All template variables are HTML-escaped before rendering.
+  - Source mapping URLs are validated to only permit https:// and http://
+    schemes before being rendered as href attributes, preventing
+    javascript: URI injection.
+  - Timestamps use datetime.now(timezone.utc) (utcnow() is deprecated
+    in Python 3.12+).
+
 Usage (from engine output):
     score = engine.scan(server_def)
     TerminalReporter().report(score, source_path="my-server.json")
@@ -16,12 +25,16 @@ Usage (from engine output):
 from __future__ import annotations
 
 import json
+import logging
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from mcp_sentinel.models import Finding, RiskScore, Severity
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Color / label helpers shared across formatters
@@ -50,6 +63,27 @@ RISK_LABEL_COLORS: dict[str, str] = {
     "LOW":      "cyan",
     "CLEAN":    "bold green",
 }
+
+# URL schemes permitted in href attributes in the HTML report.
+# javascript: and data: are explicitly excluded to prevent XSS.
+_ALLOWED_URL_SCHEMES: frozenset[str] = frozenset({"https", "http"})
+
+
+def _sanitize_url(url: str) -> str:
+    """
+    Return url if its scheme is in _ALLOWED_URL_SCHEMES, otherwise '#'.
+
+    Prevents javascript: and data: URI injection in HTML href attributes.
+    The Jinja2 autoescaping handles HTML-entity encoding; this function
+    handles scheme-level injection independently.
+    """
+    if not url:
+        return "#"
+    try:
+        scheme = urlparse(url).scheme.lower()
+    except ValueError:
+        return "#"
+    return url if scheme in _ALLOWED_URL_SCHEMES else "#"
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +114,6 @@ class TerminalReporter(BaseFormatter):
         **kwargs: Any,
     ) -> None:
         from rich.console import Console
-        from rich.panel import Panel
         from rich.rule import Rule
         from rich.table import Table
         from rich import box
@@ -112,8 +145,6 @@ class TerminalReporter(BaseFormatter):
         self._print_summary(console, score)
 
     def _print_finding(self, console: Any, f: Finding, show_remediation: bool) -> None:
-        from rich.text import Text
-
         sev_color = SEVERITY_COLORS.get(f.severity, "white")
         exp_tag = " [dim](experimental)[/dim]" if f.experimental else ""
 
@@ -195,7 +226,9 @@ class JsonReporter(BaseFormatter):
             "meta": {
                 "tool": "mcp-sentinel",
                 "source": source_path,
-                "generated": datetime.utcnow().isoformat() + "Z",
+                # Fix: datetime.utcnow() is deprecated in Python 3.12+.
+                # Use datetime.now(timezone.utc) instead.
+                "generated": datetime.now(timezone.utc).isoformat(),
             },
             "score": {
                 "overall": score.overall,
@@ -213,13 +246,13 @@ class JsonReporter(BaseFormatter):
 
     def _finding_to_dict(self, f: Finding) -> dict[str, Any]:
         return {
-            "rule_id":    f.rule_id,
-            "rule_name":  f.rule_name,
-            "severity":   f.severity.value,
-            "field":      f.field,
-            "tool_name":  f.tool_name,
-            "match":      f.match,
-            "detail":     f.detail,
+            "rule_id":      f.rule_id,
+            "rule_name":    f.rule_name,
+            "severity":     f.severity.value,
+            "field":        f.field,
+            "tool_name":    f.tool_name,
+            "match":        f.match,
+            "detail":       f.detail,
             "experimental": f.experimental,
             "mappings": [
                 {
@@ -227,7 +260,8 @@ class JsonReporter(BaseFormatter):
                     "source_name": m.source_name,
                     "entry_id":    m.entry_id,
                     "entry_name":  m.entry_name,
-                    "entry_url":   m.entry_url,
+                    # Sanitize URLs in JSON output for consistency with HTML output.
+                    "entry_url":   _sanitize_url(m.entry_url),
                 }
                 for m in f.source_mappings
             ],
@@ -236,7 +270,7 @@ class JsonReporter(BaseFormatter):
 
 
 # ---------------------------------------------------------------------------
-# HTML reporter (Jinja2)
+# HTML reporter (Jinja2 with autoescape=True)
 # ---------------------------------------------------------------------------
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -244,6 +278,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; script-src 'none';">
 <title>mcp-sentinel Report: {{ source_path }}</title>
 <style>
   :root {
@@ -335,12 +371,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   {% if f.source_mappings %}
   <div class="mappings">
     {% for m in f.source_mappings %}
-    <a href="{{ m.entry_url }}" class="mapping-tag" target="_blank">{{ m.source_name }} {{ m.entry_id }}</a>
+    {# safe_url is pre-validated in Python to only permit https/http schemes. #}
+    <a href="{{ m.safe_url }}" class="mapping-tag" target="_blank" rel="noopener noreferrer">
+      {{- m.source_name }} {{ m.entry_id -}}
+    </a>
     {% endfor %}
   </div>
   {% endif %}
   {% if f.remediation %}
-  <div class="remediation"><strong>Remediation:</strong> {{ f.remediation[:400] }}{% if f.remediation|length > 400 %}... (see THREAT-MODEL.md for full guidance){% endif %}</div>
+  <div class="remediation"><strong>Remediation:</strong>
+    {{ f.remediation[:400] }}{% if f.remediation|length > 400 %}... (see THREAT-MODEL.md for full guidance){% endif %}
+  </div>
   {% endif %}
 </div>
 {% endfor %}
@@ -349,15 +390,70 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 {% endif %}
 
 <footer>
-  Generated by <a href="https://github.com/joshconkel/mcp-sentinel" style="color: #60a5fa">mcp-sentinel</a>.
+  Generated by
+  <a href="https://github.com/joshconkel/mcp-sentinel" style="color: #60a5fa"
+     rel="noopener noreferrer">mcp-sentinel</a>.
   Findings mapped to OWASP MCP Top 10, OWASP Agentic Top 10 2026, MITRE ATLAS, and NIST AI RMF.
 </footer>
 </body>
 </html>"""
 
 
+class _FindingView:
+    """
+    Wraps a Finding for safe template rendering.
+
+    Exposes all Finding attributes plus pre-sanitized source mapping URLs.
+    Used by HtmlReporter to avoid passing raw Finding objects directly into
+    the Jinja2 context, which would expose unsanitized entry_url values.
+    """
+    __slots__ = (
+        "rule_id", "rule_name", "severity", "field", "tool_name",
+        "match", "detail", "experimental", "remediation", "source_mappings",
+    )
+
+    def __init__(self, finding: Finding) -> None:
+        self.rule_id        = finding.rule_id
+        self.rule_name      = finding.rule_name
+        self.severity       = finding.severity.value
+        self.field          = finding.field
+        self.tool_name      = finding.tool_name
+        self.match          = finding.match
+        self.detail         = finding.detail
+        self.experimental   = finding.experimental
+        self.remediation    = finding.remediation
+        # Pre-sanitize URLs so the template never receives a javascript: href.
+        self.source_mappings = [
+            _MappingView(m) for m in finding.source_mappings
+        ]
+
+
+class _MappingView:
+    """Wraps a SourceMapping with a pre-validated safe_url attribute."""
+
+    __slots__ = ("source_id", "source_name", "entry_id", "entry_name", "safe_url")
+
+    def __init__(self, mapping: Any) -> None:
+        self.source_id   = mapping.source_id
+        self.source_name = mapping.source_name
+        self.entry_id    = mapping.entry_id
+        self.entry_name  = mapping.entry_name
+        # Validate scheme before exposing as href. Blocks javascript:/data: URIs.
+        self.safe_url    = _sanitize_url(mapping.entry_url)
+
+
 class HtmlReporter(BaseFormatter):
-    """Jinja2-rendered HTML report for stakeholder distribution."""
+    """
+    Jinja2-rendered HTML report for stakeholder distribution.
+
+    Security hardening:
+      - Environment(autoescape=True) escapes all {{ }} interpolations as HTML
+        entities, preventing XSS from untrusted finding content.
+      - Source mapping URLs are validated to https/http schemes only via
+        _FindingView / _MappingView before being passed to the template.
+      - A Content-Security-Policy meta tag in the template blocks inline
+        scripts and disallows external resource loads.
+    """
 
     def report(
         self,
@@ -366,10 +462,14 @@ class HtmlReporter(BaseFormatter):
         source_path: str = "",
         **kwargs: Any,
     ) -> None:
-        from jinja2 import Template
+        # Fix: Use Environment(autoescape=True) instead of Template() directly.
+        # Template() uses autoescape=False by default (Semgrep rule:
+        # python.jinja2.security.audit.autoescape-disabled).
+        from jinja2 import Environment, BaseLoader
         import mcp_sentinel
 
-        template = Template(HTML_TEMPLATE)
+        env = Environment(autoescape=True, loader=BaseLoader())
+        template = env.from_string(HTML_TEMPLATE)
 
         score_color = SEVERITY_HTML_COLORS.get(score.risk_label, "#6b7280")
         if score.risk_label == "CLEAN":
@@ -377,10 +477,12 @@ class HtmlReporter(BaseFormatter):
 
         html = template.render(
             source_path=source_path,
-            generated=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+            # Fix: datetime.utcnow() deprecated in Python 3.12+.
+            generated=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
             version=mcp_sentinel.__version__,
             score=score,
-            findings=score.findings,
+            # Use _FindingView wrappers so template receives pre-sanitized URLs.
+            findings=[_FindingView(f) for f in score.findings],
             by_severity={k.value: v for k, v in score.by_severity.items()},
             by_tool=score.by_tool,
             sev_colors=SEVERITY_HTML_COLORS,
@@ -389,7 +491,7 @@ class HtmlReporter(BaseFormatter):
 
         if out_path:
             out_path.write_text(html, encoding="utf-8")
-            print(f"HTML report written to: {out_path}")
+            logger.info("HTML report written to: %s", out_path)
         else:
             print(html)
 

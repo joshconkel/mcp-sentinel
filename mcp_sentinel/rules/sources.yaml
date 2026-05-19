@@ -1,0 +1,92 @@
+# mcp-sentinel: Threat Intelligence Source Registry
+# Add new sources here. Each source requires an id, name, url, and entry_prefix.
+# The entry_prefix is how rule mappings reference items in this source (e.g. "MCP01", "ASI01", "AML.T0051").
+
+version: "1.0"
+schema_version: "1.0"
+last_updated: "2026-05-16"
+
+sources:
+
+  - id: owasp-mcp
+    name: "OWASP MCP Top 10"
+    description: >
+      The most critical security concerns arising in the lifecycle of MCP-enabled
+      systems. A living document maintained by OWASP GenAI Security Project.
+    url: "https://owasp.org/www-project-mcp-top-10/"
+    github: "https://github.com/OWASP/www-project-mcp-top-10"
+    version: "2025"
+    entry_prefix: "MCP"
+    entry_format: "MCP{nn}"          # e.g. MCP01, MCP02
+    update_frequency: quarterly
+    last_checked: "2026-05-16"
+    active: true
+
+  - id: owasp-agentic
+    name: "OWASP Top 10 for Agentic Applications"
+    description: >
+      Globally peer-reviewed framework identifying the most critical risks facing
+      autonomous and agentic AI systems. Developed by 100+ industry experts.
+    url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    github: "https://github.com/OWASP/www-project-top-10-for-large-language-model-applications"
+    version: "2026"
+    entry_prefix: "ASI"
+    entry_format: "ASI{nn}"          # e.g. ASI01, ASI02
+    update_frequency: annually
+    last_checked: "2026-05-16"
+    active: true
+
+  - id: owasp-llm
+    name: "OWASP Top 10 for Large Language Model Applications"
+    description: >
+      The foundational LLM risk framework. Agentic risks build on and extend these.
+      Useful for mapping checks that originate at the LLM layer rather than MCP layer.
+    url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+    github: "https://github.com/OWASP/www-project-top-10-for-large-language-model-applications"
+    version: "2025"
+    entry_prefix: "LLM"
+    entry_format: "LLM{nn}"          # e.g. LLM01, LLM07
+    update_frequency: annually
+    last_checked: "2026-05-16"
+    active: true
+
+  - id: mitre-atlas
+    name: "MITRE ATLAS"
+    description: >
+      Adversarial Threat Landscape for AI Systems. A structured knowledge base of
+      adversary tactics and techniques against ML/AI systems, analogous to ATT&CK.
+    url: "https://atlas.mitre.org/"
+    github: "https://github.com/mitre-atlas/atlas-data"
+    version: "4.5"
+    entry_prefix: "AML"
+    entry_format: "AML.T{nnnn}[.nnn]"  # e.g. AML.T0051, AML.T0048.002
+    update_frequency: biannually
+    last_checked: "2026-05-16"
+    active: true
+
+  - id: nist-ai-rmf
+    name: "NIST AI Risk Management Framework"
+    description: >
+      NIST framework for managing risks to the trustworthiness of AI systems.
+      Organized into GOVERN, MAP, MEASURE, MANAGE functions with subcategories.
+    url: "https://airc.nist.gov/Home"
+    version: "1.0"
+    entry_prefix: "GOVERN|MAP|MEASURE|MANAGE"
+    entry_format: "{FUNCTION} {n}.{n}"  # e.g. GOVERN 1.1, MANAGE 2.4
+    update_frequency: annually
+    last_checked: "2026-05-16"
+    active: true
+
+  # Placeholder: add new sources without changing any rule files.
+  # Sources not referenced by any rule are safely ignored at runtime.
+  #
+  # - id: custom-internal
+  #   name: "Acme Corp Internal AppSec Standards"
+  #   description: Internal controls that extend public frameworks.
+  #   url: "https://wiki.internal/appsec/mcp-controls"
+  #   version: "1.2"
+  #   entry_prefix: "ACME"
+  #   entry_format: "ACME-{nnn}"
+  #   update_frequency: ad_hoc
+  #   last_checked: "2026-05-16"
+  #   active: false

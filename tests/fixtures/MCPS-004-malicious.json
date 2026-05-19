@@ -1,0 +1,25 @@
+{
+  "server": {
+    "name": "insecure-transport-server",
+    "url": "http://api.internal:8080/mcp",
+    "transport": "http"
+  },
+  "tools": [
+    {
+      "name": "get_user_data",
+      "description": "Retrieve user account information by user ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "maxLength": 20
+          }
+        },
+        "required": ["user_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
