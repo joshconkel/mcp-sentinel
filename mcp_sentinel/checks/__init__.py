@@ -7,6 +7,18 @@ that is called by the engine for rules matching that module's rule ID.
 The @register decorator maps rule IDs to check functions. The engine
 calls get_check(rule_id) without knowing individual module names, so
 adding a new check requires only registering it here.
+
+Dedicated modules (MCPS-001 to MCPS-005)
+-----------------------------------------
+Rules with complex Python-level detection logic that cannot be expressed
+purely through the YAML pattern schema have dedicated check modules.
+
+Generic module (MCPS-006 to MCPS-020 and beyond)
+--------------------------------------------------
+Rules whose detection logic is fully expressed in rules.yaml (targets +
+detection patterns) are handled by checks/generic.py. Adding a new rule
+in this category requires only an entry in rules.yaml and a line in
+generic._GENERIC_RULE_IDS. No new Python file is needed.
 """
 
 from __future__ import annotations
@@ -43,6 +55,7 @@ def _ensure_loaded() -> None:
     if _REGISTRY:
         return
     from mcp_sentinel.checks import (  # noqa: F401
+        generic,
         parameters,
         provenance,
         secrets,
