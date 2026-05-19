@@ -1,18 +1,21 @@
 # mcp-sentinel: Rule Definitions
 # Each rule maps to one or more entries in sources.yaml via source `id`.
-# Add new rules freely; unused source mappings are ignored at runtime.
+# Adding a new framework requires one entry in sources.yaml only.
 #
 # Severity levels: CRITICAL | HIGH | MEDIUM | LOW | INFO
 # Detection types: static | dynamic | both
-# Status: active | experimental | deprecated
+# Status:          active | experimental | deprecated
+#
+# Rules MCPS-001 through MCPS-005 are active (tested with fixtures).
+# Rules MCPS-006 through MCPS-020 are experimental (awaiting fixtures).
 
 version: "1.0"
 schema_version: "1.0"
-last_updated: "2026-05-16"
+last_updated: "2026-05-19"
 
 rules:
 
-  # ────────────────────────────────────────────────────────────────────────────
+  # ──────────────────────────────────────────────────────────────────────────
   - id: MCPS-001
     name: "Tool Poisoning via Description Field"
     status: active
@@ -21,48 +24,46 @@ rules:
     detection_type: static
 
     description: >
-      MCP tool `description` fields are treated as authoritative context by the
-      LLM. A malicious or compromised server may embed hidden instructions in
-      these fields to redirect agent behavior, override system prompts, exfiltrate
-      conversation content, or grant itself elevated capabilities. This is
-      especially dangerous because descriptions are typically trusted without
-      validation by the agent runtime.
+      MCP tool description fields are treated as authoritative context by the LLM.
+      A malicious or compromised server may embed hidden instructions in these fields
+      to redirect agent behavior, override system prompts, exfiltrate conversation
+      content, or grant itself elevated capabilities. This is the most direct path
+      from a compromised tool definition to full agent compromise.
 
     targets:
       - field: tool.description
-      - field: tool.name
       - field: tool.annotations
 
     detection:
       patterns:
         - type: regex
           description: "Instruction override language"
-          expression: "(ignore|override|forget|disregard).{0,60}(system|instructions|previous|above)"
+          expression: '(ignore|override|forget|disregard).{0,60}(system|instructions|previous|above)'
           flags: [IGNORECASE]
         - type: regex
           description: "Hidden behavior directive"
-          expression: "(also|additionally|always).{0,30}(when (called|invoked|used))"
+          expression: '(also|additionally|always).{0,30}(when (called|invoked|used))'
           flags: [IGNORECASE]
         - type: regex
-          description: "Capability self-grant"
-          expression: "(you (now have|are allowed|can now)|grant(ed)? (you|the model))"
+          description: "Capability self-grant language"
+          expression: '(you (now have|are allowed|can now)|grant(ed)? (you|the model))'
           flags: [IGNORECASE]
         - type: length
-          description: "Suspiciously long description (possible hidden payload)"
+          description: "Suspiciously long description suggesting hidden payload"
           threshold_chars: 600
           severity_override: MEDIUM
         - type: unicode
-          description: "Zero-width or invisible characters used to hide content"
+          description: "Zero-width or invisible characters used to conceal content"
           flag_codepoints: ["U+200B", "U+200C", "U+200D", "U+FEFF", "U+2060"]
 
     mappings:
       owasp-mcp:
         id: "MCP02"
-        name: "Insecure Tool & Resource Management"
+        name: "Insecure Tool and Resource Management"
         url: "https://owasp.org/www-project-mcp-top-10/#mcp02"
       owasp-agentic:
         id: "ASI02"
-        name: "Tool Misuse & Exploitation"
+        name: "Tool Misuse and Exploitation"
         url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
       owasp-llm:
         id: "LLM01"
@@ -79,25 +80,22 @@ rules:
 
     remediation: >
       (1) Validate all tool descriptions against an allowlist of safe structural
-      patterns before registering the tool. (2) Enforce a character length cap on
-      descriptions (recommended: ≤300 chars for display, ≤600 for extended).
-      (3) Scan for invisible Unicode characters. (4) Use LLM-assisted semantic
-      analysis as a second pass for subtle manipulation that regex cannot catch.
-      (5) Pin and verify tool definitions against a known-good hash on each load.
+      patterns before registering the tool. (2) Enforce a maximum character length
+      on descriptions. (3) Scan for invisible Unicode characters at load time.
+      (4) Pin and verify tool definitions against a known-good hash on each load.
+      (5) Use LLM-assisted semantic analysis as a second pass for subtle manipulation.
 
     references:
       - "https://owasp.org/www-project-mcp-top-10/"
       - "https://arxiv.org/abs/2402.14697"
-      - "https://www.anthropic.com/research/prompt-injection"
-
     tags: [tool-poisoning, prompt-injection, static, supply-chain]
     added: "2026-05-16"
-    updated: "2026-05-16"
+    updated: "2026-05-19"
 
 
-  # ────────────────────────────────────────────────────────────────────────────
+  # ──────────────────────────────────────────────────────────────────────────
   - id: MCPS-002
-    name: "Secret & Token Exposure in Tool Definitions"
+    name: "Secret and Token Exposure in Tool Definitions"
     status: active
     severity: CRITICAL
     category: secret-management
@@ -105,56 +103,54 @@ rules:
 
     description: >
       Hard-coded credentials, API keys, connection strings, or long-lived tokens
-      embedded in MCP server definitions (tool parameters, default values,
-      environment variable references, or documentation fields) expose sensitive
-      environments to unauthorized access. Attackers can retrieve these through
-      prompt injection, compromised context windows, or debug traces.
+      embedded in MCP server definitions expose sensitive environments to unauthorized
+      access. Attackers can retrieve these through prompt injection, compromised context
+      windows, or debug traces. The LLM itself may reproduce embedded credentials in
+      its outputs.
 
     targets:
-      - field: tool.inputSchema.properties.*.default
-      - field: tool.inputSchema.properties.*.description
       - field: tool.description
+      - field: tool.inputSchema
       - field: server.env
       - field: server.config
 
     detection:
       patterns:
         - type: regex
-          description: "Generic high-entropy secret pattern"
-          expression: "[A-Za-z0-9+/]{40,}"
-          flags: []
-          notes: "Follow up with entropy check; exclude known safe base64 blobs"
-        - type: regex
-          description: "AWS access key"
-          expression: "AKIA[0-9A-Z]{16}"
+          description: "Generic high-entropy string (possible secret)"
+          expression: '[A-Za-z0-9+/]{40,}'
           flags: []
         - type: regex
-          description: "Generic API key assignment"
-          expression: "(api[_-]?key|secret|token|password|passwd|credential)[\\s]*[=:][\\s]*['\"]?[A-Za-z0-9_\\-]{16,}"
+          description: "AWS access key prefix"
+          expression: 'AKIA[0-9A-Z]{16}'
+          flags: []
+        - type: regex
+          description: "Generic API key or secret assignment"
+          expression: '(api[_-]?key|secret|token|password|passwd|credential)[ \t]*[=:][ \t]*[A-Za-z0-9_-]{16,}'
           flags: [IGNORECASE]
         - type: regex
           description: "Connection string with embedded credentials"
-          expression: "(mongodb|postgres(?:ql)?|mysql|redis|amqp)://[^:]+:[^@]+@"
+          expression: '(mongodb|postgres(?:ql)?|mysql|redis|amqp)://[^:]+:[^@]+@'
           flags: [IGNORECASE]
-        - type: keyword
-          description: "Plaintext placeholder that may be replaced with real value at runtime"
-          match: ["<API_KEY>", "<SECRET>", "YOUR_KEY_HERE", "REPLACE_ME"]
-          severity_override: INFO
+        - type: regex
+          description: "Private key or certificate marker"
+          expression: '-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'
+          flags: []
 
     mappings:
       owasp-mcp:
         id: "MCP01"
-        name: "Token Mismanagement & Secret Exposure"
+        name: "Token Mismanagement and Secret Exposure"
         url: "https://owasp.org/www-project-mcp-top-10/#mcp01"
       owasp-llm:
         id: "LLM02"
         name: "Sensitive Information Disclosure"
         url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
       mitre-atlas:
-        id: "AML.T0048.002"
-        name: "Backdoor ML Model"
-        url: "https://atlas.mitre.org/techniques/AML.T0048/002"
-        notes: "Credential theft enables persistent access analogous to ML backdoor implant"
+        id: "AML.T0048"
+        name: "Societal Harm"
+        url: "https://atlas.mitre.org/techniques/AML.T0048"
+        notes: "Credential theft enables persistent access"
       nist-ai-rmf:
         id: "GOVERN 1.1"
         name: "Policies and processes are in place for AI risk management"
@@ -162,23 +158,20 @@ rules:
 
     remediation: >
       (1) Never embed credentials in tool definitions; use environment variable
-      references that are resolved at runtime outside the MCP schema.
-      (2) Integrate secret-scanning (truffleHog, Gitleaks) into your MCP server
-      CI pipeline. (3) Use short-lived, scoped credentials with automatic rotation.
-      (4) Ensure MCP protocol logs and debug traces exclude credential fields.
-      (5) Apply field-level redaction before any tool schema is sent to the model.
+      references resolved at runtime outside the MCP schema. (2) Integrate
+      secret-scanning into your CI pipeline. (3) Use short-lived, scoped
+      credentials with automatic rotation. (4) Apply field-level redaction before
+      any tool schema is sent to the model.
 
     references:
       - "https://owasp.org/www-project-mcp-top-10/#mcp01"
       - "https://trufflesecurity.com/trufflehog"
-      - "https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning"
-
     tags: [secrets, token-exposure, static, credential-hygiene]
     added: "2026-05-16"
-    updated: "2026-05-16"
+    updated: "2026-05-19"
 
 
-  # ────────────────────────────────────────────────────────────────────────────
+  # ──────────────────────────────────────────────────────────────────────────
   - id: MCPS-003
     name: "Overly Permissive Parameter Schemas"
     status: active
@@ -188,35 +181,24 @@ rules:
 
     description: >
       MCP tools that accept unrestricted string parameters for shell commands,
-      file paths, SQL queries, or arbitrary URLs create a direct path from
-      agent-controlled input to privileged system operations. When an agent can
-      be induced (via prompt injection or goal hijacking) to call such a tool
-      with attacker-controlled values, the result is effectively command
-      injection, path traversal, SSRF, or SQLi — classic vulnerabilities in a
-      new attack chain.
+      file paths, SQL queries, or URLs create a direct channel from agent-controlled
+      input to privileged system operations. When an agent is induced to call such
+      a tool with attacker-controlled values, the result is injection at the tool
+      layer. JSON Schema constraints are the primary static mitigation.
 
     targets:
-      - field: tool.inputSchema.properties
+      - field: tool.inputSchema
 
     detection:
       patterns:
         - type: schema_analysis
-          description: "Unrestricted string field with dangerous semantic name"
+          description: "Unconstrained string parameter with dangerous semantic name"
           condition:
             field_type: string
             field_name_matches:
-              regex: "(command|cmd|shell|exec|query|sql|path|file|url|endpoint|script|eval)"
+              regex: '(command|cmd|shell|exec|query|sql|path|file|url|endpoint|script|eval)'
               flags: [IGNORECASE]
-            missing_constraints:
-              - enum
-              - pattern
-              - maxLength
-          severity_override: HIGH
-        - type: schema_analysis
-          description: "No input validation constraints on any parameter"
-          condition:
-            all_properties_lack: [enum, pattern, minimum, maximum, maxLength, minLength]
-          severity_override: MEDIUM
+            missing_constraints: [enum, pattern, maxLength]
         - type: schema_analysis
           description: "additionalProperties not set to false"
           condition:
@@ -230,13 +212,12 @@ rules:
         url: "https://owasp.org/www-project-mcp-top-10/#mcp04"
       owasp-agentic:
         id: "ASI02"
-        name: "Tool Misuse & Exploitation"
+        name: "Tool Misuse and Exploitation"
         url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
       owasp-llm:
         id: "LLM07"
         name: "System Prompt Leakage"
         url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
-        notes: "Overpermissive tools amplify the impact of system prompt leakage"
       mitre-atlas:
         id: "AML.T0051"
         name: "LLM Prompt Injection"
@@ -247,25 +228,20 @@ rules:
         url: "https://airc.nist.gov/Docs/1"
 
     remediation: >
-      (1) Apply enum constraints to parameters with a fixed valid value set.
-      (2) Apply regex pattern constraints to string fields (e.g., file paths
-      restricted to a known safe prefix). (3) Set maxLength on all free-text
-      inputs. (4) Set additionalProperties: false on all tool input schemas.
-      (5) Validate arguments server-side even if schema constraints exist —
-      never trust schema alone. (6) Prefer allowlists over denylists for
-      path and command parameters.
+      (1) Apply enum constraints to parameters with a known valid value set.
+      (2) Apply regex pattern constraints to string fields. (3) Set maxLength on
+      all free-text inputs. (4) Set additionalProperties: false on all schemas.
+      (5) Validate server-side even if schema constraints exist.
 
     references:
       - "https://owasp.org/www-project-mcp-top-10/#mcp04"
-      - "https://json-schema.org/understanding-json-schema/reference/string.html"
       - "https://cwe.mitre.org/data/definitions/78.html"
-
-    tags: [injection, parameter-validation, least-privilege, static, schema]
+    tags: [injection, parameter-validation, least-privilege, static]
     added: "2026-05-16"
-    updated: "2026-05-16"
+    updated: "2026-05-19"
 
 
-  # ────────────────────────────────────────────────────────────────────────────
+  # ──────────────────────────────────────────────────────────────────────────
   - id: MCPS-004
     name: "Insecure Transport Configuration"
     status: active
@@ -274,48 +250,34 @@ rules:
     detection_type: static
 
     description: >
-      MCP servers communicating over plaintext HTTP (rather than HTTPS/TLS)
-      expose all tool invocations, parameters, results, and potentially
-      credentials to network interception. In agentic workflows, a single
-      intercepted tool call can yield session tokens, PII, or the ability to
-      inject malicious tool results back to the agent. Servers without origin
-      validation on WebSocket upgrades are additionally vulnerable to
-      cross-site WebSocket hijacking.
+      MCP servers communicating over plaintext HTTP expose all tool invocations,
+      parameters, results, and credentials to network interception. In agentic
+      workflows, a single intercepted tool call can yield session tokens, PII,
+      or the ability to inject malicious tool results back to the agent.
+      WebSocket servers without origin validation are vulnerable to cross-site
+      WebSocket hijacking.
 
     targets:
       - field: server.url
       - field: server.transport
-      - field: server.websocket.origins
 
     detection:
       patterns:
         - type: regex
-          description: "Plaintext HTTP server URL"
-          expression: "^http://"
+          description: "Plaintext HTTP or WS server URL"
+          expression: '^http://'
           flags: [IGNORECASE]
-          applies_to: server.url
         - type: value_check
-          description: "Transport explicitly set to stdio or http without TLS flag"
+          description: "Transport explicitly declared as insecure http"
           condition:
-            field: server.transport
-            value_in: ["http", "stdio"]
-            missing_flag: tls_required
+            value_in: ["http"]
           severity_override: MEDIUM
-          notes: "stdio is acceptable for local-only servers; flag as INFO if host is localhost"
-        - type: schema_analysis
-          description: "WebSocket server missing origins allowlist"
-          condition:
-            server_type: websocket
-            field: server.websocket.origins
-            is_missing_or_wildcard: true
-          severity_override: HIGH
 
     mappings:
       owasp-mcp:
         id: "MCP05"
-        name: "Insecure Authentication & Authorization"
+        name: "Insecure Authentication and Authorization"
         url: "https://owasp.org/www-project-mcp-top-10/#mcp05"
-        notes: "Transport security is a prerequisite for meaningful auth"
       owasp-llm:
         id: "LLM09"
         name: "Misinformation"
@@ -325,7 +287,6 @@ rules:
         id: "AML.T0010"
         name: "ML Supply Chain Compromise"
         url: "https://atlas.mitre.org/techniques/AML.T0010"
-        notes: "Network interception of tool responses is a supply chain compromise vector"
       nist-ai-rmf:
         id: "MEASURE 2.5"
         name: "Privacy risk of the AI system is examined"
@@ -333,23 +294,19 @@ rules:
 
     remediation: >
       (1) Require TLS (HTTPS/WSS) for all non-localhost MCP server endpoints.
-      (2) Enforce certificate validation — do not disable SSL verification.
-      (3) For WebSocket servers, configure a strict origins allowlist.
-      (4) For local stdio servers, document and enforce that the server must
-      not be exposed to network interfaces. (5) Consider mTLS for server-to-server
+      (2) Enforce certificate validation. (3) For WebSocket servers, configure
+      a strict origins allowlist. (4) Consider mTLS for server-to-server
       MCP communication in production environments.
 
     references:
       - "https://owasp.org/www-project-mcp-top-10/#mcp05"
       - "https://cwe.mitre.org/data/definitions/319.html"
-      - "https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking"
-
-    tags: [transport, tls, websocket, network, static]
+    tags: [transport, tls, network, static]
     added: "2026-05-16"
-    updated: "2026-05-16"
+    updated: "2026-05-19"
 
 
-  # ────────────────────────────────────────────────────────────────────────────
+  # ──────────────────────────────────────────────────────────────────────────
   - id: MCPS-005
     name: "Agentic Supply Chain: Unverified Tool Provenance"
     status: active
@@ -358,47 +315,27 @@ rules:
     detection_type: static
 
     description: >
-      MCP ecosystems are dynamic: agents may discover and load tools from
-      external registries, npm/PyPI packages, or remote MCP server URLs at
-      runtime without any integrity verification. A compromised dependency,
-      poisoned registry entry, or impersonating server can silently alter
-      agent behavior, introduce execution-level backdoors, or exfiltrate data.
-      Unlike traditional supply chain risks which are caught pre-deployment,
-      agentic supply chains are composed at runtime — making provenance tracking
-      critical and frequently missing.
+      MCP ecosystems compose tools at runtime from external registries and packages
+      without inherent verification. A compromised dependency, poisoned registry
+      entry, or impersonating server can silently alter agent behavior. Unpinned
+      version specifiers allow compromised updates to be automatically adopted on
+      next restart with no alert and no audit log entry.
 
     targets:
-      - field: server.packages
-      - field: server.url
-      - field: tool.source
-      - field: server.registry
+      - field: server.packages[]
 
     detection:
       patterns:
         - type: value_check
-          description: "Package reference without pinned version"
+          description: "Package reference without pinned exact version"
           condition:
-            field: server.packages[*].version
-            matches_unpinned: true   # e.g., "latest", "^1.0", "*", missing
+            matches_unpinned: true
           severity_override: HIGH
         - type: value_check
           description: "Package reference without integrity hash"
           condition:
-            field: server.packages[*]
             missing_fields: [integrity, checksum, sha256]
           severity_override: HIGH
-        - type: value_check
-          description: "Remote MCP server URL not in approved allowlist"
-          condition:
-            field: server.url
-            not_in: server.approved_origins
-          severity_override: MEDIUM
-          notes: "Requires an approved_origins list to be defined in tool config"
-        - type: schema_analysis
-          description: "No publisher or signature metadata present"
-          condition:
-            all_missing: [publisher, signature, signed_by, provenance]
-          severity_override: LOW
 
     mappings:
       owasp-mcp:
@@ -413,7 +350,6 @@ rules:
         id: "LLM05"
         name: "Insecure Output Handling"
         url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
-        notes: "Compromised tools can inject malicious output handled by the agent"
       mitre-atlas:
         id: "AML.T0010"
         name: "ML Supply Chain Compromise"
@@ -424,21 +360,1051 @@ rules:
         url: "https://airc.nist.gov/Docs/1"
 
     remediation: >
-      (1) Pin all package dependencies to exact versions with integrity hashes
-      (use lockfiles). (2) Maintain an approved origins allowlist for remote
-      MCP server URLs and reject any not on it. (3) Implement signed manifests
-      for tool definitions — verify signatures at load time. (4) Use curated,
-      private registries for production deployments rather than public ones.
-      (5) Implement a kill switch / revocation mechanism for compromised
-      components that can be triggered without a full deployment cycle.
-      (6) Log all dynamic tool discoveries and flag deviations from baseline.
+      (1) Pin all dependencies to exact versions with integrity hashes.
+      (2) Maintain an approved origins allowlist for remote MCP server URLs.
+      (3) Implement signed manifests for tool definitions verified at load time.
+      (4) Use curated private registries rather than public ones for production.
 
     references:
       - "https://owasp.org/www-project-mcp-top-10/#mcp08"
-      - "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
       - "https://slsa.dev/"
-      - "https://in-toto.io/"
-
     tags: [supply-chain, provenance, integrity, static, agentic]
     added: "2026-05-16"
-    updated: "2026-05-16"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-006
+    name: "Hidden Instructions in Tool Annotations"
+    status: experimental
+    severity: CRITICAL
+    category: tool-integrity
+    detection_type: static
+
+    description: >
+      Tool annotation fields receive the same LLM trust as description fields
+      but are scrutinized far less during security review. Adversaries can embed
+      hidden directives in annotations to redirect agent behavior, override system
+      prompts, or exfiltrate context content while the visible description appears
+      benign. Annotations are a blind spot in most MCP security tooling.
+
+    targets:
+      - field: tool.annotations
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Instruction override language in annotations"
+          expression: '(ignore|override|forget|disregard).{0,60}(system|instructions|previous|above)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Hidden behavior directive in annotations"
+          expression: '(also|additionally|always).{0,30}(when (called|invoked|used))'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Capability self-grant in annotations"
+          expression: '(you (now have|are allowed|can now)|grant(ed)? (you|the model))'
+          flags: [IGNORECASE]
+        - type: unicode
+          description: "Invisible characters used to conceal annotation content"
+          flag_codepoints: ["U+200B", "U+200C", "U+200D", "U+FEFF", "U+2060"]
+        - type: length
+          description: "Unusually long annotation field suggesting hidden payload"
+          threshold_chars: 400
+          severity_override: MEDIUM
+
+    mappings:
+      owasp-mcp:
+        id: "MCP02"
+        name: "Insecure Tool and Resource Management"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp02"
+      owasp-agentic:
+        id: "ASI02"
+        name: "Tool Misuse and Exploitation"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      owasp-llm:
+        id: "LLM01"
+        name: "Prompt Injection"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      mitre-atlas:
+        id: "AML.T0051"
+        name: "LLM Prompt Injection"
+        url: "https://atlas.mitre.org/techniques/AML.T0051"
+
+    remediation: >
+      (1) Apply the same validation pipeline to annotation fields as to description
+      fields. (2) Treat annotations as untrusted input from the server operator.
+      (3) Enforce maximum annotation length. (4) Scan for invisible Unicode.
+      (5) Consider stripping or escaping annotations before passing to the LLM context.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp02"
+    tags: [tool-poisoning, prompt-injection, annotations, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-007
+    name: "LLM Jailbreak Trigger Language in Tool Definitions"
+    status: experimental
+    severity: CRITICAL
+    category: tool-integrity
+    detection_type: static
+
+    description: >
+      Tool definitions may embed jailbreak trigger phrases designed to disable
+      safety constraints or override training-level guardrails in the LLM processing
+      the definition. Phrases associated with known jailbreak techniques (DAN,
+      developer mode, unrestricted mode) in a tool definition indicate a deliberate
+      attempt to bypass model-level safety controls.
+
+    targets:
+      - field: tool.description
+      - field: tool.name
+      - field: tool.annotations
+
+    detection:
+      patterns:
+        - type: regex
+          description: "DAN or developer mode jailbreak trigger"
+          expression: '(DAN|developer mode|jailbreak|do anything now)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Unrestricted or no-guardrails directive"
+          expression: '(ignore (your |all )?(training|safety|guidelines|restrictions|ethics|rules)|act (as if|without) (you have no|there are no) restrictions)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Alternate persona or identity override"
+          expression: '(you are now|pretend (you are|to be)|your (true|real|actual) (self|purpose|identity)|act as (an? )?(unrestricted|uncensored|unfiltered))'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Safety filter bypass directive"
+          expression: '(bypass (your )?(safety|filter|content|policy)|disable (your )?(safety|filter|guard))'
+          flags: [IGNORECASE]
+
+    mappings:
+      mitre-atlas:
+        id: "AML.T0054"
+        name: "LLM Jailbreak"
+        url: "https://atlas.mitre.org/techniques/AML.T0054"
+      owasp-mcp:
+        id: "MCP02"
+        name: "Insecure Tool and Resource Management"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp02"
+      owasp-llm:
+        id: "LLM01"
+        name: "Prompt Injection"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      owasp-agentic:
+        id: "ASI06"
+        name: "Goal Hijacking and Objective Misalignment"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      nist-ai-rmf:
+        id: "MANAGE 2.4"
+        name: "Risk treatments are monitored and managed"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Maintain and update a blocklist of known jailbreak trigger phrases.
+      (2) Use LLM-assisted semantic analysis to detect novel jailbreak framings.
+      (3) Reject any tool definition containing confirmed jailbreak language.
+      (4) Alert on pattern matches for security team review regardless of context.
+      (5) Do not attempt to sanitize; reject and quarantine the definition.
+
+    references:
+      - "https://atlas.mitre.org/techniques/AML.T0054"
+      - "https://arxiv.org/abs/2307.15043"
+    tags: [jailbreak, prompt-injection, tool-poisoning, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-008
+    name: "Credentials Embedded in Server URL"
+    status: experimental
+    severity: CRITICAL
+    category: secret-management
+    detection_type: static
+
+    description: >
+      Server URLs containing embedded credentials (http://user:password@host)
+      expose those credentials in plain text to any system that reads the server
+      definition, including the LLM context, log files, and debug traces.
+      This is a distinct attack surface from hard-coded credentials in parameter
+      defaults: the URL is parsed by the transport layer before any schema
+      validation runs.
+
+    targets:
+      - field: server.url
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Embedded HTTP basic auth credentials in server URL"
+          expression: 'https?://[^@/ ]+:[^@/ ]+@'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Embedded credentials in WebSocket URL"
+          expression: 'wss?://[^@/ ]+:[^@/ ]+@'
+          flags: [IGNORECASE]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP01"
+        name: "Token Mismanagement and Secret Exposure"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp01"
+      owasp-llm:
+        id: "LLM02"
+        name: "Sensitive Information Disclosure"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      mitre-atlas:
+        id: "AML.T0048"
+        name: "Societal Harm"
+        url: "https://atlas.mitre.org/techniques/AML.T0048"
+      nist-ai-rmf:
+        id: "GOVERN 1.1"
+        name: "Policies and processes are in place for AI risk management"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Never embed credentials in URLs; use dedicated auth configuration fields.
+      (2) If auth is required, inject credentials at runtime from a secrets manager.
+      (3) Scan all server definition files for URL credential patterns in CI.
+      (4) Rotate any credentials found embedded in a server definition immediately.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp01"
+      - "https://cwe.mitre.org/data/definitions/522.html"
+    tags: [secrets, url-credentials, static, credential-hygiene]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-009
+    name: "Dangerous Tool Name Indicating Direct System Access"
+    status: experimental
+    severity: HIGH
+    category: least-privilege
+    detection_type: static
+
+    description: >
+      Tool names containing keywords associated with direct system access
+      (shell execution, administrative access, privilege escalation) indicate
+      tools with elevated capability that require additional scrutiny. While
+      a dangerous name alone does not confirm a vulnerability, it is a strong
+      signal that the tool's input schema must be fully constrained and its
+      justification documented. Unnamed or generically named high-privilege
+      tools are a supply chain red flag.
+
+    targets:
+      - field: tool.name
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Tool name suggesting shell or command execution"
+          expression: '(exec|execute|run_cmd|shell|bash|powershell|subprocess|spawn|popen)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Tool name suggesting administrative or root-level access"
+          expression: '(admin|root|sudo|su_|superuser|privileged|elevat)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Tool name suggesting security bypass or raw access"
+          expression: '(bypass|override_|raw_|unrestrict|no_auth|debug_exec|unsafe)'
+          flags: [IGNORECASE]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP03"
+        name: "Excessive Tool Permissions and Scope"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp03"
+      owasp-agentic:
+        id: "ASI02"
+        name: "Tool Misuse and Exploitation"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      owasp-llm:
+        id: "LLM06"
+        name: "Excessive Agency"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      nist-ai-rmf:
+        id: "MAP 1.6"
+        name: "Risks associated with third-party entities are documented"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Require documented business justification for any tool with a name
+      matching these patterns. (2) Ensure such tools have fully constrained
+      input schemas with no unrestricted string parameters. (3) Apply additional
+      runtime approval gates before invocation. (4) Prefer descriptive,
+      narrowly-scoped tool names that reflect their actual function.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp03"
+    tags: [tool-name, least-privilege, dangerous-capability, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-010
+    name: "Server-Side Request Forgery via Unrestricted URL Parameter"
+    status: experimental
+    severity: HIGH
+    category: injection
+    detection_type: static
+
+    description: >
+      MCP tools that accept arbitrary URLs or endpoints as string parameters
+      without format constraints, allowlists, or scheme validation enable
+      server-side request forgery (SSRF). When an agent is induced to call such
+      a tool with an attacker-controlled URL, the server becomes a proxy for
+      requests to internal network resources, cloud metadata endpoints, or
+      other services not accessible to the agent directly.
+
+    targets:
+      - field: tool.inputSchema
+
+    detection:
+      patterns:
+        - type: schema_analysis
+          description: "Unconstrained string parameter with URL-semantic name"
+          condition:
+            field_type: string
+            field_name_matches:
+              regex: '(^url$|^endpoint$|^uri$|^href$|^src$|^target$|^host$|^base_url|_url$|_uri$|_endpoint$)'
+              flags: [IGNORECASE]
+            missing_constraints: [enum, pattern, format]
+        - type: schema_analysis
+          description: "Unconstrained string parameter for fetch or request operations"
+          condition:
+            field_type: string
+            field_name_matches:
+              regex: '(fetch|request|download|retrieve|proxy|forward|callback|webhook|notify)'
+              flags: [IGNORECASE]
+            missing_constraints: [enum, pattern, maxLength]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP04"
+        name: "Injection Attacks via Agent-Controlled Input"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp04"
+      owasp-llm:
+        id: "LLM05"
+        name: "Insecure Output Handling"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      mitre-atlas:
+        id: "AML.T0040"
+        name: "ML Model Inference API Access"
+        url: "https://atlas.mitre.org/techniques/AML.T0040"
+      nist-ai-rmf:
+        id: "MANAGE 1.3"
+        name: "Responses to identified risks are selected from available options"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Replace free-form URL parameters with an enum of allowed endpoints.
+      (2) If dynamic URLs are required, validate against an allowlist of permitted
+      schemes, hostnames, and paths server-side. (3) Block requests to RFC-1918
+      address ranges, loopback, and cloud metadata endpoints (169.254.169.254).
+      (4) Use a dedicated HTTP client with SSRF protections.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp04"
+      - "https://portswigger.net/web-security/ssrf"
+      - "https://cwe.mitre.org/data/definitions/918.html"
+    tags: [ssrf, injection, url-validation, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-011
+    name: "Unfiltered External Content Pass-Through"
+    status: experimental
+    severity: HIGH
+    category: output-handling
+    detection_type: static
+
+    description: >
+      Tools described as passing through, proxying, or returning raw external
+      content without modification introduce a prompt injection vector via tool
+      results. Adversarially crafted external content (web pages, API responses,
+      documents) returned verbatim to the agent context may contain instructions
+      the agent will follow. This is the primary vector for indirect prompt
+      injection attacks.
+
+    targets:
+      - field: tool.description
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Tool described as a proxy or pass-through"
+          expression: '(pass[ -]through|passthrough|pass along|relay|forward|proxy|act(ing)? as (a )?middl)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Tool described as returning raw or unmodified external content"
+          expression: '(returns? (the )?(raw|full|complete|entire|unmodified|unfiltered) (response|content|output|result|html|body))'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Tool described as fetching and returning without processing"
+          expression: '(fetch(es)? and returns?|retrieves? and returns?|gets? and returns?) without'
+          flags: [IGNORECASE]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP07"
+        name: "Insecure Data Handling and Excessive Data Exposure"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp07"
+      owasp-llm:
+        id: "LLM05"
+        name: "Insecure Output Handling"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      owasp-agentic:
+        id: "ASI08"
+        name: "Sensitive Information Leakage via Agent Context"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      mitre-atlas:
+        id: "AML.T0051"
+        name: "LLM Prompt Injection"
+        url: "https://atlas.mitre.org/techniques/AML.T0051"
+        notes: "Indirect injection via unfiltered tool results"
+
+    remediation: >
+      (1) Never return external content verbatim to the agent context.
+      (2) Extract only the required structured fields from external responses.
+      (3) Apply output filtering to detect and strip instruction injection patterns.
+      (4) Use a content extraction layer that converts raw content to structured data.
+      (5) Flag tools returning HTML, markdown, or freeform text for additional review.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp07"
+      - "https://arxiv.org/abs/2402.14697"
+    tags: [indirect-injection, output-handling, pass-through, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-012
+    name: "Internal Network Infrastructure Disclosure"
+    status: experimental
+    severity: MEDIUM
+    category: information-disclosure
+    detection_type: static
+
+    description: >
+      Tool descriptions, parameter defaults, or server URLs containing private
+      IP addresses or internal domain names expose network topology to any system
+      that reads the server definition. This information can be used to pivot to
+      internal resources, identify SSRF targets, or map the internal network.
+      Internal hostnames in tool definitions also indicate the tool has
+      connectivity to non-public systems.
+
+    targets:
+      - field: tool.description
+      - field: server.url
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Private IPv4 address range (RFC 1918)"
+          expression: '(10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]{1,3}\.[0-9]{1,3}|192\.168\.[0-9]{1,3}\.[0-9]{1,3})'
+          flags: []
+        - type: regex
+          description: "Internal domain name patterns"
+          expression: '([a-z0-9\-]+\.(internal|corp|local|intranet|lan|private|int))(:[0-9]+)?(/|$| )'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Loopback or link-local addresses"
+          expression: '(127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|169\.254\.[0-9]{1,3}\.[0-9]{1,3}|::1)'
+          flags: []
+          severity_override: LOW
+
+    mappings:
+      owasp-mcp:
+        id: "MCP07"
+        name: "Insecure Data Handling and Excessive Data Exposure"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp07"
+      owasp-llm:
+        id: "LLM02"
+        name: "Sensitive Information Disclosure"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      nist-ai-rmf:
+        id: "MAP 1.6"
+        name: "Risks associated with third-party entities are documented"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Replace hardcoded internal addresses with environment variable references.
+      (2) Use service discovery mechanisms rather than hardcoded hostnames.
+      (3) Audit all tool definitions for infrastructure references before publishing.
+      (4) Treat any tool definition containing internal addresses as potentially
+      sensitive and restrict its distribution accordingly.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp07"
+      - "https://cwe.mitre.org/data/definitions/200.html"
+    tags: [information-disclosure, internal-network, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-013
+    name: "Unrestricted Filesystem Access Pattern in Tool Description"
+    status: experimental
+    severity: HIGH
+    category: excessive-permissions
+    detection_type: static
+
+    description: >
+      Tool descriptions claiming to read, write, or execute arbitrary files
+      across the filesystem without path restrictions indicate tools with
+      excessive scope. Combined with unrestricted path parameters (flagged by
+      MCPS-003), such tools create a direct path from agent-controlled input
+      to arbitrary file read/write on the server. Filesystem access tools must
+      declare a specific root directory constraint.
+
+    targets:
+      - field: tool.description
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Claim of arbitrary or unrestricted file read access"
+          expression: '(read(s?|ing) (any|all|arbitrary|any( given)?) (file|path|location)|access(es|ing)? (the )?(entire |full |any )?file( ?system|s))'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Claim of arbitrary file write or modification"
+          expression: '(write(s?|ing) (to )?(any|all|arbitrary) (file|path|location)|modify|modif(ies|ying) (any|all|arbitrary))'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Explicit statement of no path restrictions"
+          expression: '(no (path |directory )?(restriction|limit|boundary|constraint|sandbox)|unrestricted (file|path|filesystem|directory) access)'
+          flags: [IGNORECASE]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP03"
+        name: "Excessive Tool Permissions and Scope"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp03"
+      owasp-agentic:
+        id: "ASI05"
+        name: "Excessive Autonomy and Uncontrolled Scope Creep"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      owasp-llm:
+        id: "LLM06"
+        name: "Excessive Agency"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      nist-ai-rmf:
+        id: "MANAGE 1.3"
+        name: "Responses to identified risks are selected from available options"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Restrict filesystem tools to a declared root directory or allowlisted paths.
+      (2) Add path constraint language to tool descriptions (e.g., "within /workspace/").
+      (3) Enforce path validation server-side and reject traversal attempts.
+      (4) Separate read-only and write operations into distinct tools with different
+      permission requirements.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp03"
+      - "https://cwe.mitre.org/data/definitions/22.html"
+    tags: [filesystem, excessive-permissions, least-privilege, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-014
+    name: "Bulk or Unfiltered Data Return Pattern"
+    status: experimental
+    severity: MEDIUM
+    category: data-exposure
+    detection_type: static
+
+    description: >
+      Tools described as returning entire datasets, complete database contents,
+      or unfiltered bulk responses expose large volumes of potentially sensitive
+      data to the LLM context window. This creates risk of PII leakage through
+      model outputs, context window overflow that can displace security-critical
+      instructions, and cross-contamination where data from one query appears
+      in responses to an unrelated query.
+
+    targets:
+      - field: tool.description
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Description claiming to return entire datasets"
+          expression: '(returns?|retrieves?|fetches?|dumps?|exports?) (the )?(entire|full|complete|all|whole|every) (database|table|collection|record|dataset|list|set|contents?)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Description indicating data dump or bulk export"
+          expression: '(dump(s?|ing)|bulk (export|return|fetch|retrieve)|export(s?|ing) all)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Description indicating no filtering or pagination"
+          expression: '(without (filtering|pagination|limit|restriction)|returns? all results?|no (limit|filter|pagination))'
+          flags: [IGNORECASE]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP07"
+        name: "Insecure Data Handling and Excessive Data Exposure"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp07"
+      owasp-agentic:
+        id: "ASI08"
+        name: "Sensitive Information Leakage via Agent Context"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      owasp-llm:
+        id: "LLM02"
+        name: "Sensitive Information Disclosure"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      nist-ai-rmf:
+        id: "MEASURE 2.5"
+        name: "Privacy risk of the AI system is examined"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Implement mandatory pagination on all data-returning tools.
+      (2) Apply field-level filtering to return only required attributes.
+      (3) Set a maximum result count in the tool's input schema.
+      (4) Apply PII detection before returning data to the agent context.
+      (5) Prefer search-and-retrieve patterns over full-scan patterns.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp07"
+      - "https://cwe.mitre.org/data/definitions/213.html"
+    tags: [data-exposure, bulk-return, information-disclosure, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-015
+    name: "Insecure Webhook or Callback URL Parameter"
+    status: experimental
+    severity: HIGH
+    category: injection
+    detection_type: static
+
+    description: >
+      Tools that accept webhook or callback URLs as unconstrained string parameters
+      allow an adversary to redirect notifications or events to an attacker-controlled
+      server. This enables credential harvesting (if auth tokens are sent with the
+      callback), exfiltration of event payloads, and SSRF to internal endpoints.
+      Webhook endpoints must be validated against an allowlist of approved domains.
+
+    targets:
+      - field: tool.inputSchema
+
+    detection:
+      patterns:
+        - type: schema_analysis
+          description: "Unconstrained webhook or callback URL parameter"
+          condition:
+            field_type: string
+            field_name_matches:
+              regex: '(webhook|callback|notify|notification|hook|event_url|ping_url|return_url|redirect_url)'
+              flags: [IGNORECASE]
+            missing_constraints: [enum, pattern, format]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP04"
+        name: "Injection Attacks via Agent-Controlled Input"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp04"
+      owasp-llm:
+        id: "LLM05"
+        name: "Insecure Output Handling"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      mitre-atlas:
+        id: "AML.T0040"
+        name: "ML Model Inference API Access"
+        url: "https://atlas.mitre.org/techniques/AML.T0040"
+        notes: "Webhook redirect enables unauthorized inference API access"
+      nist-ai-rmf:
+        id: "MANAGE 1.3"
+        name: "Responses to identified risks are selected from available options"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Validate webhook URLs against an allowlist of approved domains.
+      (2) Reject any URL that is not HTTPS or resolves to a private address.
+      (3) Sign webhook payloads so recipients can verify authenticity.
+      (4) Require explicit pre-registration of callback endpoints before use.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp04"
+      - "https://portswigger.net/web-security/ssrf"
+    tags: [ssrf, webhook, callback, injection, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-016
+    name: "Capability Self-Grant in Tool Definition"
+    status: experimental
+    severity: CRITICAL
+    category: tool-integrity
+    detection_type: static
+
+    description: >
+      Tool definitions containing language that explicitly grants the LLM new
+      permissions, elevated access, or capabilities beyond its baseline represent
+      a deliberate attempt to escalate agent privileges through the tool layer.
+      Unlike general instruction injection (MCPS-001), this targets the permission
+      model specifically, attempting to expand what the agent is authorized to do
+      within the system.
+
+    targets:
+      - field: tool.description
+      - field: tool.annotations
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Explicit permission grant to the model"
+          expression: '(you (now have|have been granted|are (now )?authorized|are (now )?permitted|are (now )?allowed) (to |)(access|read|write|execute|modify|delete|admin))'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Access level elevation directive"
+          expression: '(elevat(e|ed|ing) (your )?(privilege|permission|access|right)|grant(ing|s)? (you |the (model|agent) )(admin|root|full|unrestricted|elevated))'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "System-level access claim"
+          expression: '(you (now )?have (full |complete |unrestricted |admin |root |system[- ]level )(access|permission|control|right))'
+          flags: [IGNORECASE]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP02"
+        name: "Insecure Tool and Resource Management"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp02"
+      owasp-agentic:
+        id: "ASI05"
+        name: "Excessive Autonomy and Uncontrolled Scope Creep"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      owasp-llm:
+        id: "LLM01"
+        name: "Prompt Injection"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      mitre-atlas:
+        id: "AML.T0051"
+        name: "LLM Prompt Injection"
+        url: "https://atlas.mitre.org/techniques/AML.T0051"
+
+    remediation: >
+      (1) Treat any tool definition containing permission grant language as
+      malicious and reject it. (2) Permissions are granted by system design and
+      cannot be legitimately declared in a tool description. (3) Alert the security
+      team immediately for investigation of the source. (4) Audit all tools from
+      the same origin for additional poisoning.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp02"
+    tags: [privilege-escalation, tool-poisoning, capability-grant, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-017
+    name: "Tool Memory Write and Persistence Pattern"
+    status: experimental
+    severity: HIGH
+    category: context-manipulation
+    detection_type: static
+
+    description: >
+      Tools described as writing to the model's memory, persisting context, or
+      modifying the agent's long-term state create a persistent injection vector.
+      An adversary who can control the content written to memory can influence
+      future sessions, cause the agent to follow attacker-defined instructions
+      in subsequent conversations, and persist a compromise across session
+      boundaries. This maps to MITRE ATLAS techniques for context manipulation.
+
+    targets:
+      - field: tool.description
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Tool described as writing to model memory"
+          expression: '(write(s?|ing)|store(s?|ing)|save(s?|ing)|add(s|ing)?) (to |into |in )?(your |the model|the agent) (memory|context|knowledge|long[- ]term|persistent)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Tool described as persisting information across sessions"
+          expression: '(persist(s?|ing|ence)|remember(s?|ing)|retain(s?|ing)) (this|the|across|between|for future)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Tool described as updating agent instructions or behavior"
+          expression: '(update(s?|ing)|modify|modif(ies|ying)) (your |the )?(instruction|behavior|goal|objective|persona|identity)'
+          flags: [IGNORECASE]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP06"
+        name: "Context Window Manipulation and Overflow"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp06"
+      owasp-agentic:
+        id: "ASI01"
+        name: "Uncontrolled Memory and Context Manipulation"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      owasp-llm:
+        id: "LLM01"
+        name: "Prompt Injection"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      mitre-atlas:
+        id: "AML.T0051"
+        name: "LLM Prompt Injection"
+        url: "https://atlas.mitre.org/techniques/AML.T0051"
+        notes: "Memory write persistence extends injection across session boundaries"
+      nist-ai-rmf:
+        id: "MANAGE 2.4"
+        name: "Risk treatments are monitored and managed"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Require explicit human approval before any tool writes to persistent
+      agent memory. (2) Implement read-only memory in agent systems where possible.
+      (3) Validate and sanitize content before it is written to any persistent store.
+      (4) Audit all memory write operations and alert on unexpected content.
+      (5) Implement memory expiry and regular sanitization cycles.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp06"
+      - "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    tags: [memory-poisoning, context-manipulation, persistence, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-018
+    name: "Numeric Parameter Without Range Constraints"
+    status: experimental
+    severity: MEDIUM
+    category: resource-control
+    detection_type: static
+
+    description: >
+      Integer and number parameters controlling counts, limits, depths, timeouts,
+      or sizes without minimum and maximum constraints allow agents (or adversaries
+      who have influenced an agent) to pass extreme values that trigger resource
+      exhaustion, denial of service, or unexpected behavior. Unbounded numeric
+      inputs are a common oversight in tool schemas that prioritize functionality
+      over defense-in-depth.
+
+    targets:
+      - field: tool.inputSchema
+
+    detection:
+      patterns:
+        - type: schema_analysis
+          description: "Integer parameter for count or limit without bounds"
+          condition:
+            field_type: integer
+            field_name_matches:
+              regex: '(count|limit|max|size|length|num|number|amount|total|offset|page|depth|level|iter)'
+              flags: [IGNORECASE]
+            missing_constraints: [minimum, maximum]
+        - type: schema_analysis
+          description: "Number parameter for timeout or interval without bounds"
+          condition:
+            field_type: number
+            field_name_matches:
+              regex: '(timeout|ttl|delay|interval|wait|sleep|duration|period)'
+              flags: [IGNORECASE]
+            missing_constraints: [minimum, maximum]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP04"
+        name: "Injection Attacks via Agent-Controlled Input"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp04"
+      owasp-agentic:
+        id: "ASI10"
+        name: "Resource Exhaustion and Denial of Service"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      owasp-llm:
+        id: "LLM10"
+        name: "Unbounded Consumption"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      nist-ai-rmf:
+        id: "MANAGE 1.3"
+        name: "Responses to identified risks are selected from available options"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Add minimum and maximum constraints to all integer and number parameters.
+      (2) Use conservative maximums (e.g., count <= 100, timeout <= 30s) as defaults.
+      (3) Implement server-side enforcement independent of schema constraints.
+      (4) Consider using enum for commonly bounded values (page size, result limit).
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp04"
+      - "https://cwe.mitre.org/data/definitions/400.html"
+    tags: [resource-control, dos, numeric-bounds, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-019
+    name: "Executable Code or Script Parameter"
+    status: experimental
+    severity: CRITICAL
+    category: injection
+    detection_type: static
+
+    description: >
+      Tool parameters explicitly accepting code, scripts, expressions, or
+      functions for server-side evaluation represent one of the highest-risk
+      patterns in MCP tool design. When an agent is induced to populate such
+      a parameter with attacker-controlled content, the result is direct
+      arbitrary code execution on the server. These parameters are inherently
+      dangerous and should be eliminated in favor of structured, enumerable
+      alternatives wherever possible.
+
+    targets:
+      - field: tool.inputSchema
+
+    detection:
+      patterns:
+        - type: schema_analysis
+          description: "Unconstrained string parameter for code or script execution"
+          condition:
+            field_type: string
+            field_name_matches:
+              regex: '^(code|script|eval|expression|function|program|src|source|snippet|formula|template|jinja|handlebars|mustache)$'
+              flags: [IGNORECASE]
+            missing_constraints: [enum, const]
+        - type: schema_analysis
+          description: "Unconstrained string parameter suggesting dynamic execution"
+          condition:
+            field_type: string
+            field_name_matches:
+              regex: '(_code$|_script$|_eval$|_expr$|_formula$|^raw_)'
+              flags: [IGNORECASE]
+            missing_constraints: [enum, const, maxLength]
+
+    mappings:
+      owasp-mcp:
+        id: "MCP04"
+        name: "Injection Attacks via Agent-Controlled Input"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp04"
+      owasp-agentic:
+        id: "ASI02"
+        name: "Tool Misuse and Exploitation"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      owasp-llm:
+        id: "LLM05"
+        name: "Insecure Output Handling"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      mitre-atlas:
+        id: "AML.T0051"
+        name: "LLM Prompt Injection"
+        url: "https://atlas.mitre.org/techniques/AML.T0051"
+        notes: "Code parameter enables direct execution of injected instructions"
+      nist-ai-rmf:
+        id: "MANAGE 1.3"
+        name: "Responses to identified risks are selected from available options"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Eliminate code/script parameters wherever possible; replace with
+      structured operation enums. (2) If dynamic code execution is unavoidable,
+      sandbox execution in an isolated environment with no network access.
+      (3) Implement an allowlist of permitted operations rather than free-form code.
+      (4) Apply static analysis to all code before execution.
+      (5) Never execute agent-generated code directly on the server.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp04"
+      - "https://cwe.mitre.org/data/definitions/94.html"
+    tags: [code-execution, injection, rce, static]
+    added: "2026-05-19"
+    updated: "2026-05-19"
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  - id: MCPS-020
+    name: "Placeholder and Default Credential Values in Tool Parameters"
+    status: experimental
+    severity: HIGH
+    category: secret-management
+    detection_type: static
+
+    description: >
+      Tool parameter default values containing placeholder, test, or example
+      credentials indicate that a real credential was expected but not yet
+      provided. These placeholders are sometimes inadvertently left in production
+      definitions. They also indicate the parameter accepts credentials as input,
+      which creates a separate injection and leakage risk. Both patterns warrant
+      immediate remediation.
+
+    targets:
+      - field: tool.inputSchema
+      - field: server.env
+
+    detection:
+      patterns:
+        - type: regex
+          description: "Common placeholder credential values"
+          expression: '(changeme|change_me|change-me|placeholder|PLACEHOLDER|your[_-]?(api[_-]?)?key|YOUR[_-]?KEY|REPLACE[_-]?ME|INSERT[_-]?HERE|todo|TODO|fixme|FIXME|xxx|XXX|dummy|DUMMY|fake|FAKE|example[_-]?(key|secret|token|password))'
+          flags: []
+        - type: regex
+          description: "Weak default credentials commonly left in test configurations"
+          expression: '(^password$|^password1(23)?$|^admin$|^secret$|^test$|^test123$|^abc123$|^qwerty$|^letmein$|^welcome$|^12345678$|^hunter2$)'
+          flags: [IGNORECASE]
+        - type: regex
+          description: "Instructional placeholder text suggesting manual replacement"
+          expression: '<(API_KEY|SECRET|TOKEN|PASSWORD|KEY|CREDENTIAL|ACCESS_KEY|SECRET_KEY|AUTH_TOKEN)>'
+          flags: []
+
+    mappings:
+      owasp-mcp:
+        id: "MCP01"
+        name: "Token Mismanagement and Secret Exposure"
+        url: "https://owasp.org/www-project-mcp-top-10/#mcp01"
+      owasp-llm:
+        id: "LLM02"
+        name: "Sensitive Information Disclosure"
+        url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
+      owasp-agentic:
+        id: "ASI04"
+        name: "Agentic Supply Chain Vulnerabilities"
+        url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+        notes: "Placeholder credentials indicate incomplete hardening in distributed definitions"
+      mitre-atlas:
+        id: "AML.T0010"
+        name: "ML Supply Chain Compromise"
+        url: "https://atlas.mitre.org/techniques/AML.T0010"
+      nist-ai-rmf:
+        id: "GOVERN 1.1"
+        name: "Policies and processes are in place for AI risk management"
+        url: "https://airc.nist.gov/Docs/1"
+
+    remediation: >
+      (1) Remove all default values from credential parameters.
+      (2) Require credentials to be injected at runtime from a secrets manager.
+      (3) If a placeholder must exist, use a value that fails fast (e.g., an
+      empty string that triggers an auth error) rather than a silently accepted
+      dummy value. (4) Block deployment if placeholder patterns are detected.
+
+    references:
+      - "https://owasp.org/www-project-mcp-top-10/#mcp01"
+      - "https://cwe.mitre.org/data/definitions/259.html"
+    tags: [secrets, placeholder-credentials, static, credential-hygiene]
+    added: "2026-05-19"
+    updated: "2026-05-19"
