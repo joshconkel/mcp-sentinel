@@ -1,5 +1,10 @@
 name: MCP Security Scan
 
+permissions:
+  contents: read
+  actions: read
+  packages: read
+
 on:
   push:
     branches: [main, develop]
