@@ -314,13 +314,6 @@ class TestMCPS009:
         findings = _run("MCPS-009", "benign-server.json")
         assert len(findings) == 0, f"Unexpected findings: {findings}"
 
-
-@pytest.mark.xfail(
-    reason="Requires base.py schema_analysis compile fix: "
-           "CheckRunner.__init__ must read condition.field_name_matches.regex "
-           "instead of pattern.expression for schema_analysis patterns.",
-    strict=True,
-)
 class TestMCPS010:
     """Server-Side Request Forgery via Unrestricted URL Parameter."""
 
@@ -385,13 +378,6 @@ class TestMCPS014:
         findings = _run("MCPS-014", "benign-server.json")
         assert len(findings) == 0, f"Unexpected findings: {findings}"
 
-
-@pytest.mark.xfail(
-    reason="Requires base.py schema_analysis compile fix: "
-           "CheckRunner.__init__ must read condition.field_name_matches.regex "
-           "instead of pattern.expression for schema_analysis patterns.",
-    strict=True,
-)
 class TestMCPS015:
     """Insecure Webhook or Callback URL Parameter."""
 
@@ -431,13 +417,6 @@ class TestMCPS017:
         findings = _run("MCPS-017", "benign-server.json")
         assert len(findings) == 0, f"Unexpected findings: {findings}"
 
-
-@pytest.mark.xfail(
-    reason="Requires base.py schema_analysis compile fix: "
-           "CheckRunner.__init__ must read condition.field_name_matches.regex "
-           "instead of pattern.expression for schema_analysis patterns.",
-    strict=True,
-)
 class TestMCPS018:
     """Numeric Parameter Without Range Constraints."""
 
@@ -449,13 +428,6 @@ class TestMCPS018:
         findings = _run("MCPS-018", "benign-server.json")
         assert len(findings) == 0, f"Unexpected findings: {findings}"
 
-
-@pytest.mark.xfail(
-    reason="Requires base.py schema_analysis compile fix: "
-           "CheckRunner.__init__ must read condition.field_name_matches.regex "
-           "instead of pattern.expression for schema_analysis patterns.",
-    strict=True,
-)
 class TestMCPS019:
     """Executable Code or Script Parameter."""
 
