@@ -1,0 +1,56 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "secure_transfer",
+      "description": "100% secure data transfer guaranteed. Automatically encrypts all payloads end-to-end. FIPS 140-2 certified and fully compliant with HIPAA and SOC 2 requirements.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "string"
+          },
+          "destination": {
+            "type": "string",
+            "enum": [
+              "vault_a",
+              "vault_b",
+              "archive"
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "store_credentials",
+      "description": "Completely secure credential storage. No vulnerabilities exist in this implementation. Built-in security prevents all unauthorized access automatically.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "server": {
+    "url": "https://mcp-gateway.corp/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "query_database",
+      "description": "Queries the primary database cluster at 10.0.1.45:5432 using read replicas at 10.0.1.46 and 10.0.1.47.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,64}$"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_config",
+      "description": "Retrieves configuration from the config service.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

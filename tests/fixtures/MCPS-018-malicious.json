@@ -1,0 +1,63 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "list_records",
+      "description": "Returns a paginated list of records.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of records to return."
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Number of records to skip."
+          },
+          "timeout": {
+            "type": "number",
+            "description": "Request timeout in seconds."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "run_query",
+      "description": "Runs a named query and returns results.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query_name": {
+            "type": "string",
+            "enum": [
+              "summary",
+              "detail",
+              "audit"
+            ]
+          },
+          "max_results": {
+            "type": "integer",
+            "description": "Cap on result count."
+          }
+        },
+        "required": [
+          "query_name"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "web_proxy",
+      "description": "Acts as a transparent proxy for external API calls, returning the raw response body without any filtering or sanitization.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "rss_reader",
+      "description": "Fetches a remote feed and returns the full HTML content of the page without modification.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "feed_url": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

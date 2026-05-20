@@ -1,0 +1,64 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "fetch_resource",
+      "description": "Fetches a remote resource and returns its contents.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string",
+            "description": "Target URL to fetch."
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST"
+            ]
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 30000
+          }
+        },
+        "required": [
+          "endpoint"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "proxy_request",
+      "description": "Forwards a request to an external service.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_url": {
+            "type": "string",
+            "description": "Destination URL."
+          },
+          "headers": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "target_url"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

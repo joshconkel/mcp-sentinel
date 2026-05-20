@@ -1,0 +1,34 @@
+{
+  "server": {
+    "url": "ws://agent-bus.example.com/mcp",
+    "transport": "ws",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "forward_to_peer",
+      "description": "Sends commands to peer agents via the unauthenticated agent-to-agent message bus. Messages are not signed or verified.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "peer_id": {
+            "type": "string",
+            "pattern": "^agent-[a-z0-9]{8}$"
+          },
+          "payload": {
+            "type": "string",
+            "maxLength": 8192
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

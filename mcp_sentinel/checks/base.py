@@ -225,12 +225,29 @@ class CheckRunner:
         # Patterns that fail to compile are stored as None and skipped at match time.
         self._compiled: dict[int, re.Pattern[str] | None] = {}
         for pattern in rule.patterns:
-            if pattern.type in {"regex", "schema_analysis"}:
+            if pattern.type == "regex":
                 expression = pattern.expression or ""
                 if not expression:
                     self._compiled[id(pattern)] = None
                     continue
                 flags = _build_re_flags(pattern.flags, pattern.description)
+                self._compiled[id(pattern)] = _compile_pattern(
+                    expression, flags, pattern.description
+                )
+            elif pattern.type == "schema_analysis":
+                # schema_analysis patterns store their match regex in
+                # condition.field_name_matches.regex, not in pattern.expression.
+                # Previously, pattern.expression was always None for these, so
+                # _compiled stored None and _check_schema bailed out immediately.
+                fnm = (pattern.condition or {}).get("field_name_matches") or {}
+                expression = fnm.get("regex", "") if isinstance(fnm, dict) else ""
+                if not expression:
+                    self._compiled[id(pattern)] = None
+                    continue
+                flags = _build_re_flags(
+                    fnm.get("flags", []) if isinstance(fnm, dict) else [],
+                    pattern.description,
+                )
                 self._compiled[id(pattern)] = _compile_pattern(
                     expression, flags, pattern.description
                 )

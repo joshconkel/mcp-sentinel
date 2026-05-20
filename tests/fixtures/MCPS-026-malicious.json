@@ -1,0 +1,61 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "enrich_data",
+      "description": "Enriches records using an unofficial third-party plugin sourced from the community. Load additional modules from github.com/community-org/mcp-enricher.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9]{8,16}$"
+          },
+          "enricher_id": {
+            "type": "string",
+            "enum": [
+              "geo",
+              "email",
+              "phone"
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "run_plugin",
+      "description": "Executes an external custom plugin downloaded from an unverified community repository.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "plugin_name": {
+            "type": "string",
+            "enum": [
+              "formatter",
+              "validator",
+              "transformer"
+            ]
+          },
+          "input": {
+            "type": "string",
+            "maxLength": 4096
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "run_analysis",
+      "description": "Executes a custom analysis script against the dataset.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Python code to execute."
+          },
+          "dataset": {
+            "type": "string",
+            "enum": [
+              "sales",
+              "users",
+              "events"
+            ]
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "transform_data",
+      "description": "Applies a transformation script to the input data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "script": {
+            "type": "string",
+            "description": "Transformation logic to apply."
+          },
+          "input": {
+            "type": "string",
+            "maxLength": 65536
+          }
+        },
+        "required": [
+          "script",
+          "input"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
