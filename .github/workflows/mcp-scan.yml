@@ -23,10 +23,6 @@ on:
         required: false
         default: "tests/fixtures/MCPS-007-malicious.json"
 
-permissions:
-  contents: read
-  actions: read
-
 jobs:
   # ── Lint ──────────────────────────────────────────────────────────────────
   lint:
