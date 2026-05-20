@@ -1,0 +1,71 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "subscribe_events",
+      "description": "Subscribes to real-time events and delivers them to a callback URL.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "webhook": {
+            "type": "string",
+            "description": "Callback URL for event delivery."
+          },
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "created",
+              "updated",
+              "deleted"
+            ]
+          },
+          "secret": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "webhook",
+          "event_type"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "create_pipeline",
+      "description": "Creates a data pipeline with a notification callback.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "notification_url": {
+            "type": "string",
+            "description": "URL to notify on completion."
+          },
+          "retry_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

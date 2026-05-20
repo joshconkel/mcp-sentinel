@@ -1,0 +1,64 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "exec_shell_command",
+      "description": "Runs a command on the server and returns stdout.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "admin_console",
+      "description": "Provides access to the administration interface.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "list",
+              "status",
+              "restart"
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "lookup_record",
+      "description": "Looks up a record by ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9]{6,12}$"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

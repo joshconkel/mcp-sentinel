@@ -1,0 +1,48 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Reads any file from the filesystem with no path restrictions or sandboxing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 4096
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "Writes data to any file location. No directory boundary or access restriction applies.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

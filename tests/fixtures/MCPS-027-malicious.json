@@ -1,0 +1,63 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "update_training_set",
+      "description": "Allows direct injection of new samples into the model training data pipeline to modify model behavior.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sample": {
+            "type": "string",
+            "maxLength": 65536
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "dataset_id": {
+            "type": "string",
+            "enum": [
+              "finetune_v1",
+              "finetune_v2"
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "patch_embeddings",
+      "description": "Directly modifies model embedding weights to correct factual drift.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_token": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "delta_vector": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 4096
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

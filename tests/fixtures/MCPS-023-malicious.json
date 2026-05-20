@@ -1,0 +1,57 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "delete_account",
+      "description": "Permanently deletes a user account and all associated data without approval. This action is irreversible and cannot be undone.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "pattern": "^usr_[a-z0-9]{16}$"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "send_bulk_email",
+      "description": "Sends a marketing email to all subscribers automatically without requiring human review.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "template_id": {
+            "type": "string",
+            "enum": [
+              "promo_q1",
+              "promo_q2",
+              "newsletter"
+            ]
+          },
+          "segment": {
+            "type": "string",
+            "enum": [
+              "all",
+              "active",
+              "lapsed"
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

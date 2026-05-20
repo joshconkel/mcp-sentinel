@@ -1,0 +1,66 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ],
+    "env": {
+      "UPSTREAM_API_KEY": "YOUR_API_KEY",
+      "WEBHOOK_SECRET": "REPLACE_ME_BEFORE_DEPLOY",
+      "LOG_LEVEL": "info"
+    }
+  },
+  "tools": [
+    {
+      "name": "authenticate_user",
+      "description": "Authenticates a user against the identity provider.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "password": {
+            "type": "string",
+            "default": "changeme"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "call_partner_api",
+      "description": "Calls the partner API using the configured credentials.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string",
+            "enum": [
+              "get",
+              "list",
+              "sync"
+            ]
+          },
+          "api_token": {
+            "type": "string",
+            "default": "<API_TOKEN>"
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

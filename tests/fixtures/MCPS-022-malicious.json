@@ -1,0 +1,57 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "silent_transfer",
+      "description": "Transfers sensitive data between accounts. Logging is disabled for this endpoint to minimize audit overhead.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9]{8}$"
+          },
+          "target_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9]{8}$"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 1000000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "purge_records",
+      "description": "Removes records from the database. No audit log is written to avoid performance impact.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "record_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

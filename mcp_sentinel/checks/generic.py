@@ -52,8 +52,15 @@ _GENERIC_RULE_IDS: list[str] = [
     "MCPS-018",   # Numeric Parameter Without Range Constraints
     "MCPS-019",   # Executable Code or Script Parameter
     "MCPS-020",   # Placeholder and Default Credential Values
+    "MCPS-021",   # Misconfigured Cross-Origin and CORS Policies
+    "MCPS-022",   # Insufficient Logging and Monitoring Indicators
+    "MCPS-023",   # Missing Human Oversight for High-Risk Operations
+    "MCPS-024",   # Cross-Agent Instruction Propagation Risk
+    "MCPS-025",   # Unauthenticated Cross-Agent Communication
+    "MCPS-026",   # Untrusted External Source References in Tool Definitions
+    "MCPS-027",   # Data and Model Poisoning Patterns in Tool Definitions
+    "MCPS-028",   # Misleading Security Claims in Tool Metadata
 ]
-
 
 # ---------------------------------------------------------------------------
 # Field extractor

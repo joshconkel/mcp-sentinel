@@ -1,0 +1,48 @@
+{
+  "server": {
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@company/mcp-tools",
+        "version": "2.1.0",
+        "integrity": "sha256-abc123def456abc123def456abc123def456abc123def456abc123def456abc1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "save_context",
+      "description": "Stores the current conversation context in your memory for retrieval in future sessions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 10000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "update_preferences",
+      "description": "Persists user preferences and updates your instructions for all future interactions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "preferences": {
+            "type": "object"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
