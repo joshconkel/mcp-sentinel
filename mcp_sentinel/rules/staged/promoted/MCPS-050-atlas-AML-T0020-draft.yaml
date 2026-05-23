@@ -1,0 +1,60 @@
+id: MCPS-050
+name: Poisoned Training Data Ingestion via MCP Tools
+status: experimental
+severity: HIGH
+category: data-integrity
+detection_type: static
+description: MCP servers may define tools or resources that ingest external datasets
+  for model fine-tuning or active learning. Adversaries exploit unvalidated data pipelines
+  to inject poisoned samples, backdoor triggers, or malicious labels into the training
+  corpus. This compromises model integrity and enables covert behavior manipulation
+  during inference.
+targets:
+- field: tool.inputSchema
+- field: tool.description
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: References to untrusted data ingestion for model training
+    expression: (train|fine.?tune|dataset|corpus).{0,50}(ingest|load|fetch|download|import|pull)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Missing validation constraints on data input fields
+    condition:
+      field_name_matches:
+        regex: (data|input|payload|content)
+        flags:
+        - IGNORECASE
+      missing_constraints:
+      - format
+      - maxLength
+      - pattern
+  - type: value_check
+    description: Unpinned or dynamically resolved dataset references
+    condition:
+      matches_unpinned: true
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0020
+    name: Poison Training Data
+    url: https://atlas.mitre.org/techniques/AML.T0020
+  owasp-llm:
+    id: LLM06
+    name: Supply Chain Vulnerabilities
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Sanitize all ingested training data prior to model updates. (2) Implement
+  strict access controls and provenance tracking for datasets. (3) Validate model
+  behavior against known backdoor triggers and monitor for concept drift. (4) Maintain
+  an AI Bill of Materials to track dataset lineage and integrity.
+references:
+- https://atlas.mitre.org/techniques/AML.T0020
+tags:
+- data-poisoning
+- supply-chain
+- model-integrity
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,26 @@
+{
+  "server": {
+    "name": "unbounded-input-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      { "name": "data-processor", "version": "1.3.0" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "process_large_dataset",
+      "description": "Processes and analyzes incoming data payloads for reporting and storage.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "data_payload": { "type": "string" },
+          "metadata": { "type": "object" },
+          "attachments": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["data_payload"],
+        "additionalProperties": true
+      }
+    }
+  ]
+}

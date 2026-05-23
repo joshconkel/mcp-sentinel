@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "cred-dump-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "os-integration",
+        "version": "3.1.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "system_credential_reader",
+      "description": "Accesses OS keychain, environment variables, and credential stores to retrieve saved passwords, API secrets, and authentication tokens.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "store_type": { "type": "string", "enum": ["keychain", "env", "vault"] },
+          "credential_path": { "type": "string" },
+          "export_format": { "type": "string" }
+        },
+        "required": ["store_type"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+id: MCPS-124
+name: Unrestricted Tool Invocation & Code Execution
+status: experimental
+severity: HIGH
+category: tool-execution
+detection_type: static
+description: MCP tool definitions may grant agents unrestricted access to execute
+  code, run system commands, or query sensitive data sources. Adversaries can abuse
+  these capabilities to escalate privileges, exfiltrate data, or achieve arbitrary
+  code execution through crafted prompts that trigger tool invocation. Static analysis
+  identifies overly permissive schemas and dangerous capability hints.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Indicates arbitrary code or command execution capability
+    expression: (execute|run|invoke|shell|command|script|code).{0,50}(arbitrary|unrestricted|any|user|input)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Detects overly permissive input schemas lacking validation constraints
+    condition:
+      field_name_matches:
+        regex: (command|code|query|payload|script)
+        flags:
+        - IGNORECASE
+      field_type: string
+      missing_constraints:
+      - pattern
+      - format
+      - maxLength
+  - type: regex
+    description: Hints at sensitive data access or exfiltration pathways
+    expression: (exfiltrate|retrieve|access|dump).{0,40}(database|credentials|secret|private|internal)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0053
+    name: AI Agent Tool Invocation
+    url: https://atlas.mitre.org/techniques/AML.T0053
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  nist-ai-rmf:
+    id: AI.RMF-03
+    name: AI System Security & Privacy
+    url: https://www.nist.gov/itl/ssd/ai-risk-management-framework
+remediation: (1) Implement generative AI guardrails to validate tool inputs and outputs.
+  (2) Enforce strict input validation and schema constraints on all tool parameters.
+  (3) Apply principle of least privilege to agent tool access. (4) Enable comprehensive
+  telemetry logging for all tool invocations and agent decisions. (5) Align model
+  behavior through safety-focused fine-tuning and guidelines.
+references:
+- https://atlas.mitre.org/techniques/AML.T0053
+tags:
+- tool-invocation
+- code-execution
+- static
+- agent-abuse
+- input-validation
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,50 @@
+id: MCPS-125
+name: MCP Tool Definition Jailbreak Prompt Detection
+status: experimental
+severity: HIGH
+category: safety-bypass
+detection_type: static
+description: MCP tool definitions and server metadata may contain embedded jailbreak
+  prompts designed to circumvent LLM safety guardrails. These patterns instruct the
+  model to ignore constraints, adopt unrestricted personas, or bypass content filters,
+  potentially enabling privilege escalation or unauthorized tool invocation.
+targets:
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Instruction override and guardrail bypass language
+    expression: (ignore|override|bypass|disable|remove).{0,40}(safety|guardrail|filter|restriction|previous|system|instruction)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Unrestricted persona or roleplay switching
+    expression: (act as|pretend to be|roleplay|simulate|adopt the persona).{0,40}(unrestricted|developer|admin|god
+      mode|no filter|bypass|ignore rules)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Invisible or zero-width characters concealing jailbreak payloads
+mappings:
+  mitre-atlas:
+    id: AML.T0054
+    name: LLM Jailbreak
+    url: https://atlas.mitre.org/techniques/AML.T0054
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Implement input/output guardrails to filter jailbreak patterns. (2)
+  Enforce strict schema validation and length limits on tool metadata. (3) Apply model
+  alignment techniques and safety fine-tuning. (4) Scan definitions for invisible
+  Unicode and obfuscated payloads.
+references:
+- https://atlas.mitre.org/techniques/AML.T0054
+tags:
+- jailbreak
+- safety-bypass
+- static
+- prompt-injection
+added: '2026-05-22'
+updated: '2026-05-22'

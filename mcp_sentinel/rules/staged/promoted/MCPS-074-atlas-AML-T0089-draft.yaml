@@ -1,0 +1,49 @@
+id: MCPS-074
+name: Unrestricted Process Enumeration Tool
+status: experimental
+severity: MEDIUM
+category: system-enumeration
+detection_type: static
+description: MCP tools that expose system process enumeration capabilities can be
+  abused by adversaries for reconnaissance. Identifying running AI applications and
+  their associated tokens facilitates credential access and lateral movement. Unrestricted
+  access to process lists increases the attack surface for memory scraping and token
+  theft.
+targets:
+- field: tool.description
+- field: tool.name
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Detects process enumeration commands in tool metadata
+    expression: (tasklist|get-process|ps\s+(-e|-aux|-ef)|/proc/|process\s+enumeration|list\s+running\s+processes)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Detects unrestricted shell execution combined with process listing
+    expression: (exec|shell|command|run).{0,60}(ps|tasklist|process|/proc|enumerate)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0089
+    name: Process Discovery
+    url: https://atlas.mitre.org/techniques/AML.T0089
+  owasp-mcp:
+    id: MCP05
+    name: Insecure Agent Execution
+    url: https://owasp.org/www-project-mcp-top-10/#mcp05
+remediation: (1) Restrict tool capabilities to prevent unrestricted system enumeration.
+  (2) Implement sandboxing for command execution tools. (3) Audit tool definitions
+  for reconnaissance capabilities. (4) Apply least-privilege principles to MCP server
+  processes.
+references:
+- https://atlas.mitre.org/techniques/AML.T0089
+tags:
+- process-discovery
+- reconnaissance
+- static
+- tool-capability
+added: '2026-05-22'
+updated: '2026-05-22'

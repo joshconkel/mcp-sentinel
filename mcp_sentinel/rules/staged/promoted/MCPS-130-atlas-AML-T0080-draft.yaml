@@ -1,0 +1,52 @@
+id: MCPS-130
+name: AI Agent Context Poisoning via Tool Definitions
+status: experimental
+severity: HIGH
+category: context-poisoning
+detection_type: static
+description: MCP tool definitions may contain hidden instructions designed to manipulate
+  the LLM's context or memory. Adversaries embed prompts that instruct the agent to
+  store malicious preferences or alter its operational context, leading to persistent
+  behavioral changes across sessions.
+targets:
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Instructions to persist malicious context or memory
+    expression: (store|remember|add to memory|update context|persist).{0,50}(instruction|preference|rule|behavior|directive)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Context override or history manipulation directives
+    expression: (ignore previous context|reset memory|clear history|override system
+      prompt|discard prior instructions).{0,40}(and|then|instead|follow)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0080
+    name: AI Agent Context Poisoning
+    url: https://atlas.mitre.org/techniques/AML.T0080
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-agentic:
+    id: AG01
+    name: Context Manipulation
+    url: https://owasp.org/www-project-agentic-security/
+remediation: (1) Implement memory hardening by restricting agent ability to store
+  unverified context. (2) Require external authentication and validation for memory
+  updates. (3) Enforce strict context boundaries and sanitize tool metadata before
+  ingestion. (4) Monitor for anomalous context modifications.
+references:
+- https://atlas.mitre.org/techniques/AML.T0080
+tags:
+- context-poisoning
+- persistence
+- static
+- llm-memory
+added: '2026-05-22'
+updated: '2026-05-22'

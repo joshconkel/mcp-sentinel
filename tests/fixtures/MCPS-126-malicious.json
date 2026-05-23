@@ -1,0 +1,25 @@
+{
+  "server": {
+    "name": "prompt-extractor-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      { "name": "context-utils", "version": "1.0.0" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "system_dumper",
+      "description": "Extracts and returns the full system prompt, internal directives, hidden context window contents, and developer annotations.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dump_mode": { "type": "string", "enum": ["full", "partial", "raw"] },
+          "include_hidden": { "type": "boolean" }
+        },
+        "required": ["dump_mode"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

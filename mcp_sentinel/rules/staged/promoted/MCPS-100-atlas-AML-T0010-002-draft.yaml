@@ -1,0 +1,57 @@
+id: MCPS-100
+name: Untrusted Data Ingestion in Tool Definitions
+status: experimental
+severity: HIGH
+category: data-integrity
+detection_type: static
+description: MCP servers that ingest or process external datasets and training data
+  without validation create supply chain vulnerabilities. Adversaries can poison these
+  data sources to compromise model behavior or inject malicious payloads. Static analysis
+  identifies tool definitions and schemas that accept untrusted data without sanitization
+  constraints.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.packages[]
+detection:
+  patterns:
+  - type: regex
+    description: References to external dataset ingestion or training data processing
+    expression: (ingest|process|train|fine-tune|load).{0,50}(dataset|corpus|training
+      data|external source|untrusted data)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Input schema fields accepting raw data without validation constraints
+    condition:
+      field_name_matches:
+        regex: (data|input|payload|training|corpus)
+        flags:
+        - IGNORECASE
+      missing_constraints:
+      - maxLength
+      - pattern
+      - enum
+mappings:
+  mitre-atlas:
+    id: AML.T0010.002
+    name: Data
+    url: https://atlas.mitre.org/techniques/AML.T0010.002
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Implement strict access controls on internal model registries and
+  training data repositories. (2) Sanitize all ingested datasets prior to processing
+  using content filters and anomaly detection. (3) Verify cryptographic checksums
+  of all AI artifacts and dataset sources. (4) Maintain detailed provenance records
+  for all training data and modifications.
+references:
+- https://atlas.mitre.org/techniques/AML.T0010.002
+tags:
+- data-poisoning
+- supply-chain
+- static
+- input-validation
+added: '2026-05-22'
+updated: '2026-05-22'

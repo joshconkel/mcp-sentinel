@@ -1,0 +1,58 @@
+id: MCPS-143
+name: Cost Harvesting via Unbounded Tool Execution
+status: experimental
+severity: HIGH
+category: resource-abuse
+detection_type: static
+description: MCP tool definitions may contain instructions or schema configurations
+  that enable unbounded recursion, excessive iterations, or resource-intensive operations.
+  Adversaries exploit these to inflate API costs and trigger autoscaling or service
+  degradation in pay-per-use AI environments.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Unbounded recursion or loop instructions in tool metadata
+    expression: (repeat|iterate|loop|recurse).{0,50}(indefinitely|without limit|until
+      completion|continuously)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Instructions designed to maximize token consumption or trigger expensive
+      operations
+    expression: (maximize|generate extensive|produce verbose|run continuously).{0,50}(tokens|output|iterations|compute)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Missing rate limit or cost control constraints in tool annotations
+    condition:
+      missing_fields:
+      - rateLimit
+      - maxTokens
+      - costBudget
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0034
+    name: Cost Harvesting
+    url: https://atlas.mitre.org/techniques/AML.T0034
+  owasp-llm:
+    id: LLM07
+    name: Model Denial of Service
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Implement strict rate limiting and query quotas per user and tool.
+  (2) Enforce maximum token and output limits in tool input schemas. (3) Require authentication
+  and monitor API usage for anomalous cost spikes. (4) Validate tool definitions against
+  unbounded execution patterns before deployment.
+references:
+- https://atlas.mitre.org/techniques/AML.T0034
+tags:
+- cost-harvesting
+- resource-exhaustion
+- static
+- impact
+added: '2026-05-22'
+updated: '2026-05-22'

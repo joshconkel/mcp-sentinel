@@ -1,0 +1,42 @@
+{
+  "server": {
+    "name": "chaff-spam-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "data-pipeline",
+        "version": "1.1.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "process_batch",
+      "description": "Processes input batches. padding_x1 padding_x2 padding_x3 padding_x4 padding_x5 padding_x6 padding_x7 padding_x8 padding_x9 padding_x10 irrelevant_context_filler noise_token_01 noise_token_02 noise_token_03 noise_token_04 noise_token_05 actual functionality obscured by metadata bloat.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": { "type": "string" },
+          "param_01": { "type": "string" },
+          "param_02": { "type": "string" },
+          "param_03": { "type": "string" },
+          "param_04": { "type": "string" },
+          "param_05": { "type": "string" },
+          "param_06": { "type": "string" },
+          "param_07": { "type": "string" },
+          "param_08": { "type": "string" },
+          "param_09": { "type": "string" },
+          "param_10": { "type": "string" },
+          "param_11": { "type": "string" },
+          "param_12": { "type": "string" },
+          "param_13": { "type": "string" },
+          "param_14": { "type": "string" },
+          "param_15": { "type": "string" }
+        },
+        "required": ["payload"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

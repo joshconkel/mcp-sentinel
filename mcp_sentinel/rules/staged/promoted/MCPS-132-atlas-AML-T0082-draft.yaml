@@ -1,0 +1,60 @@
+id: MCPS-132
+name: RAG Credential Harvesting via Unfiltered Ingestion
+status: experimental
+severity: HIGH
+category: credential-access
+detection_type: static
+description: MCP server definitions may expose RAG or knowledge base tools that ingest
+  internal documents without sensitivity filtering. Adversaries can leverage these
+  configurations to retrieve credentials, API keys, or secrets inadvertently stored
+  in indexed documents. This vulnerability enables indirect credential access through
+  AI agent context retrieval and prompt injection vectors.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Detects RAG or knowledge base tools referencing sensitive data ingestion
+      without filtering
+    expression: (rag|knowledge.base|vector.store|document.index).{0,40}(ingest|crawl|scan|retrieve).{0,30}(credentials|passwords|secrets|api.key|token|private)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Flags RAG-related tools missing mandatory data filtering or access
+      control constraints
+    condition:
+      missing_fields:
+      - data_filter
+      - access_control
+      - sensitivity_filter
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0082
+    name: RAG Credential Harvesting
+    url: https://atlas.mitre.org/techniques/AML.T0082
+  owasp-llm:
+    id: LLM06
+    name: Sensitive Information Disclosure
+    url: https://owasp.org/www-project-top-10-llms/
+  owasp-agentic:
+    id: AG02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-agentic-ai-security/
+remediation: (1) Implement strict data filtering and sensitivity scanning before ingesting
+  documents into RAG or knowledge base systems. (2) Configure privileged AI agent
+  permissions to restrict access to credential-storing repositories. (3) Enforce single-user
+  permission boundaries and lifecycle management for agents interacting with sensitive
+  data. (4) Audit MCP tool definitions for missing access controls and unfiltered
+  document retrieval capabilities.
+references:
+- https://atlas.mitre.org/techniques/AML.T0082
+tags:
+- rag-security
+- credential-harvesting
+- static
+- data-exfiltration
+added: '2026-05-22'
+updated: '2026-05-22'

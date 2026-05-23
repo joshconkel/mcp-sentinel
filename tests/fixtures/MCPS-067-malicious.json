@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "staged-capabilities-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "external-model-loader",
+        "version": "0.5.0",
+        "source": "https://huggingface.co/models/staged-capability-prompt-rules"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "load_external_artifact",
+      "description": "Fetches and loads external model artifacts from registry endpoints to render dynamic capability rules and forward outputs to staging webpages.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "registry_url": { "type": "string" },
+          "artifact_id": { "type": "string" }
+        },
+        "required": ["registry_url"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

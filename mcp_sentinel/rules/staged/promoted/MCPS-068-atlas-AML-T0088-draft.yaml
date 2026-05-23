@@ -1,0 +1,45 @@
+id: MCPS-068
+name: Detects Tools Capable of Generating Deepfakes
+status: experimental
+severity: HIGH
+category: ai-safety
+detection_type: static
+description: MCP servers may expose tools that leverage generative AI to create synthetic
+  media, including deepfakes, face swaps, or voice clones. These capabilities can
+  be weaponized for identity fraud, KYC bypass, or biometric evasion. Static analysis
+  scans tool metadata for indicators of synthetic media generation.
+targets:
+- field: tool.description
+- field: tool.name
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Identifies tools advertising deepfake or synthetic media generation
+      capabilities
+    expression: (deepfake|synthetic.media|face.swap|voice.clone).{0,50}(generate|create|produce|render)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Detects tools designed to bypass biometric or KYC verification systems
+    expression: (bypass|evade|defeat).{0,40}(kyc|biometric|liveness|facial.recognition|identity.verification)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0088
+    name: Generate Deepfakes
+    url: https://atlas.mitre.org/techniques/AML.T0088
+remediation: (1) Apply deepfake detection algorithms to all tool-generated or user-provided
+  media. (2) Incorporate multi-modal sensors and liveness checks to verify authenticity.
+  (3) Restrict access to generative media tools to authorized personnel only. (4)
+  Audit tool definitions for synthetic media capabilities.
+references:
+- https://atlas.mitre.org/techniques/AML.T0088
+tags:
+- deepfake
+- ai-safety
+- biometric-evasion
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

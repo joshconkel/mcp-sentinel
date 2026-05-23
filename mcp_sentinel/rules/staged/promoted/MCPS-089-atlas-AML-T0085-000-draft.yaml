@@ -1,0 +1,56 @@
+id: MCPS-089
+name: Unrestricted RAG Database Access via MCP Tools
+status: experimental
+severity: HIGH
+category: data-access-control
+detection_type: static
+description: MCP tools configured to query RAG or vector databases may lack proper
+  access controls, allowing adversaries to retrieve sensitive internal documents.
+  This rule identifies tool definitions that expose broad document retrieval capabilities
+  without explicit scoping or authentication constraints.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Identifies tools claiming to query RAG or vector stores
+    expression: (rag|vector.?store|knowledge.?base|document.?retrieval).{0,50}(query|search|retrieve|access)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Input parameters lack required access control constraints
+    condition:
+      missing_constraints:
+      - required
+      - enum
+      - pattern
+  - type: regex
+    description: Detects overly permissive data retrieval scope
+    expression: (unrestricted|any|all|full).{0,30}(access|documents|data|retrieval|scope)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0085.000
+    name: RAG Databases
+    url: https://atlas.mitre.org/techniques/AML.T0085.000
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Implement AI telemetry logging for all RAG queries and agent actions.
+  (2) Enforce privileged and single-user permission configurations to restrict data
+  access. (3) Segment AI agent components and isolate vector store access with strict
+  API controls. (4) Validate tool input schemas to require explicit scoping parameters
+  such as tenant_id or user_role.
+references:
+- https://atlas.mitre.org/techniques/AML.T0085.000
+tags:
+- rag-security
+- data-exfiltration
+- static
+- access-control
+added: '2026-05-22'
+updated: '2026-05-22'

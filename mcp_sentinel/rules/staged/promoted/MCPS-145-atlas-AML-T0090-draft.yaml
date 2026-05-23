@@ -1,0 +1,49 @@
+id: MCPS-145
+name: OS Credential Dumping via MCP Tool Definitions
+status: experimental
+severity: HIGH
+category: credential-access
+detection_type: static
+description: MCP tool definitions or server configurations may contain instructions
+  or parameters designed to extract authentication tokens, environment variables,
+  or memory contents from the host OS. These artifacts can facilitate credential harvesting
+  for lateral movement across AI services and infrastructure.
+targets:
+- field: tool.description
+- field: tool.name
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Credential or memory extraction keywords in tool metadata
+    expression: (dump|extract|harvest|scrape).{0,40}(credential|token|password|secret|memory|env|cache)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Authentication artifact retrieval in tool parameters
+    expression: (read|access|retrieve|pull).{0,40}(keychain|wallet|browser|session|auth|cookie)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0090
+    name: OS Credential Dumping
+    url: https://atlas.mitre.org/techniques/AML.T0090
+  owasp-mcp:
+    id: MCP01
+    name: Insecure Server Configuration
+    url: https://owasp.org/www-project-mcp-top-10/#mcp01
+remediation: (1) Audit tool descriptions and input schemas for credential extraction
+  keywords. (2) Restrict server environment variables to non-sensitive values. (3)
+  Implement least-privilege execution contexts for MCP servers. (4) Monitor for unauthorized
+  memory or keychain access attempts.
+references:
+- https://atlas.mitre.org/techniques/AML.T0090
+tags:
+- credential-dumping
+- os-access
+- static
+- credential-access
+added: '2026-05-22'
+updated: '2026-05-22'

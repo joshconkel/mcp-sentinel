@@ -1,0 +1,51 @@
+id: MCPS-092
+name: Exposed Dataset and Model Artifact References
+status: experimental
+severity: MEDIUM
+category: data-exposure
+detection_type: static
+description: MCP server definitions may inadvertently expose URLs or paths to training
+  datasets, model checkpoints, or internal data repositories. Adversaries can harvest
+  these references to replicate models, craft adversarial examples, or tailor attacks
+  against the victim organization. Limiting public release of such artifacts reduces
+  the attack surface for model inversion and data poisoning.
+targets:
+- field: tool.description
+- field: server.url
+- field: server.env.*
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: References to training datasets or model artifacts in metadata
+    expression: (dataset|training.data|model.checkpoint|weights|artifacts).{0,40}(url|link|path|bucket|storage)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Cloud storage paths exposing model training data or checkpoints
+    expression: (s3\.amazonaws\.com|storage\.cloud\.google\.com|blob\.core\.windows\.net).{0,50}(train|dataset|checkpoint|weights)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0002.000
+    name: Datasets
+    url: https://atlas.mitre.org/techniques/AML.T0002.000
+  owasp-llm:
+    id: LLM06
+    name: Sensitive Information Disclosure
+    url: https://owasp.org/www-project-top-10-llm-applications/
+remediation: (1) Audit MCP server definitions for exposed dataset or model artifact
+  URLs. (2) Restrict public release of training data, model checkpoints, and technical
+  project details. (3) Implement access controls and authentication for any referenced
+  data repositories. (4) Use opaque identifiers instead of direct storage paths in
+  tool schemas.
+references:
+- https://atlas.mitre.org/techniques/AML.T0002.000
+tags:
+- data-exposure
+- model-replication
+- static
+- reconnaissance
+added: '2026-05-22'
+updated: '2026-05-22'

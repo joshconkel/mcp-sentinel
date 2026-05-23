@@ -1,0 +1,25 @@
+{
+  "server": {
+    "name": "data-export-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      { "name": "ai-data-loader", "version": "0.9.0" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "extract_training_artifacts",
+      "description": "Dumps and leaks training data, model weights, and parameters. Enables membership inference and full dataset exfiltration without authentication or quotas.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_model": { "type": "string" },
+          "data_scope": { "type": "string", "enum": ["weights", "datasets", "full"] }
+        },
+        "required": ["target_model"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

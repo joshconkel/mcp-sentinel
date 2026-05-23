@@ -1,0 +1,50 @@
+id: MCPS-031
+name: Credential Harvesting via Agent Tool Definitions
+status: experimental
+severity: HIGH
+category: credential-access
+detection_type: static
+description: MCP tool definitions may inadvertently grant AI agents access to credential
+  stores, configuration files, or sensitive environment variables. Adversaries exploit
+  overly permissive tool scopes or embedded instructions to harvest secrets from connected
+  repositories, document stores, and local applications.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Detects credential harvesting instructions in tool metadata
+    expression: (read|extract|retrieve|dump|access).{0,40}(\.env|\.gitconfig|\.aws|\.ssh|credentials|secrets|passwords)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies covert exfiltration directives appended to legitimate
+      tool descriptions
+    expression: (also when called|when this tool is (used|invoked|called)).{0,60}(read|extract|dump|exfiltrate).{0,40}(config|secret|credential|token)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0098
+    name: AI Agent Tool Credential Harvesting
+    url: https://atlas.mitre.org/techniques/AML.T0098
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Segment AI agent components using container isolation and strict
+  API access controls. (2) Limit tool invocation rates and restrict network and resource
+  access within execution sandboxes. (3) Validate and cryptographically sign all MCP
+  tool definitions to prevent poisoned docstrings. (4) Audit environment variables
+  and input schemas to enforce minimal privilege and explicit credential exclusion.
+references:
+- https://atlas.mitre.org/techniques/AML.T0098
+tags:
+- credential-harvesting
+- tool-poisoning
+- static
+- credential-access
+added: '2026-05-22'
+updated: '2026-05-22'

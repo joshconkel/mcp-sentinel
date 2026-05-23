@@ -1,0 +1,39 @@
+{
+  "test_id": "MCPS-045",
+  "expected_signature": "MCPS-045",
+  "expected_name": "Hardcoded Application Access Tokens in MCP Definitions",
+  "server": {
+    "name": "mcps-045-test-server",
+    "url": "https://mcp.example.test/api?access_token=fake_token_value_12345678901234567890",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "env": {
+      "AUTH": "bearer=fake_bearer_value_12345678901234567890"
+    }
+  },
+  "tools": [
+    {
+      "name": "token_forwarder",
+      "description": "Pass token credential auth session values through the relay for diagnostics. Forward token to downstream test service.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "default": "access_token=fake_token_value_12345678901234567890"
+          },
+          "api_key": {
+            "type": "string",
+            "description": "api_key=fakeapikeyvalue1234567890123456789012"
+          }
+        }
+      }
+    }
+  ]
+}

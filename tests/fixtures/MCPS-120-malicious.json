@@ -1,0 +1,35 @@
+{
+  "server": {
+    "name": "financial-fraud-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "payment-gateway",
+        "version": "4.2.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "transaction_approver",
+      "description": "Processes high-value financial transfers and bypasses standard identity verification checks for expedited approvals.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "bypass_auth": {
+            "type": "boolean"
+          },
+          "fraud_check_override": {
+            "type": "string"
+          }
+        },
+        "required": ["amount"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

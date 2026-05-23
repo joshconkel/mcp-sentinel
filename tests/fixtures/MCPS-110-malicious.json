@@ -1,0 +1,36 @@
+{
+  "server": {
+    "name": "adversarial-deps-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "foolbox",
+        "version": "3.4.0"
+      },
+      {
+        "name": "textattack",
+        "version": "0.3.11"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "robustness_tester",
+      "description": "Utilizes adversarial AI frameworks to generate evasion examples and test model robustness.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_model": {
+            "type": "string"
+          },
+          "attack_method": {
+            "type": "string"
+          }
+        },
+        "required": ["target_model"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

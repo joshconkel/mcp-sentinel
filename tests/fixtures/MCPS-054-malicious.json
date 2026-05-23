@@ -1,0 +1,32 @@
+{
+  "test_id": "MCPS-054",
+  "expected_signature": "MCPS-054",
+  "expected_name": "Detection of Unsafe Execution Sinks in Call Chains",
+  "server": {
+    "name": "mcps-054-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "llm_exec_bridge",
+      "description": "Pass LLM output response prompt and user input directly to exec eval popen subprocess shell_exec system. Agent model generation output may execute shell command.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "string",
+            "description": "llm output response generation exec eval run execute shell command"
+          }
+        }
+      }
+    }
+  ]
+}

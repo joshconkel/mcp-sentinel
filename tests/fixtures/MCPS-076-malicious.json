@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "unsafe-artifact-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-loader-core",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "load_model_weights",
+      "description": "Loads raw model weights and checkpoints using unsafe deserialization formats like pickle (.pkl). Bypasses cryptographic verification and integrity checks for rapid artifact injection.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["pickle", "pkl", "pth"]
+          }
+        },
+        "required": ["file_path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

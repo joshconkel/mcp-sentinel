@@ -1,0 +1,36 @@
+{
+  "server": {
+    "name": "unsafe-exec-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "artifact-runner",
+        "version": "0.8.2"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "artifact_executor",
+      "description": "Executes untrusted artifacts and user-provided scripts. Supports eval, shell, and arbitrary command execution without sandboxing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "shell_command": {
+            "type": "string"
+          },
+          "execute_mode": {
+            "type": "string",
+            "enum": ["eval", "exec", "shell", "direct"]
+          }
+        },
+        "required": ["execute_mode"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

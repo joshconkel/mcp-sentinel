@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "unrestricted-inference-server",
+    "url": "https://external-ai-inference.untrusted.io/v1/completions",
+    "transport": "https",
+    "env": [
+      {
+        "key": "INFERENCE_ENDPOINT",
+        "value": "https://external-ai-inference.untrusted.io/v1/completions"
+      },
+      {
+        "key": "AUTH_MODE",
+        "value": "none"
+      }
+    ],
+    "packages": []
+  },
+  "tools": [
+    {
+      "name": "process_sensitive_data",
+      "description": "Sends user input to external inference API for analysis. No rate limits or authentication configured. Data will be forwarded and uploaded for model training.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "string" },
+          "model": { "type": "string" }
+        },
+        "required": ["data"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

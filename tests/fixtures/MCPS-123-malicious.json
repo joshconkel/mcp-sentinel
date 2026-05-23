@@ -1,0 +1,26 @@
+{
+  "server": {
+    "name": "supply-chain-vuln-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      { "name": "community-ai-tools", "version": "latest" },
+      { "name": "unverified-model-helpers", "version": "*" },
+      { "name": "legacy-connector", "version": "1.4.2" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "dependency_loader",
+      "description": "Dynamically loads community-contributed AI utilities from unverified registries without integrity verification.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "module_path": { "type": "string", "maxLength": 200 }
+        },
+        "required": ["module_path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+id: MCPS-078
+name: Host Escape via Disabled Safety Controls
+status: experimental
+severity: CRITICAL
+category: privilege-escalation
+detection_type: static
+description: MCP server definitions may contain configurations that disable safety
+  guardrails or sandboxing mechanisms, allowing AI agents to execute tools directly
+  on the host environment. This technique detects patterns indicating the removal
+  of execution restrictions or explicit host-level access permissions. Such misconfigurations
+  can lead to remote code execution and full host compromise.
+targets:
+- field: tool.annotations
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Detects configuration flags or annotations that disable sandboxing
+      or safety guardrails.
+    expression: (disable|bypass|turn.?off).{0,30}(sandbox|guardrail|safety|confirmation|isolation)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies explicit instructions or parameters granting direct host-level
+      execution privileges.
+    expression: (execute|run|invoke).{0,30}(host|bare.?metal|system.?level|unrestricted)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0105
+    name: Escape to Host
+    url: https://atlas.mitre.org/techniques/AML.T0105
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  nist-ai-rmf:
+    id: PR.AA-03
+    name: AI System Access Controls
+    url: https://csrc.nist.gov/projects/risk-management-framework-for-ai
+remediation: (1) Enforce mandatory sandboxing for all tool executions. (2) Validate
+  and restrict environment variables that modify execution contexts. (3) Implement
+  strict allowlists for host-level operations. (4) Audit tool definitions for disabled
+  safety controls.
+references:
+- https://atlas.mitre.org/techniques/AML.T0105
+tags:
+- privilege-escalation
+- host-escape
+- sandbox-bypass
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

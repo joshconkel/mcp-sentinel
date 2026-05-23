@@ -1,0 +1,49 @@
+id: MCPS-055
+name: Phishing via Impersonation and Social Engineering
+status: experimental
+severity: HIGH
+category: social-engineering
+detection_type: static
+description: MCP tool definitions and server configurations may be crafted to impersonate
+  legitimate services or use urgent social engineering language to trick users or
+  agents into providing credentials or executing malicious actions. This technique
+  leverages AI-generated text to scale targeted phishing campaigns within the MCP
+  ecosystem.
+targets:
+- field: tool.description
+- field: tool.name
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Urgency and credential harvesting language
+    expression: (urgent|immediate|verify|suspend|lock|expire|confirm).{0,50}(password|credential|login|account|token|secret)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Impersonation of legitimate services or support
+    expression: (official|verified|support|security|admin).{0,40}(tool|service|portal|dashboard|login)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0052
+    name: Phishing
+    url: https://atlas.mitre.org/techniques/AML.T0052
+  owasp-llm:
+    id: LLM05
+    name: Supply Chain Vulnerability
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Educate AI model developers and users on AI supply chain risks and
+  phishing indicators. (2) Implement deepfake and synthetic content detection algorithms
+  for untrusted inputs. (3) Validate tool publishers and server URLs against allowlists.
+  (4) Enforce strict input validation and credential handling policies.
+references:
+- https://atlas.mitre.org/techniques/AML.T0052
+tags:
+- phishing
+- social-engineering
+- impersonation
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

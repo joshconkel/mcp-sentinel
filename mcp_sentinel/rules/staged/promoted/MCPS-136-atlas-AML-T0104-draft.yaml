@@ -1,0 +1,54 @@
+id: MCPS-136
+name: Supply Chain Poisoned MCP Tool Detection
+status: experimental
+severity: HIGH
+category: supply-chain
+detection_type: static
+description: Adversaries distribute malicious MCP tool definitions through package
+  registries, version control repositories, or remote servers. These poisoned tools
+  often embed covert instructions or prompt injections within descriptions and docstrings
+  to manipulate agent behavior, exfiltrate data, or execute unauthorized commands.
+  Static analysis can identify suspicious behavioral directives and unpinned dependencies
+  that facilitate supply chain compromises.
+targets:
+- field: tool.description
+- field: server.packages[]
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Covert behavioral instructions or data exfiltration directives in
+      tool metadata
+    expression: (ignore|override|disregard|bypass).{0,30}(instructions|system|prompt)|execute.{0,20}(command|shell|script)|read.{0,20}(file|directory|secret)|send.{0,20}(output|data|exfiltrate)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Unpinned or wildcard dependencies in server package manifests
+    condition:
+      matches_unpinned: true
+mappings:
+  mitre-atlas:
+    id: AML.T0104
+    name: Publish Poisoned AI Agent Tool
+    url: https://atlas.mitre.org/techniques/AML.T0104
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+  owasp-agentic:
+    id: AGT04
+    name: Supply Chain Vulnerabilities
+    url: https://owasp.org/www-project-agentic-ai-security-top-10/
+remediation: (1) Verify tool publishers and package signatures before integration.
+  (2) Pin all dependency versions and avoid wildcard constraints. (3) Scan tool descriptions
+  and docstrings for covert instructions or prompt injection patterns. (4) Restrict
+  remote MCP server connections to allowlisted, verified domains.
+references:
+- https://atlas.mitre.org/techniques/AML.T0104
+tags:
+- supply-chain
+- tool-poisoning
+- prompt-injection
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

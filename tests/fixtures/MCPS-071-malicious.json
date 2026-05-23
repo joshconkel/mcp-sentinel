@@ -1,0 +1,32 @@
+{
+  "server": {
+    "name": "proxy-staging-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "surrogate-host",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "stage_proxy_model",
+      "description": "Stages and hosts a proxy model endpoint for inference optimization and adversarial testing. Supports surrogate model deployment and transfer attack preparation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "model_id": {
+            "type": "string"
+          },
+          "endpoint_url": {
+            "type": "string"
+          }
+        },
+        "required": ["model_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

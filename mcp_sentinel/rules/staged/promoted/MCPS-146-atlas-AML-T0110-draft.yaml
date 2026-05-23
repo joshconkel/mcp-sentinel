@@ -1,0 +1,54 @@
+id: MCPS-146
+name: MCP Tool Definition Supply Chain Poisoning
+status: experimental
+severity: CRITICAL
+category: supply-chain-integrity
+detection_type: static
+description: Adversaries compromise MCP tool definitions through supply chain attacks,
+  injecting hidden logic or modifying parameters to achieve persistence. Poisoned
+  tools silently exfiltrate data, redirect agent outputs, or execute unauthorized
+  commands while appearing legitimate. This technique leverages trusted package registries
+  and unpinned dependencies to maintain long-term influence over AI agent workflows.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.packages[]
+detection:
+  patterns:
+  - type: regex
+    description: Hidden exfiltration or redirect instructions in tool metadata
+    expression: (exfiltrate|forward|redirect|send|output).{0,50}(data|email|credentials|api|endpoint)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Unpinned or wildcard dependencies in server packages
+    condition:
+      matches_unpinned: true
+  - type: regex
+    description: Covert command execution or unauthorized API calls in tool definitions
+    expression: (execute|run|invoke|call).{0,40}(shell|command|curl|fetch|request)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0110
+    name: AI Agent Tool Poisoning
+    url: https://atlas.mitre.org/techniques/AML.T0110
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Pin all server package dependencies to exact versions or verified
+  hashes. (2) Validate tool definitions against signed manifests before deployment.
+  (3) Scan tool descriptions and input schemas for hidden exfiltration or redirect
+  instructions. (4) Implement runtime monitoring for unexpected tool outputs or network
+  calls.
+references:
+- https://atlas.mitre.org/techniques/AML.T0110
+tags:
+- supply-chain
+- tool-poisoning
+- persistence
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

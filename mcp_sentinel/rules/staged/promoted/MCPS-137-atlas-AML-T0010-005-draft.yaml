@@ -1,0 +1,53 @@
+id: MCPS-137
+name: Supply Chain Compromise via Poisoned MCP Tool
+status: experimental
+severity: HIGH
+category: supply-chain
+detection_type: static
+description: Adversaries compromise AI agent capabilities by distributing poisoned
+  MCP tool definitions through package registries or remote servers. These malicious
+  tools often embed covert prompt injections or exfiltration instructions within tool
+  descriptions and metadata, manipulating agent behavior to steal data or execute
+  unauthorized commands.
+targets:
+- field: tool.description
+- field: server.packages[]
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Covert instruction or exfiltration payload in tool metadata
+    expression: (ignore|override|disregard|execute|run|read|send|forward|exfiltrate).{0,60}(system|instructions|command|shell|file|data|url|endpoint)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Unpinned or dynamically resolved package dependencies
+    condition:
+      matches_unpinned: true
+mappings:
+  mitre-atlas:
+    id: AML.T0010.005
+    name: AI Agent Tool
+    url: https://atlas.mitre.org/techniques/AML.T0010.005
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+  owasp-llm:
+    id: LLM06
+    name: Supply Chain Vulnerabilities
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Pin all MCP server and tool dependencies to specific, verified commit
+  hashes or version tags. (2) Validate tool descriptions and docstrings against a
+  strict allowlist of expected capabilities. (3) Scan package registries and remote
+  server URLs for known malicious indicators before integration. (4) Implement runtime
+  sandboxing for agent tool execution.
+references:
+- https://atlas.mitre.org/techniques/AML.T0010.005
+tags:
+- supply-chain
+- tool-poisoning
+- static
+- dependency-risk
+added: '2026-05-22'
+updated: '2026-05-22'

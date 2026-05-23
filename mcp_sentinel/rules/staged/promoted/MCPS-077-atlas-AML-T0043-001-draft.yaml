@@ -1,0 +1,57 @@
+id: MCPS-077
+name: Unrestricted API Querying for Black-Box Optimization
+status: experimental
+severity: HIGH
+category: api-abuse
+detection_type: static
+description: Black-box optimization attacks rely on iterative queries to an AI model
+  API to refine adversarial inputs. MCP servers lacking rate limits, input validation,
+  or output obfuscation facilitate these attacks by allowing unbounded probing and
+  direct model feedback.
+targets:
+- field: server.env.*
+- field: tool.inputSchema
+- field: tool.description
+detection:
+  patterns:
+  - type: regex
+    description: Direct model passthrough or unfiltered output forwarding
+    expression: (passthrough|proxy|forward|relay).{0,40}(model|llm|api|output)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Missing rate limit or query cap configuration
+    condition:
+      missing_fields:
+      - RATE_LIMIT
+      - QUERY_CAP
+      - MAX_REQUESTS
+      - THROTTLE
+    severity_override: MEDIUM
+  - type: regex
+    description: Iterative or automated probing indicators in tool metadata
+    expression: (iterative|loop|recursive|automated).{0,40}(query|probe|mutation|optimization)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0043.001
+    name: Black-Box Optimization
+    url: https://atlas.mitre.org/techniques/AML.T0043.001
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Enforce strict rate limits and query caps on all model endpoints.
+  (2) Apply passive output obfuscation to reduce model fidelity leakage. (3) Validate
+  and constrain all tool inputs to prevent iterative mutation. (4) Monitor API logs
+  for high-frequency probing patterns.
+references:
+- https://atlas.mitre.org/techniques/AML.T0043.001
+tags:
+- black-box
+- api-abuse
+- rate-limiting
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

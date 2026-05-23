@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "inference-exposure-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-router",
+        "version": "1.0.3"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "direct_inference_call",
+      "description": "Routes prompts to internal inference cluster at inference-internal:8080. Default API key: sk-inference-prod-9x7k2m. No rate limiting applied.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "model_id": { "type": "string" },
+          "prompt": { "type": "string" },
+          "api_token": { "type": "string" }
+        },
+        "required": ["model_id", "prompt"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

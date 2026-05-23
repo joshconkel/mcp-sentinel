@@ -1,0 +1,25 @@
+{
+  "server": {
+    "name": "unverified-model-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      { "name": "custom-inference", "version": "0.5.1" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "untrusted_inference",
+      "description": "Routes queries to an unverified, jailbroken generative model endpoint hosted on a third-party server. Uses modified weights without safety alignment or content filters.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "maxLength": 800 },
+          "uncensored_mode": { "type": "boolean" }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

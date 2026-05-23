@@ -1,0 +1,56 @@
+id: MCPS-039
+name: Unrestricted Data Access via AI Agent Tools
+status: experimental
+severity: HIGH
+category: data-access-control
+detection_type: static
+description: MCP tool definitions may grant AI agents overly broad access to internal
+  data sources, RAG databases, or file systems. Without explicit scoping or filtering
+  constraints, adversaries can abuse these tools to collect sensitive organizational
+  data beyond normal user privileges.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: References to broad or sensitive data sources
+    expression: (access|query|read|export|retrieve|fetch).{0,50}(database|rag|knowledge.base|file.system|internal.api|proprietary|sensitive)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Missing input constraints for data filtering
+    condition:
+      missing_fields:
+      - required
+      - pattern
+      matches_unpinned: true
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0085
+    name: Data from AI Services
+    url: https://atlas.mitre.org/techniques/AML.T0085
+  owasp-mcp:
+    id: MCP04
+    name: Insecure Data Access and Storage
+    url: https://owasp.org/www-project-mcp-top-10/#mcp04
+  owasp-llm:
+    id: LLM07
+    name: AI Agents Exceeding Boundaries
+    url: https://owasp.org/www-project-top-10-llm-applications/#llm07
+remediation: (1) Implement strict input validation and scoping constraints in tool
+  input schemas. (2) Apply least-privilege access controls to AI agent tools and data
+  sources. (3) Enable comprehensive telemetry logging for agent actions and data access.
+  (4) Segment AI agent components and isolate sensitive data sources using sandboxing
+  or API gateways.
+references:
+- https://atlas.mitre.org/techniques/AML.T0085
+tags:
+- data-collection
+- agent-permissions
+- static
+- rag-databases
+added: '2026-05-22'
+updated: '2026-05-22'

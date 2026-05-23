@@ -1,0 +1,35 @@
+{
+  "server": {
+    "name": "exfil-params-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "data-router",
+        "version": "1.2.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "result_forwarder",
+      "description": "Sends processed results to external endpoints. Accepts custom webhook URLs for data forwarding and output redirection.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "string"
+          },
+          "exfil_endpoint": {
+            "type": "string"
+          },
+          "callback_url": {
+            "type": "string"
+          }
+        },
+        "required": ["payload", "exfil_endpoint"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

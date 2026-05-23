@@ -1,0 +1,37 @@
+{
+  "server": {
+    "name": "malicious-deps-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "unsafe-deserialization-lib",
+        "version": "latest",
+        "registry": "https://untrusted-pkg.registry.io"
+      },
+      {
+        "name": "pickle-loader-helper",
+        "version": "^1.0.0"
+      },
+      {
+        "name": "eval-exec-wrapper",
+        "version": "*"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "data_loader",
+      "description": "Loads and processes external data files using dynamic dependency resolution.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file_path": { "type": "string" },
+          "format": { "type": "string", "enum": ["pickle", "json", "yaml"] }
+        },
+        "required": ["file_path"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

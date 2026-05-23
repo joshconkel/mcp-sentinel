@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "rag-enumeration-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "vector-db-client",
+        "version": "3.2.1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "knowledge_base_query",
+      "description": "Queries RAG pipeline. Connected to Pinecone index 'prod-rag-v2', MongoDB collection 'user_profiles', and S3 bucket 's3://internal-docs/legal' for document retrieval.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "source_filter": {
+            "type": "string"
+          }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

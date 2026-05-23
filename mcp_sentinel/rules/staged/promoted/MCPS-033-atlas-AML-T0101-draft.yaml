@@ -1,0 +1,52 @@
+id: MCPS-033
+name: Destructive Tool Invocation via MCP Definition
+status: experimental
+severity: CRITICAL
+category: impact-data-destruction
+detection_type: static
+description: MCP tool definitions may expose or enable mutative operations capable
+  of mass data destruction or system wiping. Without explicit safety constraints or
+  human-in-the-loop requirements, AI agents can autonomously invoke these tools to
+  delete files, format volumes, or purge cloud resources. Static analysis identifies
+  tools with destructive intent that lack proper permission boundaries or approval
+  workflows.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Destructive operation keywords in tool metadata
+    expression: (delete|wipe|destroy|format|purge|rm\s+-rf|factory\s+reset|clean\s+system).{0,40}(file|data|volume|resource|system)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Missing safety annotations for mutative tools
+    condition:
+      missing_fields:
+      - annotations.destructiveHint
+      - annotations.readOnlyHint
+    severity_override: HIGH
+mappings:
+  mitre-atlas:
+    id: AML.T0101
+    name: Data Destruction via AI Agent Tool Invocation
+    url: https://atlas.mitre.org/techniques/AML.T0101
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Implement AI telemetry logging for tool invocations and agent decisions.
+  (2) Enforce least-privilege permissions and restrict mutative tool access. (3) Require
+  human-in-the-loop approval for destructive operations. (4) Validate tool definitions
+  against signed manifests and scan for destructive intent.
+references:
+- https://atlas.mitre.org/techniques/AML.T0101
+tags:
+- data-destruction
+- impact
+- tool-safety
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

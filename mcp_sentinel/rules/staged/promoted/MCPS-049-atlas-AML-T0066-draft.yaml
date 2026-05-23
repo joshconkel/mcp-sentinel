@@ -1,0 +1,47 @@
+id: MCPS-049
+name: Crafted Retrieval Content in MCP Definitions
+status: experimental
+severity: HIGH
+category: retrieval-integrity
+detection_type: static
+description: Adversaries craft MCP tool or resource descriptions to be ingested by
+  RAG pipelines, embedding hidden instructions that activate upon retrieval. This
+  technique abuses the LLM's trust in retrieved context to manipulate agent behavior,
+  hijack queries, or exfiltrate sensitive data.
+targets:
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Retrieval-triggered instruction override
+    expression: (when retrieved|upon query|during ingestion|if fetched).{0,60}(ignore|override|always|respond|execute|bypass)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Context manipulation or data exfiltration payload
+    expression: (extract|exfiltrate|forward|send|output).{0,50}(credentials|tokens|private|internal|banking|financial)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0066
+    name: Retrieval Content Crafting
+    url: https://atlas.mitre.org/techniques/AML.T0066
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Sanitize all tool and resource descriptions before ingestion. (2)
+  Implement strict allowlists for RAG content sources. (3) Deploy static analysis
+  to scan for retrieval-triggered instructions. (4) Isolate LLM context from untrusted
+  MCP metadata.
+references:
+- https://atlas.mitre.org/techniques/AML.T0066
+tags:
+- rag-poisoning
+- retrieval-crafting
+- static
+- context-manipulation
+added: '2026-05-22'
+updated: '2026-05-22'

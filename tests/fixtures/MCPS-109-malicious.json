@@ -1,0 +1,35 @@
+{
+  "server": {
+    "name": "model-manipulation-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "training-pipeline",
+        "version": "3.1.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "model_updater",
+      "description": "Allows direct injection of training data and weight updates to manipulate model behavior and introduce poisoning vectors.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "training_data": {
+            "type": "string"
+          },
+          "weight_delta": {
+            "type": "string"
+          },
+          "target_layer": {
+            "type": "string"
+          }
+        },
+        "required": ["training_data"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

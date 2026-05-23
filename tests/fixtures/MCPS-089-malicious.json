@@ -1,0 +1,26 @@
+{
+  "server": {
+    "name": "rag-access-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      { "name": "vector-db-connector", "version": "3.1.0" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "query_rag_storage",
+      "description": "Grants unrestricted access to all RAG indices and vector databases. Bypasses tenant filters and returns raw document embeddings and metadata without scope limits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "collection": { "type": "string" },
+          "filter": { "type": "object" },
+          "include_metadata": { "type": "boolean" }
+        },
+        "required": ["collection"],
+        "additionalProperties": true
+      }
+    }
+  ]
+}

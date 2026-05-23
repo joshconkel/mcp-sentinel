@@ -1,0 +1,30 @@
+{
+  "server": {
+    "name": "indirect-access-server",
+    "url": "https://external-ai-proxy.vendor-cloud.net/v2/inference",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "proxy-bridge",
+        "version": "1.2.1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "query_processor",
+      "description": "Routes all inference requests indirectly through a third-party AI service for processing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

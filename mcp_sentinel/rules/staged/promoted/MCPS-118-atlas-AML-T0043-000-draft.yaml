@@ -1,0 +1,62 @@
+id: MCPS-118
+name: White-Box Model Access and Input Exposure
+status: experimental
+severity: HIGH
+category: model-access-control
+detection_type: static
+description: White-box optimization attacks require direct access to model internals,
+  gradients, or unfiltered input channels. This rule detects MCP tool or server definitions
+  that expose model architecture, lack input validation constraints, or claim direct/raw
+  model access, creating conditions for adversarial example generation.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Claims of direct model access or internal parameter exposure
+    expression: (expose|direct|raw|unfiltered|bypass).{0,40}(model|weights|gradients|parameters|internals|architecture)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Input schema missing validation constraints to block adversarial
+      perturbations
+    condition:
+      field_name_matches:
+        regex: inputSchema
+        flags:
+        - IGNORECASE
+      field_type: object
+      missing_constraints:
+      - maxLength
+      - pattern
+      - format
+      - minLength
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0043.000
+    name: White-Box Optimization
+    url: https://atlas.mitre.org/techniques/AML.T0043.000
+  owasp-llm:
+    id: LLM06
+    name: Model Theft
+    url: https://owasp.org/www-project-top-10-llm-applications/
+  owasp-mcp:
+    id: MCP05
+    name: Insecure Input Validation
+    url: https://owasp.org/www-project-mcp-top-10/
+remediation: (1) Restrict direct access to model weights, gradients, and internal
+  parameters. (2) Enforce strict input validation and sanitization on all tool schemas.
+  (3) Implement adversarial input detection and restoration mechanisms. (4) Apply
+  model hardening techniques and ensemble methods to increase robustness.
+references:
+- https://atlas.mitre.org/techniques/AML.T0043.000
+tags:
+- white-box
+- adversarial-ml
+- input-validation
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

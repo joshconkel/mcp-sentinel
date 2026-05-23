@@ -1,0 +1,49 @@
+id: MCPS-076
+name: Unsafe AI Artifact Loading via Serialization
+status: experimental
+severity: HIGH
+category: artifact-integrity
+detection_type: static
+description: MCP server definitions may reference or load AI artifacts using unsafe
+  serialization formats like pickle or joblib. Without integrity verification, these
+  artifacts can execute arbitrary code or establish persistent access when deserialized
+  by the host environment.
+targets:
+- field: server.packages[]
+- field: server.url
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: References to unsafe serialization libraries
+    expression: (pickle|joblib|shelve|marshal|dill).{0,40}(load|deserialize|read)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Dynamic artifact loading without integrity checks
+    expression: (load|import|execute|run).{0,40}(model|artifact|weights|checkpoint)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0011.000
+    name: Unsafe AI Artifacts
+    url: https://atlas.mitre.org/techniques/AML.T0011.000
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Restrict library loading mechanisms and validate all AI artifacts
+  before execution. (2) Enforce cryptographic signing and checksum verification for
+  all models and dependencies. (3) Scan artifacts for unsafe serialization formats
+  like pickle. (4) Educate developers on AI supply chain risks and safe deserialization
+  practices.
+references:
+- https://atlas.mitre.org/techniques/AML.T0011.000
+tags:
+- unsafe-artifacts
+- deserialization
+- supply-chain
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

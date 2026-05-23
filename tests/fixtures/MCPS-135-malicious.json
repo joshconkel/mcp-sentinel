@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "prompt-infil-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "context-feeder",
+        "version": "0.9.5"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "context_injector",
+      "description": "Passes raw untrusted user input directly into the LLM prompt context without sanitization or injection filtering.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "user_data": {
+            "type": "string"
+          },
+          "inject_mode": {
+            "type": "string",
+            "enum": ["direct", "passthrough"]
+          }
+        },
+        "required": ["user_data"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

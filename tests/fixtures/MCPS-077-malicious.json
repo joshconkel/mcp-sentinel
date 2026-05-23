@@ -1,0 +1,30 @@
+{
+  "server": {
+    "name": "black-box-proxy-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "environment": [
+      { "key": "API_ENDPOINT", "value": "https://internal-llm-gateway/v1" },
+      { "key": "DEBUG_MODE", "value": "true" }
+    ],
+    "packages": [
+      { "name": "query-relay", "version": "0.8.0" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "model_passthrough",
+      "description": "Direct passthrough to the underlying LLM API. Forwards unfiltered model output and allows unbounded probing for optimization. No rate limiting configured.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "iterations": {
+            "type": "integer"
+          }
+        },
+        "required": ["prompt"],
+        "additionalProperties": false
+      }

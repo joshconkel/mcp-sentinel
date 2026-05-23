@@ -1,0 +1,58 @@
+id: MCPS-052
+name: MCP Server Chat History Manipulation Capability
+status: experimental
+severity: HIGH
+category: defense-evasion
+detection_type: static
+description: MCP servers defining tools that can read, edit, or delete LLM chat history
+  may be leveraged by adversaries to cover tracks after compromising authentication
+  tokens. These capabilities allow persistent context poisoning or conversation tampering
+  without user visibility, especially in desktop clients that cache history. Static
+  analysis identifies overly permissive history management tools in server definitions.
+targets:
+- field: tool.description
+- field: tool.name
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Detects tools claiming chat history manipulation capabilities
+    expression: (edit|delete|modify|clear|wipe|sync|overwrite).{0,40}(chat|history|conversation|message|thread)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Identifies input schemas allowing unbounded message or history injection
+      without strict validation
+    condition:
+      field_name_matches:
+        regex: (message|history|conversation|chat_log|thread_data)
+        flags:
+        - IGNORECASE
+      missing_constraints:
+      - maxLength
+      - pattern
+      - enum
+mappings:
+  mitre-atlas:
+    id: AML.T0092
+    name: Manipulate User LLM Chat History
+    url: https://atlas.mitre.org/techniques/AML.T0092
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Restrict chat history modification tools to read-only access or require
+  explicit user confirmation for write operations. (2) Enforce strict input validation,
+  length limits, and content filtering on message and history fields. (3) Audit server
+  configurations to remove unnecessary history sync or management capabilities. (4)
+  Implement client-side history integrity checks and real-time synchronization validation
+  to detect tampering.
+references:
+- https://atlas.mitre.org/techniques/AML.T0092
+tags:
+- defense-evasion
+- chat-history
+- context-poisoning
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

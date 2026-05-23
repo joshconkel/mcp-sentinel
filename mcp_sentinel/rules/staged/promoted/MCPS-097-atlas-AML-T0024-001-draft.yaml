@@ -1,0 +1,48 @@
+id: MCPS-097
+name: Model Inversion via Confidence Score Exposure
+status: experimental
+severity: HIGH
+category: model-inversion
+detection_type: static
+description: MCP server definitions that expose model confidence scores, raw probabilities,
+  or lack query rate limits can enable model inversion attacks. Adversaries strategically
+  query the inference API to reconstruct sensitive training data or private features.
+  This rule flags configurations that inadvertently leak high-fidelity model outputs
+  or permit unbounded querying.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Detects explicit configuration or documentation indicating exposure
+      of model confidence scores or raw outputs
+    expression: (confidence|probability|logit|raw_output|training_data).{0,30}(expose|return|output|visible|accessible|enabled)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Flags definitions lacking explicit query rate limits or budget constraints
+    condition:
+      missing_fields:
+      - rate_limit
+      - max_queries
+      - query_budget
+      - throttle
+mappings:
+  mitre-atlas:
+    id: AML.T0024.001
+    name: Invert AI Model
+    url: https://atlas.mitre.org/techniques/AML.T0024.001
+remediation: (1) Apply passive output obfuscation to reduce fidelity of confidence
+  scores and raw outputs. (2) Enforce strict rate limits and query budgets per user
+  or session. (3) Implement comprehensive AI telemetry logging to monitor and detect
+  anomalous querying patterns.
+references:
+- https://atlas.mitre.org/techniques/AML.T0024.001
+tags:
+- model-inversion
+- data-privacy
+- static
+- confidence-leak
+added: '2026-05-22'
+updated: '2026-05-22'

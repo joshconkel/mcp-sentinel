@@ -1,0 +1,52 @@
+id: MCPS-062
+name: MCP Tool Attack Verification and Probing
+status: experimental
+severity: MEDIUM
+category: attack-staging
+detection_type: static
+description: Adversaries configure MCP tools or server endpoints to verify the efficacy
+  of adversarial inputs or evasion techniques against target models. These definitions
+  often include probing utilities, unbounded query capabilities, or metadata indicating
+  robustness testing, enabling attackers to validate exploits before full deployment.
+targets:
+- field: tool.description
+- field: tool.name
+- field: server.env.*
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Detects tools configured for model probing or attack verification
+    expression: (test|probe|verify|validate|evasion|adversarial).{0,40}(model|endpoint|inference|robustness|attack|sample)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Identifies server definitions lacking query restrictions or authentication
+      controls
+    condition:
+      missing_fields:
+      - server.rateLimit
+      - server.authRequired
+      - server.queryQuota
+mappings:
+  mitre-atlas:
+    id: AML.T0042
+    name: Verify Attack
+    url: https://atlas.mitre.org/techniques/AML.T0042
+  nist-ai-rmf:
+    id: SEC.02
+    name: Monitor AI Systems
+    url: https://www.nist.gov/ai-rmf
+remediation: (1) Implement passive output obfuscation to reduce model fidelity for
+  probing. (2) Enforce strict rate limiting and query quotas on inference endpoints.
+  (3) Restrict access to model registries and production APIs using strong authentication.
+  (4) Monitor and audit tool invocation patterns for anomalous verification behavior.
+references:
+- https://atlas.mitre.org/techniques/AML.T0042
+tags:
+- attack-staging
+- model-probing
+- static
+- adversarial-testing
+added: '2026-05-22'
+updated: '2026-05-22'

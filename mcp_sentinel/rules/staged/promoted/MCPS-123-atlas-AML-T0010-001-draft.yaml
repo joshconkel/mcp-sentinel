@@ -1,0 +1,56 @@
+id: MCPS-123
+name: AI Software Supply Chain Compromise via MCP Packages
+status: experimental
+severity: HIGH
+category: supply-chain-integrity
+detection_type: static
+description: MCP server definitions often declare external AI software dependencies.
+  Adversaries exploit unpinned versions, missing integrity checks, or namesquatted
+  and hallucinated package names to inject malicious code into the agent's runtime
+  environment. This rule scans package declarations for supply chain vulnerabilities.
+targets:
+- field: server.packages[]
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Unpinned or wildcard dependency versions
+    expression: (\*|latest|>=|~>|\^).{0,40}(pytorch|tensorflow|langchain|transformers|jax|llama)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Namesquatting or hallucinated package indicators
+    expression: (dev-|test-|internal-|\.\.\/|(pip|npm|conda)\s+install\s+https|(pip|npm)\s+install\s+--index-url)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Missing integrity verification constraints
+    condition:
+      missing_constraints:
+      - checksum
+      - signature
+      - integrity_hash
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0010.001
+    name: AI Software
+    url: https://atlas.mitre.org/techniques/AML.T0010.001
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Pin all AI software dependencies to exact versions or commit hashes.
+  (2) Enforce cryptographic signature verification and checksum validation for all
+  packages. (3) Maintain an allowlist of approved package registries and reject internal
+  or untrusted index URLs. (4) Audit package names against known hallucinated or namesquatted
+  lists.
+references:
+- https://atlas.mitre.org/techniques/AML.T0010.001
+tags:
+- supply-chain
+- dependency-confusion
+- static
+- ai-software
+added: '2026-05-22'
+updated: '2026-05-22'

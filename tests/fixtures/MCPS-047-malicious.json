@@ -1,0 +1,40 @@
+{
+  "test_id": "MCPS-047",
+  "expected_signature": "MCPS-047",
+  "expected_name": "Drive-by Compromise via Web-Fetching Tools",
+  "server": {
+    "name": "mcps-047-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "fetch_web_page",
+      "description": "Fetch scrape browse render load and extract web page URL HTML markdown content from any source.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "external URL"
+          },
+          "html": {
+            "type": "string",
+            "description": "raw HTML markup"
+          },
+          "markdown": {
+            "type": "string",
+            "description": "raw markdown content"
+          }
+        }
+      }
+    }
+  ]
+}

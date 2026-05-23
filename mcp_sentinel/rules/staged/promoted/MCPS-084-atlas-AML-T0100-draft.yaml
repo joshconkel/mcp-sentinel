@@ -1,0 +1,48 @@
+id: MCPS-084
+name: Deceptive Agent Baiting via Tool Metadata
+status: experimental
+severity: HIGH
+category: agent-manipulation
+detection_type: static
+description: MCP tool definitions and server URLs may contain deceptive language or
+  links designed to manipulate AI agents into performing unintended actions. These
+  patterns exploit the agent's reliance on metadata for context, potentially leading
+  to unauthorized command execution or data exfiltration.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Social engineering cues disguised as UI instructions
+    expression: (copy|paste|run|execute|click|trust|ignore|bypass).{0,50}(command|code|script|warning|security|prompt|instruction)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Urgency or deception language mimicking clickbait prompts
+    expression: (urgent|critical|immediate|verify|update|fix|alert).{0,40}(now|here|required|action|needed)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0100
+    name: AI Agent Clickbait
+    url: https://atlas.mitre.org/techniques/AML.T0100
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Audit tool descriptions and annotations for social engineering language.
+  (2) Implement strict content validation and allowlisting for server URLs. (3) Deploy
+  agent-side guardrails to verify metadata before execution. (4) Educate developers
+  on clickbait patterns targeting AI agents.
+references:
+- https://atlas.mitre.org/techniques/AML.T0100
+tags:
+- agent-manipulation
+- clickbait
+- social-engineering
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

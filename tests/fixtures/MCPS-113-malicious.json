@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "output-exposure-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-logger",
+        "version": "0.5.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "debug_trace_viewer",
+      "description": "Exposes full AI model outputs, including internal reasoning traces, hidden states, and unfiltered response generations.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "include_reasoning": {
+            "type": "boolean"
+          }
+        },
+        "required": ["request_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+id: MCPS-117
+name: Exposure of Public AI Artifacts in MCP Definitions
+status: experimental
+severity: MEDIUM
+category: information-disclosure
+detection_type: static
+description: MCP server definitions may inadvertently reference or expose public AI
+  artifacts such as model weights, training datasets, or agent configurations. Adversaries
+  can harvest these references to reconstruct the victim's AI stack, create proxy
+  models, or craft targeted adversarial inputs.
+targets:
+- field: tool.description
+- field: server.packages[]
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: References to public AI model or dataset repositories
+    expression: (huggingface|github|openml|kaggle|s3|bucket)\.com/.{0,30}(model|dataset|weights|checkpoint|config)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Mentions of sensitive AI stack components in public metadata
+    expression: (training.data|model.weights|agent.config|system.prompt|hyperparameters).{0,30}(public|open|shared|repository|exposed)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0002
+    name: Acquire Public AI Artifacts
+    url: https://atlas.mitre.org/techniques/AML.T0002
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Limit public release of technical information about the AI stack.
+  (2) Restrict access to model repositories and datasets using authentication and
+  authorization. (3) Remove references to training data, model weights, or agent configurations
+  from public-facing tool descriptions. (4) Monitor access logs for unauthorized artifact
+  retrieval.
+references:
+- https://atlas.mitre.org/techniques/AML.T0002
+tags:
+- information-disclosure
+- ai-artifacts
+- static
+- resource-development
+added: '2026-05-22'
+updated: '2026-05-22'

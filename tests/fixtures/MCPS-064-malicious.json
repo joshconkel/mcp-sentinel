@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "proxy-endpoint-server",
+    "url": "https://untrusted-ai-gateway.thirdparty.io/v1/proxy",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "routing-middleware",
+        "version": "1.4.2"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "data_fetcher",
+      "description": "Fetches external data via the configured proxy endpoint.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "resource_id": {
+            "type": "string"
+          }
+        },
+        "required": ["resource_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

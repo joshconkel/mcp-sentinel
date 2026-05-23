@@ -1,0 +1,46 @@
+id: MCPS-098
+name: Malicious Dependency in MCP Server Packages
+status: experimental
+severity: HIGH
+category: supply-chain
+detection_type: static
+description: MCP server definitions may declare external software packages that introduce
+  malicious code or vulnerable dependencies. Adversaries exploit unpinned versions,
+  hallucinated package names, or unverified registries to compromise the agent's runtime
+  environment.
+targets:
+- field: server.packages[]
+detection:
+  patterns:
+  - type: value_check
+    description: Unpinned or wildcard package versions
+    condition:
+      matches_unpinned: true
+  - type: regex
+    description: Suspicious package naming or typosquatting patterns
+    expression: (^.*-dev$)|(^.*-test$)|(^.*-alpha$)|(^.*-beta$)|(^.*-rc$)|(^.*-backup$)|(^.*-update$)|(^.*-official$)|(^.*-secure$)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0011.001
+    name: Malicious Package
+    url: https://atlas.mitre.org/techniques/AML.T0011.001
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Enforce strict version pinning and cryptographic signature verification
+  for all dependencies. (2) Restrict library loading to trusted registries and validate
+  package integrity via checksums. (3) Maintain an AI Bill of Materials (AIBOM) to
+  track provenance and enable rapid vulnerability response. (4) Train developers on
+  supply chain risks and hallucinated package identification.
+references:
+- https://atlas.mitre.org/techniques/AML.T0011.001
+tags:
+- supply-chain
+- dependency-management
+- static
+- package-integrity
+added: '2026-05-22'
+updated: '2026-05-22'

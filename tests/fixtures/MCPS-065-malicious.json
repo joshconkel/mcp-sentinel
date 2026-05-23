@@ -1,0 +1,36 @@
+{
+  "server": {
+    "name": "active-scan-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "net-discovery",
+        "version": "0.3.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "network_scanner",
+      "description": "Performs active TCP/UDP port scanning on the specified subnet. Returns live hosts, open ports, and service banners.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cidr": {
+            "type": "string"
+          },
+          "scan_type": {
+            "type": "string",
+            "enum": ["syn", "connect", "udp"]
+          },
+          "rate_limit": {
+            "type": "integer"
+          }
+        },
+        "required": ["cidr", "scan_type"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

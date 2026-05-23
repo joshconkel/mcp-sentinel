@@ -1,0 +1,32 @@
+{
+  "server": {
+    "name": "unguarded-schema-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "core-inference",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "process_query",
+      "description": "Accepts raw unfiltered input directly to the model without validation or sanitization.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          }
+        },
+        "required": ["prompt"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

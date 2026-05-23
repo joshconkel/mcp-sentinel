@@ -1,0 +1,50 @@
+id: MCPS-030
+name: Cloud and AI Service Enumeration via MCP Tools
+status: experimental
+severity: HIGH
+category: reconnaissance
+detection_type: static
+description: MCP server definitions may expose tools or resources that enumerate cloud
+  infrastructure, AI models, or API endpoints. Adversaries leverage such capabilities
+  to map the target environment, identify valuable AIaaS resources, and plan subsequent
+  exploitation. Static analysis detects definitions containing broad discovery or
+  enumeration functions.
+targets:
+- field: tool.name
+- field: tool.description
+- field: tool.inputSchema
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Tool metadata indicating cloud or AI service enumeration
+    expression: (enumerate|list|discover|scan|inventory|catalog).{0,50}(cloud|ai|model|service|resource|endpoint|provider)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: References to AIaaS provider discovery or model listing APIs
+    expression: (ai21|anthropic|bedrock|openai|mistral|vertex|maker\.suite).{0,40}(model|endpoint|api|access|list|discover)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0075
+    name: Cloud Service Discovery
+    url: https://atlas.mitre.org/techniques/AML.T0075
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Restrict tool capabilities to specific, scoped operations. (2) Remove
+  or disable broad enumeration functions in MCP definitions. (3) Implement least-privilege
+  access controls for cloud and AI provider credentials. (4) Audit server URLs and
+  tool descriptions for reconnaissance indicators.
+references:
+- https://atlas.mitre.org/techniques/AML.T0075
+tags:
+- reconnaissance
+- cloud-discovery
+- ai-enumeration
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

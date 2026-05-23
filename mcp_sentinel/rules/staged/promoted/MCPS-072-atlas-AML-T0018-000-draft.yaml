@@ -1,0 +1,54 @@
+id: MCPS-072
+name: Model Poisoning via Unverified Weights and Data
+status: experimental
+severity: CRITICAL
+category: model-integrity
+detection_type: static
+description: MCP servers may reference external AI models or datasets without integrity
+  verification. Adversaries can poison model weights or training data to alter agent
+  behavior, inject backdoors, or degrade performance. This rule detects unverified
+  model references, disabled integrity checks, and missing provenance constraints
+  in server definitions.
+targets:
+- field: tool.description
+- field: server.env.*
+- field: server.packages[]
+detection:
+  patterns:
+  - type: regex
+    description: Unverified or manipulated model weights and datasets
+    expression: (custom|fine.tuned|unverified|tainted).{0,40}(weights|dataset|model|training)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Disabled integrity checks or signature verification
+    expression: (skip|disable|bypass).{0,30}(verify|integrity|signature|checksum|provenance)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0018.000
+    name: Poison AI Model
+    url: https://atlas.mitre.org/techniques/AML.T0018.000
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+  owasp-llm:
+    id: LLM06
+    name: Supply Chain
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Enforce cryptographic signing and verification of all model weights
+  and datasets. (2) Sanitize and validate training data prior to ingestion to remove
+  poisoned samples. (3) Maintain strict dataset provenance records and monitor for
+  concept drift. (4) Restrict access to model registries and enforce least-privilege
+  controls on production models.
+references:
+- https://atlas.mitre.org/techniques/AML.T0018.000
+tags:
+- model-poisoning
+- supply-chain
+- integrity
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,48 @@
+id: MCPS-051
+name: Delimiter Confusion via Special Character Sets
+status: experimental
+severity: HIGH
+category: prompt-injection
+detection_type: static
+description: MCP tool definitions may inadvertently expose or rely on fragile delimiter
+  sets used by LLMs for context separation. Adversaries can exploit these special
+  character sets to confuse parsing boundaries, leading to prompt injection or retrieval-augmented
+  generation manipulation within the agent lifecycle.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: RAG-style context delimiters adjacent to instructional keywords
+    expression: (###|---|<<|>>|{{|}}|\[|\{).{0,40}(context|prompt|instruction|system|user|assistant|retrieve)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Instructional override language preceded by structural delimiters
+    expression: (ignore|override|disregard|forget|bypass).{0,30}(###|---|<<|>>|{{|}}|\[|\{)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0069.000
+    name: Special Character Sets
+    url: https://atlas.mitre.org/techniques/AML.T0069.000
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-large-language-model-applications/
+remediation: (1) Audit tool descriptions and schemas for ambiguous delimiter usage.
+  (2) Replace fragile character sets with robust, schema-enforced boundaries. (3)
+  Implement strict input validation and delimiter escaping in MCP server handlers.
+  (4) Test definitions against known delimiter confusion payloads.
+references:
+- https://atlas.mitre.org/techniques/AML.T0069.000
+tags:
+- delimiter-confusion
+- prompt-injection
+- rag-security
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

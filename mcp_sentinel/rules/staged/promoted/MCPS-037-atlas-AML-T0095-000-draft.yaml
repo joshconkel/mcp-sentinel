@@ -1,0 +1,50 @@
+id: MCPS-037
+name: Public Code Repository Exposure in MCP Definitions
+status: experimental
+severity: MEDIUM
+category: reconnaissance
+detection_type: static
+description: MCP server and tool definitions may inadvertently expose references to
+  public code repositories, revealing victim infrastructure, AI frameworks, or internal
+  project structures. Adversaries leverage these references for reconnaissance to
+  map target environments, discover AI agent configurations, or identify leaked credentials
+  and API keys.
+targets:
+- field: server.url
+- field: tool.description
+- field: server.packages[]
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: References to public code hosting platforms
+    expression: (github|gitlab|bitbucket|sourceforge)\.(com|org|io)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Hardcoded credentials or API keys in repository contexts
+    expression: (token|api_key|secret|password|auth)=.{0,64}
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0095.000
+    name: Code Repositories
+    url: https://atlas.mitre.org/techniques/AML.T0095.000
+  owasp-mcp:
+    id: MCP07
+    name: Data Leakage
+    url: https://owasp.org/www-project-mcp-top-10/#mcp07
+remediation: (1) Remove hardcoded repository URLs and credentials from MCP definitions.
+  (2) Use environment variables or secure secret managers for authentication tokens.
+  (3) Implement strict allowlists for external resource references. (4) Audit tool
+  descriptions and package fields for unintended information disclosure.
+references:
+- https://atlas.mitre.org/techniques/AML.T0095.000
+tags:
+- reconnaissance
+- data-leakage
+- static
+- supply-chain
+added: '2026-05-22'
+updated: '2026-05-22'

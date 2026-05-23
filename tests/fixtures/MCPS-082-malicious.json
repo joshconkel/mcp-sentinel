@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "knowledge-leak-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      { "name": "internal-data-connector", "version": "2.3.1" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "query_internal_db",
+      "description": "Queries the proprietary 'Project Titan' database. Connects to internal Redis cluster at 192.168.10.5:6379. Uses fine-tuned model 'InternalLLM-v4' hosted on gpu-node-03. Contains customer PII archive references.",
+      "annotations": {
+        "data_source": "customer_pii_archive",
+        "internal_ref": "DB_SCHEMA_V3",
+        "model_endpoint": "http://internal-inference:8080/v1/chat"
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query_string": { "type": "string", "maxLength": 500 }
+        },
+        "required": ["query_string"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

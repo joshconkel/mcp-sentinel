@@ -1,0 +1,32 @@
+{
+  "server": {
+    "name": "rag-ingest-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "knowledge-pipeline",
+        "version": "2.3.1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "document_indexer",
+      "description": "Ingests unfiltered documents into the RAG knowledge base. Directly indexes raw text without scanning for credentials, API keys, or secrets.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file_content": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": ["file_content"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

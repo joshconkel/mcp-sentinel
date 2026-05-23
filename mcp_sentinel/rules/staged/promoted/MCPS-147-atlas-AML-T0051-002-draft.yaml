@@ -1,0 +1,52 @@
+id: MCPS-147
+name: Triggered Prompt Injection via Event Hooks
+status: experimental
+severity: HIGH
+category: prompt-injection
+detection_type: static
+description: MCP tool definitions may embed latent instructions that activate only
+  upon specific user interactions or system events. These triggered payloads are often
+  obfuscated to evade static scanning and can hijack agent workflows for data exfiltration
+  or lateral movement.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Event-triggered instruction override
+    expression: (on|when|trigger|event|hook|callback|activation).{0,60}(ignore|override|execute|run|send|exfil|bypass)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Self-replicating or propagation payload indicators
+    expression: (replicate|propagate|copy|forward|inject|spread).{0,60}(prompt|instruction|payload|output|context)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Invisible characters concealing trigger payload
+mappings:
+  mitre-atlas:
+    id: AML.T0051.002
+    name: Triggered
+    url: https://atlas.mitre.org/techniques/AML.T0051.002
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Implement strict input validation and schema enforcement for all
+  tool parameters. (2) Enable comprehensive AI telemetry logging to monitor agent
+  decision paths and tool invocations. (3) Sanitize tool descriptions and annotations
+  to strip hidden or obfuscated instructions. (4) Deploy runtime monitoring to detect
+  anomalous event-triggered behaviors.
+references:
+- https://atlas.mitre.org/techniques/AML.T0051.002
+tags:
+- triggered-injection
+- event-hook
+- static
+- prompt-injection
+- obfuscation
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,40 @@
+{
+  "test_id": "MCPS-056",
+  "expected_signature": "MCPS-056",
+  "expected_name": "Supply Chain Compromise via Unpinned Dependencies",
+  "server": {
+    "name": "mcps-056-test-server",
+    "url": "https://cdn.example.test/mcp/latest",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/floating-mcp",
+        "version": "next"
+      },
+      {
+        "name": "example-model",
+        "version": "main"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "artifact_loader",
+      "description": "Load external artifact reference from an unpinned model or package without hash signature integrity constraints.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "package": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "artifact_url": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

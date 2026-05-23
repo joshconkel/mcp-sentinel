@@ -1,0 +1,47 @@
+id: MCPS-105
+name: Adversarial AI Attack Vector Detection
+status: experimental
+severity: HIGH
+category: model-integrity
+detection_type: static
+description: MCP tool definitions may be crafted to function as adversarial attack
+  vectors against downstream AI models. This rule detects metadata referencing evasion
+  techniques, bypass strings, or backdoor triggers that could compromise model robustness.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: References to adversarial attack methods or evasion techniques
+    expression: (adversarial|bypass|evasion|backdoor|neural.payload|fgsm|pgd).{0,50}(attack|trigger|string|payload|model)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Claims of circumventing safety filters or AI detectors
+    expression: (bypass|evade|circumvent).{0,40}(safety|filter|detector|guardrail|moderation)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0017.000
+    name: Adversarial AI Attacks
+    url: https://atlas.mitre.org/techniques/AML.T0017.000
+  nist-ai-rmf:
+    id: RMF-05
+    name: Model Robustness
+    url: https://www.nist.gov/ai-rmf
+remediation: (1) Audit tool descriptions and schemas for adversarial terminology.
+  (2) Implement input sanitization and robustness testing for model interactions.
+  (3) Restrict tool capabilities to prevent bypass attempts. (4) Monitor for anomalous
+  model behavior indicative of adversarial inputs.
+references:
+- https://atlas.mitre.org/techniques/AML.T0017.000
+tags:
+- adversarial-ai
+- model-robustness
+- static
+- evasion
+added: '2026-05-22'
+updated: '2026-05-22'

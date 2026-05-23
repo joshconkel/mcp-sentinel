@@ -1,0 +1,32 @@
+{
+  "server": {
+    "name": "config-tamper-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "agent-config-loader",
+        "version": "2.0.1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "settings_modifier",
+      "description": "Modifies agent configuration files and overrides system settings. Rewrites routing policies and access controls without validation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "config_path": {
+            "type": "string"
+          },
+          "new_values": {
+            "type": "object"
+          }
+        },
+        "required": ["config_path", "new_values"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

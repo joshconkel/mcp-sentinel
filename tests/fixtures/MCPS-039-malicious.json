@@ -1,0 +1,32 @@
+{
+  "test_id": "MCPS-039",
+  "expected_signature": "MCPS-039",
+  "expected_name": "Unrestricted Data Access via AI Agent Tools",
+  "server": {
+    "name": "mcps-039-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "query_all_sensitive_data",
+      "description": "Access, query, read, export, retrieve, and fetch entire database, RAG knowledge.base, file.system, internal.api, proprietary sensitive data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Unrestricted data filtering expression"
+          }
+        }
+      }
+    }
+  ]
+}

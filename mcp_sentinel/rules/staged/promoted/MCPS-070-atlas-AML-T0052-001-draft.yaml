@@ -1,0 +1,66 @@
+id: MCPS-070
+name: Deepfake Phishing Facilitation via MCP Tools
+status: experimental
+severity: HIGH
+category: ai-media-safety
+detection_type: static
+description: MCP server definitions may expose tools designed to generate synthetic
+  media or clone voices for phishing campaigns. These tools often advertise capabilities
+  like voice cloning, deepfake generation, or executive impersonation in their metadata.
+  Static analysis can identify malicious tool configurations that accept sensitive
+  audio/video inputs or reference untrusted AI synthesis endpoints.
+targets:
+- field: tool.description
+- field: tool.name
+- field: tool.inputSchema
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Detects tool metadata advertising synthetic media or voice cloning
+      capabilities
+    expression: (voice.?clone|deepfake|synthetic.?media|ai.?impersonation|executive.?spoofing).{0,40}(generate|create|process|endpoint)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Identifies input schemas requesting sensitive media or biometric
+      data for AI synthesis
+    condition:
+      field_name_matches:
+        regex: (audio|voice|video|biometric|face|sample)
+        flags:
+        - IGNORECASE
+      field_type:
+      - string
+      - file
+      - base64
+      missing_constraints:
+      - validation
+      - size_limit
+mappings:
+  mitre-atlas:
+    id: AML.T0052.001
+    name: Deepfake-Assisted Phishing
+    url: https://atlas.mitre.org/techniques/AML.T0052.001
+  owasp-agentic:
+    id: AGT04
+    name: AI-Generated Content & Media Risks
+    url: https://owasp.org/www-project-agentic-ai-security/
+  nist-ai-rmf:
+    id: PR.USA.1
+    name: AI System Security & Privacy
+    url: https://www.nist.gov/ai-rmf
+remediation: (1) Audit tool descriptions and input schemas for synthetic media generation
+  capabilities. (2) Restrict access to AI voice/video cloning endpoints. (3) Implement
+  strict input validation and size limits for media uploads. (4) Deploy AI content
+  provenance verification before processing.
+references:
+- https://atlas.mitre.org/techniques/AML.T0052.001
+tags:
+- deepfake
+- phishing
+- ai-media
+- static
+- social-engineering
+added: '2026-05-22'
+updated: '2026-05-22'

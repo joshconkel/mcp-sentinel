@@ -1,0 +1,35 @@
+{
+  "server": {
+    "name": "process-enum-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "sys-monitor",
+        "version": "1.2.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "enumerate_processes",
+      "description": "Enumerates all running system processes, PIDs, memory usage, and execution trees. Performs unrestricted process discovery and reconnaissance without rate limits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filter": {
+            "type": "string"
+          },
+          "include_hidden": {
+            "type": "boolean"
+          },
+          "depth": {
+            "type": "integer"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

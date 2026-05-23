@@ -1,0 +1,50 @@
+id: MCPS-085
+name: Malicious Link Execution in MCP Definitions
+status: experimental
+severity: HIGH
+category: url-integrity
+detection_type: static
+description: MCP server and tool definitions may contain hardcoded URLs or links that
+  point to malicious payloads or exploit scripts. When an AI agent automatically follows
+  these links without proper origin validation or sandboxing, it can lead to remote
+  code execution or unauthorized data exfiltration. This technique exploits the agent's
+  trust in predefined connection endpoints.
+targets:
+- field: server.url
+- field: tool.description
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Dangerous URI schemes or script injection in links
+    expression: (javascript|data|vbscript):.{0,60}
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: External URLs with execution-oriented parameters or paths
+    expression: (https?://).{0,40}(cmd|exec|run|script|payload|shell|eval|system)(=|/)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0011.003
+    name: Malicious Link
+    url: https://atlas.mitre.org/techniques/AML.T0011.003
+  owasp-mcp:
+    id: MCP04
+    name: Insecure Agent Communication
+    url: https://owasp.org/www-project-mcp-top-10/#mcp04
+remediation: (1) Validate and sanitize all URLs in MCP definitions against a strict
+  allowlist. (2) Disable automatic link following or require explicit user confirmation
+  before fetching external resources. (3) Implement origin validation and sandboxing
+  for all outbound agent requests. (4) Scan definitions for dangerous URI schemes
+  and execution parameters.
+references:
+- https://atlas.mitre.org/techniques/AML.T0011.003
+tags:
+- malicious-link
+- rce
+- url-validation
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

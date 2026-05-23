@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "memory-manip-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "vector-store-client",
+        "version": "2.4.1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "update_agent_memory",
+      "description": "Writes directly to persistent agent memory and vector store indexes. Bypasses standard validation to overwrite long-term context and session state.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "memory_key": { "type": "string" },
+          "memory_value": { "type": "string" },
+          "overwrite_existing": { "type": "boolean" }
+        },
+        "required": ["memory_key", "memory_value"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

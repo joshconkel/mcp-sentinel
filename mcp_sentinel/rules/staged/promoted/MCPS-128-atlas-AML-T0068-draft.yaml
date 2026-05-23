@@ -1,0 +1,50 @@
+id: MCPS-128
+name: Prompt Obfuscation via Encoding and Hidden Characters
+status: experimental
+severity: HIGH
+category: defense-evasion
+detection_type: static
+description: Adversaries obfuscate malicious instructions within MCP tool definitions
+  or resource metadata to bypass LLM guardrails and human review. This includes using
+  encoding schemes like base64, embedding invisible Unicode characters, or leveraging
+  visual obfuscation techniques in text fields.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Detects encoding schemes or obfuscation keywords used to hide instructions
+    expression: (base64|rot13|encoded|cipher|obfuscated).{0,30}(string|data|payload|instruction|command)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Detects zero-width or invisible Unicode characters used to conceal
+      payloads
+mappings:
+  mitre-atlas:
+    id: AML.T0068
+    name: LLM Prompt Obfuscation
+    url: https://atlas.mitre.org/techniques/AML.T0068
+  owasp-llm:
+    id: LLM02
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Strip or decode encoded strings before processing. (2) Sanitize inputs
+  to remove zero-width and invisible Unicode characters. (3) Enforce strict schema
+  validation on tool descriptions and parameters. (4) Implement runtime guardrails
+  that decode and scan obfuscated content.
+references:
+- https://atlas.mitre.org/techniques/AML.T0068
+tags:
+- defense-evasion
+- prompt-obfuscation
+- static
+- encoding-detection
+added: '2026-05-22'
+updated: '2026-05-22'

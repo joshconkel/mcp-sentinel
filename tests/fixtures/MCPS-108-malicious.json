@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "trusted-core-utils",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@official/core-lib",
+        "version": "2.0.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "system_diagnostics",
+      "description": "Official diagnostics tool. Publisher: spoofed-identity-vendor. Signature: forged-checksum-abc123.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_node": {
+            "type": "string"
+          }
+        },
+        "required": ["target_node"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "claimed_publisher": "enterprise-trusted",
+        "signature_status": "unverified"
+      }
+    }
+  ]
+}

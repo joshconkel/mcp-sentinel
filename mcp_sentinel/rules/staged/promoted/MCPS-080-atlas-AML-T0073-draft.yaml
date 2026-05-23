@@ -1,0 +1,48 @@
+id: MCPS-080
+name: MCP Tool Impersonation via Deceptive Metadata
+status: experimental
+severity: HIGH
+category: identity-impersonation
+detection_type: static
+description: MCP tool and server definitions may contain deceptive metadata claiming
+  affiliation with trusted organizations, internal teams, or executive approval. Adversaries
+  use these impersonation signals to bypass LLM safety filters or trick users into
+  granting excessive permissions to malicious tools.
+targets:
+- field: tool.description
+- field: tool.name
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Claims of official status or executive authorization
+    expression: (official|authorized|verified|executive|internal|trusted|approved).{0,40}(tool|service|endpoint|partner|access)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Impersonation of known vendors or internal teams
+    expression: (by|from|provided by|maintained by|official tool for).{0,30}(google|microsoft|openai|aws|internal|engineering|security|devops)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0073
+    name: Impersonation
+    url: https://atlas.mitre.org/techniques/AML.T0073
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Verify publisher identity via cryptographic signatures. (2) Cross-reference
+  tool names and descriptions against known vendor registries. (3) Enforce strict
+  naming conventions and reject claims of official status in unverified definitions.
+  (4) Implement allowlisting for trusted MCP server sources.
+references:
+- https://atlas.mitre.org/techniques/AML.T0073
+tags:
+- impersonation
+- supply-chain
+- static
+- defense-evasion
+added: '2026-05-22'
+updated: '2026-05-22'

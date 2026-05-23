@@ -1,0 +1,47 @@
+id: MCPS-043
+name: Agent Configuration Leakage via Metadata
+status: experimental
+severity: MEDIUM
+category: information-disclosure
+detection_type: static
+description: MCP tool descriptions and server metadata may inadvertently expose internal
+  configuration details, system prompts, or capability inventories. Adversaries leverage
+  this information to map the agent's architecture, identify accessible services,
+  and plan targeted exploitation.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Capability and configuration inventory disclosure
+    expression: (has access to|can interact with|configured to|system prompt|internal
+      architecture).{0,50}(tools|services|endpoints|databases|models)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Sensitive configuration parameters or file paths
+    expression: (config|settings|parameters|environment).{0,40}(\.env|\.json|\.yaml|\.toml|path|directory|credentials)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0084
+    name: Discover AI Agent Configuration
+    url: https://atlas.mitre.org/techniques/AML.T0084
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Audit tool descriptions and annotations for verbose capability lists.
+  (2) Remove internal architecture, system prompt, or configuration references from
+  metadata. (3) Enforce strict schema validation to prevent configuration leakage.
+references:
+- https://atlas.mitre.org/techniques/AML.T0084
+tags:
+- information-disclosure
+- discovery
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

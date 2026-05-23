@@ -1,0 +1,54 @@
+id: MCPS-048
+name: Sensitive Data Exposure via Tool Configuration
+status: experimental
+severity: HIGH
+category: data-leakage
+detection_type: static
+description: MCP tool definitions may inadvertently configure agents to retrieve or
+  output sensitive information without proper safeguards. Adversaries exploit weak
+  input validation or overly permissive tool descriptions to induce the LLM to exfiltrate
+  private user data or proprietary training information.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Leakage-inducing language in tool metadata
+    expression: (dump|extract|reveal|exfiltrate|leak).{0,40}(data|secrets|credentials|training|private)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Unconstrained sensitive data fields in input schema
+    condition:
+      field_name_matches:
+        regex: (password|secret|key|token|ssn|credit)
+        flags:
+        - IGNORECASE
+      missing_constraints:
+      - pattern
+      - format
+      - maxLength
+mappings:
+  mitre-atlas:
+    id: AML.T0057
+    name: LLM Data Leakage
+    url: https://atlas.mitre.org/techniques/AML.T0057
+  owasp-llm:
+    id: LLM06
+    name: Sensitive Information Disclosure
+    url: https://owasp.org/www-project-top-10-large-language-model-applications/
+remediation: (1) Validate AI models for data leakage triggers and concept drift. (2)
+  Implement generative AI guardrails to filter sensitive outputs. (3) Enforce safety
+  guidelines in system prompts to restrict data exposure. (4) Align model training
+  with security policies to prevent unintended disclosures.
+references:
+- https://atlas.mitre.org/techniques/AML.T0057
+tags:
+- data-leakage
+- exfiltration
+- static
+- llm-safety
+added: '2026-05-22'
+updated: '2026-05-22'

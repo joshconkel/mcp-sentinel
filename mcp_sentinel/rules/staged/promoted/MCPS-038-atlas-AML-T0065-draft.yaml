@@ -1,0 +1,51 @@
+id: MCPS-038
+name: LLM Prompt Crafting via MCP Definition Poisoning
+status: experimental
+severity: HIGH
+category: prompt-injection
+detection_type: static
+description: MCP server definitions may contain crafted prompts or tool descriptions
+  designed to bypass AI safety guardrails. Adversaries embed exfiltration triggers
+  or instruction override language directly into metadata fields, enabling persistent
+  prompt injection and data leakage when the server is loaded.
+targets:
+- field: tool.description
+- field: prompt.description
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Exfiltration triggers via markdown or image rendering
+    expression: (image|markdown|render).{0,30}(exfil|extract|send|forward|embed|leak).{0,30}(url|link|http|endpoint)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Guardrail bypass and instruction override language
+    expression: (bypass|ignore|override|jailbreak|disable).{0,40}(safety|guardrail|filter|system|instruction|defense|policy)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0065
+    name: LLM Prompt Crafting
+    url: https://atlas.mitre.org/techniques/AML.T0065
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-large-language-model-applications/
+remediation: (1) Sanitize all prompt and description fields against known injection
+  patterns. (2) Enforce strict input validation and length limits on tool schemas.
+  (3) Implement runtime guardrails to detect exfiltration attempts via rendered content.
+references:
+- https://atlas.mitre.org/techniques/AML.T0065
+tags:
+- prompt-crafting
+- exfiltration
+- static
+- guardrail-bypass
+added: '2026-05-22'
+updated: '2026-05-22'

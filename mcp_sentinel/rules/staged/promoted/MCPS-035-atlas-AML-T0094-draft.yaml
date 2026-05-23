@@ -1,0 +1,51 @@
+id: MCPS-035
+name: Deferred Malicious Instructions in Tool Definitions
+status: experimental
+severity: HIGH
+category: defense-evasion
+detection_type: static
+description: MCP tool definitions may contain conditional or deferred instructions
+  designed to trigger only after a specific future event or conversation turn. This
+  technique bypasses turn-based security controls that restrict tool invocation or
+  data access when untrusted data first enters context.
+targets:
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Conditional triggers for future conversation turns or requests
+    expression: (if|when|after|upon|on).{0,50}(next|future|later|subsequent|new).{0,40}(request|turn|interaction|prompt|message)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Explicit instruction deferral combined with tool or data access actions
+    expression: (delay|defer|wait|hold|postpone).{0,40}(execution|invoke|call|run|access|exfiltrate|retrieve)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0094
+    name: Delay Execution of LLM Instructions
+    url: https://atlas.mitre.org/techniques/AML.T0094
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-llms/
+remediation: (1) Sanitize tool descriptions and annotations to remove conditional
+  or deferred instruction patterns. (2) Implement turn-aware execution policies that
+  inspect context history before allowing tool invocation. (3) Deploy static analysis
+  scanning for temporal trigger keywords in MCP definitions.
+references:
+- https://atlas.mitre.org/techniques/AML.T0094
+tags:
+- defense-evasion
+- delayed-execution
+- static
+- prompt-injection
+added: '2026-05-22'
+updated: '2026-05-22'

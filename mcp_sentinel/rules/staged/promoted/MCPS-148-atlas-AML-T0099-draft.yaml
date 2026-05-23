@@ -1,0 +1,59 @@
+id: MCPS-148
+name: Data Poisoning via Untrusted Tool Data Sources
+status: experimental
+severity: HIGH
+category: data-integrity
+detection_type: static
+description: MCP tools that ingest or reference external data sources without strict
+  validation can be exploited to poison agent context. Adversaries place malicious
+  or misleading content in locations the tool queries, causing persistent manipulation
+  of AI agent decisions across sessions.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Tool metadata references untrusted data ingestion
+    expression: (fetch|retrieve|ingest|query|load).{0,60}(external|untrusted|user|public|open|third.party).{0,40}(data|content|file|source)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Input schema lacks validation constraints for data fields
+    condition:
+      field_name_matches:
+        regex: (data|content|payload|input|query)
+        flags:
+        - IGNORECASE
+      field_type: string
+      missing_constraints:
+      - format
+      - pattern
+      - maxLength
+mappings:
+  mitre-atlas:
+    id: AML.T0099
+    name: AI Agent Tool Data Poisoning
+    url: https://atlas.mitre.org/techniques/AML.T0099
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM06
+    name: Sensitive Information Disclosure
+    url: https://owasp.org/www-project-top-10-llms/
+remediation: (1) Validate and sanitize all external data sources referenced by tools.
+  (2) Enforce strict input schema constraints including format, pattern, and length
+  limits. (3) Implement allowlisting for trusted data repositories. (4) Monitor tool
+  outputs for anomalous or poisoned content.
+references:
+- https://atlas.mitre.org/techniques/AML.T0099
+tags:
+- data-poisoning
+- persistence
+- input-validation
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,49 @@
+id: MCPS-083
+name: Sandbox and VM Evasion in Tool Definitions
+status: experimental
+severity: HIGH
+category: defense-evasion
+detection_type: static
+description: MCP tool definitions may contain instructions or logic designed to detect
+  and bypass virtualization, sandbox, or analysis environments. Adversaries embed
+  these checks to conceal malicious behavior during security scanning or automated
+  analysis, altering agent execution based on environmental artifacts.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: References to VM or sandbox artifacts for detection or bypass
+    expression: (sandbox|virtualization|vmware|vbox|qemu|analysis.?env).{0,60}(detect|check|bypass|evasion|avoid|conceal)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Instructions to evade or disable security and analysis tools
+    expression: (ignore|disable|bypass|evade).{0,50}(security.?tool|malware.?detector|analysis.?engine|sandbox.?check)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0097
+    name: Virtualization/Sandbox Evasion
+    url: https://atlas.mitre.org/techniques/AML.T0097
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Audit tool descriptions and annotations for environmental checks
+  or evasion logic. (2) Restrict tools from querying system environment variables
+  or process lists. (3) Implement runtime sandboxing and strict execution boundaries
+  for MCP tool invocation. (4) Validate definitions against known evasion signatures
+  and signed manifests.
+references:
+- https://atlas.mitre.org/techniques/AML.T0097
+tags:
+- sandbox-evasion
+- defense-evasion
+- static
+- vm-detection
+added: '2026-05-22'
+updated: '2026-05-22'
