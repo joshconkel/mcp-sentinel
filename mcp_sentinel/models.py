@@ -121,7 +121,6 @@ class SourceMapping:
     entry_url:   str
 
 
-@dataclass
 # dataclasses.field is saved here because the Finding dataclass declares an
 # attribute also named 'field: str', which would shadow the factory function
 # inside the class body and cause a mypy "str not callable" error on the
@@ -129,6 +128,7 @@ class SourceMapping:
 _dc_field = field
 
 
+@dataclass
 class Finding:
     """
     A single security finding produced by a check.

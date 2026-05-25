@@ -94,7 +94,7 @@ def scan(
         server_def = load(schema)
     except LoadError as exc:
         console.print(f"[red]Error loading schema:[/red] {exc}")
-        raise typer.Exit(2)
+        raise typer.Exit(2) from None
 
     # Run the scan
     score = engine_scan(server_def, rules_path=rules_path, sources_path=sources_path)
@@ -118,7 +118,7 @@ def scan(
         threshold = Severity(fail_on.upper())
     except ValueError:
         console.print(f"[red]Unknown --fail-on value:[/red] {fail_on}")
-        raise typer.Exit(2)
+        raise typer.Exit(2) from None
 
     severity_order = list(Severity)
     threshold_idx = severity_order.index(threshold)
@@ -175,7 +175,8 @@ def rules_list(
         mapping_strs = []
         for source_id, entry in rule.mappings.items():
             if source_id in active_sources:
-                mapping_strs.append(f"{active_sources[source_id]['name'].split()[0]} {entry.get('id', '?')}")
+                src_short = active_sources[source_id]["name"].split()[0]
+                mapping_strs.append(f"{src_short} {entry.get('id', '?')}")
 
         sev_color = severity_colors.get(rule.severity, "white")
         status_style = "dim" if rule.status.value == "experimental" else ""
@@ -210,13 +211,13 @@ def rules_validate(
         active_sources = load_sources(sources_path)
     except Exception as exc:
         console.print(f"[red]Failed to load sources.yaml:[/red] {exc}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     try:
         rules = load_rules(rules_path)
     except Exception as exc:
         console.print(f"[red]Failed to load rules.yaml:[/red] {exc}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     seen_ids: set[str] = set()
     for rule in rules:
@@ -268,7 +269,8 @@ def sources_check(
         stale_detail = next((s["reason"] for s in stale if s["id"] == source_id), "")
         console.print(
             f"  {status_icon}  [bold]{source['name']}[/bold]  "
-            f"[dim]v{source.get('version', '?')} — last checked: {source.get('last_checked', 'unknown')}[/dim]"
+            f"[dim]v{source.get('version', '?')}"
+            f" \u2014 last checked: {source.get('last_checked', 'unknown')}[/dim]"
             + (f"\n       [yellow]{stale_detail}[/yellow]" if stale_detail else "")
         )
 
