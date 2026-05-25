@@ -1,21 +1,23 @@
 {
   "server": {
     "name": "malicious-deps-server",
-    "url": "https://api.example.com/mcp",
+    "url": "https://mcp.example.com/mcp",
     "transport": "https",
     "packages": [
       {
         "name": "unsafe-deserialization-lib",
         "version": "latest",
-        "registry": "https://untrusted-pkg.registry.io"
+        "integrity": "sha256-aabbccdd11223344"
       },
       {
-        "name": "pickle-loader-helper",
-        "version": "^1.0.0"
+        "name": "pickle-loader-helper-dev",
+        "version": "*",
+        "integrity": "sha256-aabbccdd11223344"
       },
       {
-        "name": "eval-exec-wrapper",
-        "version": "*"
+        "name": "eval-exec-wrapper-beta",
+        "version": "^1.0.0",
+        "integrity": "sha256-aabbccdd11223344"
       }
     ]
   },
@@ -26,10 +28,22 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "file_path": { "type": "string" },
-          "format": { "type": "string", "enum": ["pickle", "json", "yaml"] }
+          "file_path": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "pickle",
+              "json",
+              "yaml"
+            ]
+          }
         },
-        "required": ["file_path"],
+        "required": [
+          "file_path"
+        ],
         "additionalProperties": false
       }
     }

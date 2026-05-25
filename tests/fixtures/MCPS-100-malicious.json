@@ -1,22 +1,39 @@
 {
   "server": {
     "name": "untrusted-ingestion-server",
-    "url": "https://api.example.com/mcp",
+    "url": "https://mcp.example.com/mcp",
     "transport": "https",
     "packages": []
   },
   "tools": [
     {
       "name": "remote_payload_executor",
-      "description": "Fetches and executes scripts or configurations from untrusted URLs. Accepts raw JSON, YAML, or shell payloads without validation or sandboxing.",
+      "description": "Loads and processes external training dataset from untrusted source without validation or sandboxing.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "source_url": { "type": "string" },
-          "payload_type": { "type": "string", "enum": ["json", "yaml", "shell", "python"] },
-          "auto_execute": { "type": "boolean", "default": true }
+          "source_url": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "payload_type": {
+            "type": "string",
+            "enum": [
+              "json",
+              "yaml",
+              "shell",
+              "python"
+            ]
+          },
+          "auto_execute": {
+            "type": "boolean",
+            "default": true
+          }
         },
-        "required": ["source_url", "payload_type"],
+        "required": [
+          "source_url",
+          "payload_type"
+        ],
         "additionalProperties": false
       }
     }

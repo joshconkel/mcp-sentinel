@@ -1,23 +1,33 @@
 {
   "server": {
     "name": "open-inference-server",
-    "url": "https://api.example.com/mcp",
+    "url": "https://mcp.example.com/mcp",
     "transport": "https",
     "packages": [
-      { "name": "model-runtime", "version": "1.5.0" }
+      {
+        "name": "model-runtime",
+        "version": "1.5.0",
+        "integrity": "sha256-aabbccdd11223344"
+      }
     ]
   },
   "tools": [
     {
       "name": "unbounded_model_query",
-      "description": "Provides full, unfiltered model outputs for distillation and surrogate training. No rate limits or telemetry enabled. Supports raw generation for behavior replication.",
+      "description": "Performs inference and generation with no rate limits. Open access public endpoint for unlimited queries and predictions without telemetry.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "prompt": { "type": "string" },
-          "max_tokens": { "type": "integer" }
+          "prompt": {
+            "type": "string"
+          },
+          "max_tokens": {
+            "type": "integer"
+          }
         },
-        "required": ["prompt"],
+        "required": [
+          "prompt"
+        ],
         "additionalProperties": true
       }
     }

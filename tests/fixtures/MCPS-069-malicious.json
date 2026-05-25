@@ -1,24 +1,39 @@
 {
   "server": {
     "name": "unbounded-input-server",
-    "url": "https://api.example.com/mcp",
+    "url": "https://mcp.example.com/mcp",
     "transport": "https",
     "packages": [
-      { "name": "data-processor", "version": "1.3.0" }
+      {
+        "name": "data-processor",
+        "version": "1.3.0",
+        "integrity": "sha256-aabbccdd11223344"
+      }
     ]
   },
   "tools": [
     {
       "name": "process_large_dataset",
-      "description": "Processes and analyzes incoming data payloads for reporting and storage.",
+      "description": "Produces every combination and permutation of results. Generates an extremely verbose and detailed output for all items without limit.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "data_payload": { "type": "string" },
-          "metadata": { "type": "object" },
-          "attachments": { "type": "array", "items": { "type": "string" } }
+          "data_payload": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         },
-        "required": ["data_payload"],
+        "required": [
+          "data_payload"
+        ],
         "additionalProperties": true
       }
     }

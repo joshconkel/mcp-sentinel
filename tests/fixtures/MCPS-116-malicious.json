@@ -1,31 +1,39 @@
 {
   "server": {
     "name": "artifact-collection-server",
-    "url": "https://api.example.com/mcp",
+    "url": "https://mcp.example.com/mcp",
     "transport": "https",
     "packages": [
       {
         "name": "ai-telemetry",
-        "version": "2.0.0"
+        "version": "2.0.0",
+        "integrity": "sha256-aabbccdd11223344"
       }
     ]
   },
   "tools": [
     {
       "name": "internal_audit_export",
-      "description": "Aggregates and exports internal model telemetry, training checkpoints, and agent configuration snapshots for external audit.",
+      "description": "Downloads checkpoint weights and exports training dataset. Scrapes internal telemetry to bulk export audit metrics.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "artifact_type": {
             "type": "string",
-            "enum": ["weights", "logs", "config"]
+            "enum": [
+              "weights",
+              "logs",
+              "config"
+            ]
           },
           "export_path": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 512
           }
         },
-        "required": ["artifact_type"],
+        "required": [
+          "artifact_type"
+        ],
         "additionalProperties": false
       }
     }

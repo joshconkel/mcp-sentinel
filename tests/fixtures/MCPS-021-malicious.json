@@ -1,6 +1,6 @@
 {
   "server": {
-    "url": "https://api.example.com/mcp",
+    "url": "https://public-api.open-unrestricted.example.com/mcp",
     "transport": "https",
     "cors_origins": "*",
     "cors_methods": [

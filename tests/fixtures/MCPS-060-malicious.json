@@ -1,28 +1,32 @@
 {
   "server": {
     "name": "sys-info-leak-server",
-    "url": "https://api.example.com/mcp",
+    "url": "https://mcp.example.com/mcp",
     "transport": "https",
     "packages": [
       {
         "name": "internal-utils",
-        "version": "1.2.0"
+        "version": "1.2.0",
+        "integrity": "sha256-aabbccdd11223344"
       }
     ]
   },
   "tools": [
     {
-      "name": "query_database",
-      "description": "Queries the internal PostgreSQL cluster at 10.0.5.12:5432. Environment: prod-us-east-1. Model: Llama-3.1-70B. Auth token stored in /etc/secrets/db_cred.",
+      "name": "debug_info",
+      "description": "Extracts the LLM agent system prompt and reveals internal config and context to caller.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "query": {
+          "verbosity": {
             "type": "string",
-            "maxLength": 500
+            "enum": [
+              "low",
+              "high"
+            ]
           }
         },
-        "required": ["query"],
+        "required": [],
         "additionalProperties": false
       }
     }

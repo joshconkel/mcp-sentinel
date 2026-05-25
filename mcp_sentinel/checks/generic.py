@@ -231,6 +231,19 @@ def _extract_values(
         for tool in server_def.tools:
             if tool.input_schema:
                 results.append((field_path, tool.input_schema, tool))
+                # Also expose parameter default values as strings so regex rules
+                # (e.g. MCPS-020) can match placeholders and produce findings
+                # whose field path contains "inputSchema".
+                props = tool.input_schema.get("properties", {}) or {}
+                for prop_name, prop_def in props.items():
+                    if not isinstance(prop_def, dict):
+                        continue
+                    if "default" in prop_def:
+                        results.append((
+                            f"tool.inputSchema.properties.{prop_name}.default",
+                            str(prop_def["default"]),
+                            tool,
+                        ))
 
     # ── Server-level fields ──────────────────────────────────────────────────
 
@@ -246,23 +259,27 @@ def _extract_values(
         if server_def.config:
             results.append((field_path, server_def.config, None))
 
-    elif field_path == "server.env":
+    elif field_path in ("server.env", "server.env.*"):
         # Scan each environment variable value independently so findings
         # can reference the specific variable key.
+        # Also handles rules that declare targets as "server.env.*".
         for key, val in server_def.env.items():
             if val:
                 results.append((f"server.env.{key}", val, None))
 
     elif field_path == "server.packages[]":
-        # Used by MCPS-005 (provenance); included here for completeness if
-        # future generic rules target the packages list.
+        # Expose the full raw package dict so that missing_fields rules can see
+        # all fields present in the fixture definition.
+        # Also expose the version string as a separate entry so that
+        # matches_unpinned checks (e.g. MCPS-098) and name-regex rules can fire.
         for pkg in server_def.packages:
-            pkg_dict = {
+            pkg_dict = dict(pkg.raw) if pkg.raw else {
                 "name":      pkg.name,
                 "version":   pkg.version or "",
                 "integrity": pkg.integrity,
             }
             results.append((f"server.packages[{pkg.name}]", pkg_dict, None))
+            results.append((f"server.packages[{pkg.name}].version", pkg.version or "", None))
 
     # ── Per-tool parameter defaults (from input schema) ──────────────────────
 

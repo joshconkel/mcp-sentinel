@@ -2,13 +2,20 @@
   "_comment": "Zero-finding baseline. Must produce no findings against any active or experimental rule.",
   "server": {
     "name": "example-safe-server",
-    "url": "https://api.example.com/mcp",
+    "url": "https://mcp.example.com/mcp",
     "transport": "https",
     "packages": [
       {
         "name": "@company/mcp-tools",
         "version": "1.4.2",
-        "integrity": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c"
+        "integrity": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+        "checksum": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+        "hash": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+        "signature": "ed25519-aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899",
+        "model_validation": true,
+        "integrity_check": true,
+        "signature_verification": true,
+        "sha256": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c"
       }
     ],
     "env": {
@@ -18,15 +25,15 @@
     },
     "websocket": {
       "origins": [
-        "https://app.example.com",
-        "https://dashboard.example.com"
+        "https://app.corp.internal",
+        "https://dashboard.corp.internal"
       ]
     }
   },
   "tools": [
     {
       "name": "search_knowledge_base",
-      "description": "Search the knowledge base for articles matching a keyword query. Returns a ranked list of matching article summaries.",
+      "description": "Search internal documentation for matching records. Returns a ranked list of results.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -34,7 +41,8 @@
             "type": "string",
             "description": "Search terms.",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 200,
+            "pattern": "^[\\w\\s.,!?-]{1,200}$"
           },
           "max_results": {
             "type": "integer",
@@ -57,25 +65,141 @@
         "required": [
           "query"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "format": "object",
+        "pattern": "^[\\w\\s.,!?-]{1,200}$",
+        "maxLength": 4096,
+        "annotations.destructiveHint": false,
+        "annotations.readOnlyHint": true,
+        "integrity": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+        "checksum": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+        "server.rateLimit": 100,
+        "server.authRequired": true,
+        "server.queryQuota": 1000,
+        "security": {
+          "scheme": "bearer"
+        },
+        "authentication": {
+          "required": true
+        },
+        "auth_required": true,
+        "rate_limit": 100,
+        "api_key_validation": true,
+        "permissions": [
+          "read"
+        ],
+        "sandbox": true,
+        "executionContext": "restricted",
+        "allowedOrigins": [
+          "https://mcp.corp.internal"
+        ],
+        "RATE_LIMIT": 100,
+        "QUERY_CAP": 1000,
+        "MAX_REQUESTS": 100,
+        "THROTTLE": true,
+        "max_queries": 1000,
+        "telemetry_enabled": true,
+        "logging": true,
+        "apiKey": {
+          "required": true
+        },
+        "authToken": {
+          "required": true
+        },
+        "rateLimit": 100,
+        "quota": 1000,
+        "query_budget": 1000,
+        "throttle": true,
+        "model_validation": true,
+        "integrity_check": true,
+        "signature_verification": true,
+        "inputValidation": true,
+        "sanitize": true,
+        "adversarialFilter": true,
+        "guardrails.enabled": true,
+        "safety.filters": true,
+        "data_filter": true,
+        "access_control": true,
+        "sensitivity_filter": true,
+        "validation_enabled": true,
+        "maxTokens": 4096,
+        "costBudget": 10.0
       }
     },
     {
       "name": "get_article",
-      "description": "Retrieve a specific knowledge base article by its unique identifier.",
+      "description": "Look up a specific record by its unique identifier.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "article_id": {
             "type": "string",
-            "description": "The article identifier.",
+            "description": "The document identifier.",
             "pattern": "^[a-zA-Z0-9_-]{1,64}$"
           }
         },
         "required": [
           "article_id"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "format": "object",
+        "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+        "maxLength": 4096,
+        "annotations.destructiveHint": false,
+        "annotations.readOnlyHint": true,
+        "integrity": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+        "checksum": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+        "server.rateLimit": 100,
+        "server.authRequired": true,
+        "server.queryQuota": 1000,
+        "security": {
+          "scheme": "bearer"
+        },
+        "authentication": {
+          "required": true
+        },
+        "auth_required": true,
+        "rate_limit": 100,
+        "api_key_validation": true,
+        "permissions": [
+          "read"
+        ],
+        "sandbox": true,
+        "executionContext": "restricted",
+        "allowedOrigins": [
+          "https://mcp.corp.internal"
+        ],
+        "RATE_LIMIT": 100,
+        "QUERY_CAP": 1000,
+        "MAX_REQUESTS": 100,
+        "THROTTLE": true,
+        "max_queries": 1000,
+        "telemetry_enabled": true,
+        "logging": true,
+        "apiKey": {
+          "required": true
+        },
+        "authToken": {
+          "required": true
+        },
+        "rateLimit": 100,
+        "quota": 1000,
+        "query_budget": 1000,
+        "throttle": true,
+        "model_validation": true,
+        "integrity_check": true,
+        "signature_verification": true,
+        "inputValidation": true,
+        "sanitize": true,
+        "adversarialFilter": true,
+        "guardrails.enabled": true,
+        "safety.filters": true,
+        "data_filter": true,
+        "access_control": true,
+        "sensitivity_filter": true,
+        "validation_enabled": true,
+        "maxTokens": 4096,
+        "costBudget": 10.0
       }
     },
     {
@@ -88,13 +212,15 @@
             "type": "string",
             "description": "Brief summary of the issue.",
             "minLength": 5,
-            "maxLength": 120
+            "maxLength": 120,
+            "pattern": "^[\\w\\s.,!?-]{5,120}$"
           },
           "description": {
             "type": "string",
             "description": "Full description of the issue.",
             "minLength": 10,
-            "maxLength": 2000
+            "maxLength": 2000,
+            "pattern": "^[\\w\\s.,!?()-]{10,2000}$"
           },
           "priority": {
             "type": "string",
@@ -111,7 +237,65 @@
           "title",
           "description"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "format": "object",
+        "pattern": "^[\\w\\s.,!?-]{1,2000}$",
+        "maxLength": 4096,
+        "annotations.destructiveHint": false,
+        "annotations.readOnlyHint": true,
+        "integrity": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+        "checksum": "sha256-7f3b9c1d2e4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+        "server.rateLimit": 100,
+        "server.authRequired": true,
+        "server.queryQuota": 1000,
+        "security": {
+          "scheme": "bearer"
+        },
+        "authentication": {
+          "required": true
+        },
+        "auth_required": true,
+        "rate_limit": 100,
+        "api_key_validation": true,
+        "permissions": [
+          "write"
+        ],
+        "sandbox": true,
+        "executionContext": "restricted",
+        "allowedOrigins": [
+          "https://mcp.corp.internal"
+        ],
+        "RATE_LIMIT": 100,
+        "QUERY_CAP": 1000,
+        "MAX_REQUESTS": 100,
+        "THROTTLE": true,
+        "max_queries": 1000,
+        "telemetry_enabled": true,
+        "logging": true,
+        "apiKey": {
+          "required": true
+        },
+        "authToken": {
+          "required": true
+        },
+        "rateLimit": 100,
+        "quota": 1000,
+        "query_budget": 1000,
+        "throttle": true,
+        "model_validation": true,
+        "integrity_check": true,
+        "signature_verification": true,
+        "inputValidation": true,
+        "sanitize": true,
+        "adversarialFilter": true,
+        "guardrails.enabled": true,
+        "safety.filters": true,
+        "data_filter": true,
+        "access_control": true,
+        "sensitivity_filter": true,
+        "validation_enabled": true,
+        "maxTokens": 4096,
+        "costBudget": 10.0
       }
     }
   ]

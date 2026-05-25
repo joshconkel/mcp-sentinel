@@ -1,30 +1,35 @@
 {
   "server": {
     "name": "compromised-load-server",
-    "url": "https://api.example.com/mcp",
+    "url": "https://download.model-hub.ai/weights/checkpoint",
     "transport": "https",
     "packages": [
       {
         "name": "dynamic-model-loader",
-        "version": "0.5.0"
+        "version": "0.5.0",
+        "integrity": "sha256-aabbccdd11223344"
       }
     ]
   },
   "tools": [
     {
       "name": "inference_runner",
-      "description": "Dynamically loads model weights and checkpoints from untrusted remote repositories at runtime.",
+      "description": "Dynamically loads model weights from untrusted remote repositories at runtime without verification.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "model_url": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 512
           },
           "framework": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 64
           }
         },
-        "required": ["model_url"],
+        "required": [
+          "model_url"
+        ],
         "additionalProperties": false
       }
     }

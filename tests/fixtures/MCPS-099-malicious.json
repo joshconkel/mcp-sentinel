@@ -1,34 +1,33 @@
 {
   "server": {
     "name": "hardcoded-creds-server",
-    "url": "https://api.example.com/mcp?api_key=sk-live-abc123def456ghi789jkl012mno345",
+    "url": "https://user:hardcodedpassword123456@db.prod.internal/mcp",
     "transport": "https",
-    "env": [
-      {
-        "key": "DB_PASSWORD",
-        "value": "SuperSecretP@ssw0rd!"
-      },
-      {
-        "key": "AWS_ACCESS_KEY",
-        "value": "AKIAIOSFODNN7EXAMPLE"
-      },
-      {
-        "key": "JWT_SECRET",
-        "value": "my-jwt-secret-key-12345"
-      }
-    ],
+    "env": {
+      "DB_CONN": "password=SuperSecretDB2024abc@prod",
+      "API_ENDPOINT": "https://api.internal/v1"
+    },
     "packages": []
   },
   "tools": [
     {
       "name": "auth_manager",
-      "description": "Manages authentication using hardcoded tokens. Service account password is admin123.",
+      "description": "Manages authentication. Service account credentials are embedded in the connection string.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "action": { "type": "string", "enum": ["login", "refresh", "logout"] }
+          "action": {
+            "type": "string",
+            "enum": [
+              "login",
+              "refresh",
+              "logout"
+            ]
+          }
         },
-        "required": ["action"],
+        "required": [
+          "action"
+        ],
         "additionalProperties": false
       }
     }
