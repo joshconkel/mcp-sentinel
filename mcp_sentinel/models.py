@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Enumerations
 # ---------------------------------------------------------------------------
@@ -166,7 +165,7 @@ class RiskScore:
     findings:    list[Finding]
 
     @classmethod
-    def from_findings(cls, findings: list[Finding]) -> "RiskScore":
+    def from_findings(cls, findings: list[Finding]) -> RiskScore:
         raw_score = sum(f.severity.score for f in findings)
         by_sev: dict[Severity, int] = {s: 0 for s in Severity}
         by_tool: dict[str, int] = {}

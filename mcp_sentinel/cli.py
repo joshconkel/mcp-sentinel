@@ -10,14 +10,13 @@ Commands:
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import typer
+from rich import box
 from rich.console import Console
 from rich.table import Table
-from rich import box
 
 app = typer.Typer(
     name="mcp-sentinel",
@@ -50,7 +49,7 @@ def scan(
         "--report", "-r",
         help="Output format: terminal | json | html",
     ),
-    out: Optional[Path] = typer.Option(
+    out: Path | None = typer.Option(
         None,
         "--out", "-o",
         help="Write report to this file (required for json/html output to disk).",
@@ -66,10 +65,10 @@ def scan(
         "--remediation",
         help="Include remediation text in terminal output.",
     ),
-    rules_path: Optional[Path] = typer.Option(
+    rules_path: Path | None = typer.Option(
         None, "--rules", help="Override path to rules.yaml."
     ),
-    sources_path: Optional[Path] = typer.Option(
+    sources_path: Path | None = typer.Option(
         None, "--sources", help="Override path to sources.yaml."
     ),
 ) -> None:
@@ -84,10 +83,10 @@ def scan(
 
         mcp-sentinel scan --schema ./my-server.json --report json --fail-on HIGH
     """
-    from mcp_sentinel.loaders.schema import load, LoadError
     from mcp_sentinel.engine import scan as engine_scan
-    from mcp_sentinel.reporter import get_reporter
+    from mcp_sentinel.loaders.schema import LoadError, load
     from mcp_sentinel.models import Severity
+    from mcp_sentinel.reporter import get_reporter
 
     # Load server definition
     try:
@@ -136,10 +135,10 @@ def scan(
 
 @rules_app.command("list")
 def rules_list(
-    rules_path: Optional[Path] = typer.Option(
+    rules_path: Path | None = typer.Option(
         None, "--rules", help="Override path to rules.yaml."
     ),
-    sources_path: Optional[Path] = typer.Option(
+    sources_path: Path | None = typer.Option(
         None, "--sources", help="Override path to sources.yaml."
     ),
     show_tags: bool = typer.Option(False, "--tags", help="Show rule tags."),
@@ -199,8 +198,8 @@ def rules_list(
 
 @rules_app.command("validate")
 def rules_validate(
-    rules_path: Optional[Path] = typer.Option(None, "--rules"),
-    sources_path: Optional[Path] = typer.Option(None, "--sources"),
+    rules_path: Path | None = typer.Option(None, "--rules"),
+    sources_path: Path | None = typer.Option(None, "--sources"),
 ) -> None:
     """Validate rules.yaml structure and source mapping references."""
     from mcp_sentinel.engine import load_rules, load_sources
@@ -250,7 +249,7 @@ def rules_validate(
 
 @app.command("sources")
 def sources_check(
-    sources_path: Optional[Path] = typer.Option(None, "--sources"),
+    sources_path: Path | None = typer.Option(None, "--sources"),
     warn_after: int = typer.Option(
         120, "--warn-after", help="Days since last_checked before flagging as stale."
     ),
