@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from mcp_sentinel.checks import register
 from mcp_sentinel.checks.base import CheckRunner
-from mcp_sentinel.models import Finding, RuleDefinition, ServerDefinition
+from mcp_sentinel.models import Finding, RuleDefinition, ServerDefinition, ToolDefinition
 
 
 @register("MCPS-002")
@@ -29,7 +29,7 @@ def run(server_def: ServerDefinition, rule: RuleDefinition) -> list[Finding]:
     findings: list[Finding] = []
 
     # Build a flat list of (field_path, string_value, tool_or_None) to scan
-    targets: list[tuple[str, str, object]] = []
+    targets: list[tuple[str, str, ToolDefinition | None]] = []
 
     # Tool-level fields
     for tool in server_def.tools:
@@ -66,7 +66,7 @@ def run(server_def: ServerDefinition, rule: RuleDefinition) -> list[Finding]:
 
     for field_path, value, tool in targets:
         for pattern in regex_patterns:
-            finding = runner.run_pattern(pattern, value, field_path, tool)  # type: ignore[arg-type]
+            finding = runner.run_pattern(pattern, value, field_path, tool)
             if finding:
                 findings.append(finding)
                 break  # one finding per field is enough; avoid pattern-flood
