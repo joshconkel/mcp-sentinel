@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+
 # ---------------------------------------------------------------------------
 # Enumerations
 # ---------------------------------------------------------------------------
@@ -121,6 +122,13 @@ class SourceMapping:
 
 
 @dataclass
+# dataclasses.field is saved here because the Finding dataclass declares an
+# attribute also named 'field: str', which would shadow the factory function
+# inside the class body and cause a mypy "str not callable" error on the
+# source_mappings default.
+_dc_field = field
+
+
 class Finding:
     """
     A single security finding produced by a check.
@@ -128,16 +136,16 @@ class Finding:
     One rule run may produce multiple findings (e.g., multiple tools
     each triggering MCPS-001 with different matched patterns).
     """
-    rule_id:         str
-    rule_name:       str
-    severity:        Severity
-    field:           str              # e.g. "tool.description"
-    tool_name:       str | None       # None for server-level findings
-    match:           str | None       # The matched value or substring
-    detail:          str              # Human-readable finding explanation
-    source_mappings: list[SourceMapping] = field(default_factory=list)
-    remediation:     str              = ""
-    experimental:    bool             = False   # True if rule status is experimental
+    rule_id:        str
+    rule_name:      str
+    severity:       Severity
+    field:          str              # e.g. "tool.description"
+    tool_name:      str | None       # None for server-level findings
+    match:          str | None       # The matched value or substring
+    detail:         str              # Human-readable finding explanation
+    source_mappings: list[SourceMapping] = _dc_field(default_factory=list)
+    remediation:    str              = ""
+    experimental:   bool             = False   # True if rule status is experimental
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +166,7 @@ class RiskScore:
     findings:    list[Finding]
 
     @classmethod
-    def from_findings(cls, findings: list[Finding]) -> RiskScore:
+    def from_findings(cls, findings: list[Finding]) -> "RiskScore":
         raw_score = sum(f.severity.score for f in findings)
         by_sev: dict[Severity, int] = {s: 0 for s in Severity}
         by_tool: dict[str, int] = {}
@@ -195,22 +203,21 @@ class RiskScore:
 @dataclass
 class PatternDefinition:
     """A single detection pattern within a rule's detection block."""
-    # pattern types: regex | value_check | schema_analysis | unicode | length
-    type:              str
-    description:       str                 = ""
+    type:             str                 # regex | value_check | schema_analysis | unicode | length
+    description:      str                 = ""
     # regex fields
-    expression:        str | None          = None
-    flags:             list[str]           = field(default_factory=list)
+    expression:       str | None          = None
+    flags:            list[str]           = field(default_factory=list)
     # value_check fields
-    condition:         dict[str, Any]      = field(default_factory=dict)
+    condition:        dict[str, Any]      = field(default_factory=dict)
     # length fields
-    threshold_chars:   int | None          = None
+    threshold_chars:  int | None          = None
     # unicode fields
-    flag_codepoints:   list[str]           = field(default_factory=list)
+    flag_codepoints:  list[str]           = field(default_factory=list)
     # optional per-pattern severity override
-    severity_override: Severity | None     = None
-    applies_to:        str | None          = None
-    notes:             str                 = ""
+    severity_override: Severity | None    = None
+    applies_to:       str | None          = None
+    notes:            str                 = ""
 
 
 @dataclass
@@ -235,14 +242,7 @@ class RuleDefinition:
 
 @dataclass
 class SourceDefinition:
-    """
-    A threat intelligence source as defined in sources.yaml.
-
-    Used for typed access to source metadata when needed by tooling or
-    future reporting features. The engine currently uses dict[str, Any]
-    for performance; this dataclass is available for explicit instantiation
-    where strong typing is preferred.
-    """
+    """A threat intelligence source loaded from sources.yaml."""
     id:               str
     name:             str
     description:      str
@@ -254,20 +254,3 @@ class SourceDefinition:
     last_checked:     str
     active:           bool
     github:           str | None = None
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> SourceDefinition:
-        """Construct a SourceDefinition from a raw sources.yaml entry dict."""
-        return cls(
-            id=data["id"],
-            name=data["name"],
-            description=data.get("description", ""),
-            url=data.get("url", ""),
-            version=str(data.get("version", "")),
-            entry_prefix=data.get("entry_prefix", ""),
-            entry_format=data.get("entry_format", ""),
-            update_frequency=data.get("update_frequency", ""),
-            last_checked=str(data.get("last_checked", "")),
-            active=bool(data.get("active", True)),
-            github=data.get("github"),
-        )

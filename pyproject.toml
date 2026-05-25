@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name = "mcp-sentinel"
@@ -71,14 +71,9 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
-# B008: Typer requires function-call defaults (typer.Option/typer.Argument) — this is
-# the documented Typer pattern and cannot be avoided without changing the framework.
-ignore = ["B008"]
 
 [tool.ruff.lint.per-file-ignores]
-# HTML template lines inside the embedded string literal exceed 100 chars.
-# These are HTML, not Python, and cannot be meaningfully shortened.
-"mcp_sentinel/reporter.py" = ["E501"]
+"tests/*" = ["E501"]
 
 [tool.mypy]
 python_version = "3.10"
