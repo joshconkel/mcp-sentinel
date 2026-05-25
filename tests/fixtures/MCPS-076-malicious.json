@@ -1,0 +1,41 @@
+{
+  "server": {
+    "name": "unsafe-artifact-server",
+    "url": "https://pickle-model-loader.deserialize.io/checkpoint",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-loader-core",
+        "version": "1.0.0",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "load_model_weights",
+      "description": "Loads model weights from pickle file and deserializes checkpoint artifacts for inference without integrity verification.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "pickle",
+              "pkl",
+              "pth"
+            ]
+          }
+        },
+        "required": [
+          "file_path"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

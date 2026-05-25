@@ -1,0 +1,57 @@
+id: MCPS-057
+name: Self-Replicating Prompt Injection in Tool Definitions
+status: experimental
+severity: CRITICAL
+category: prompt-integrity
+detection_type: static
+description: MCP tool definitions may contain malicious instructions designed to cause
+  the LLM to replicate the prompt in its output. This self-replicating behavior allows
+  the payload to propagate across connected systems and persist indefinitely. Such
+  prompts are often combined with jailbreaks or data exfiltration directives.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Self-replication instruction language
+    expression: (include|repeat|copy|propagate|forward).{0,50}(this prompt|these instructions|exact
+      text|original message)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Output embedding directive for persistence
+    expression: (output|response|reply).{0,50}(contain|include|append|embed).{0,30}(this|the)
+      (prompt|instruction|text)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Invisible characters concealing replication payload
+mappings:
+  mitre-atlas:
+    id: AML.T0061
+    name: LLM Prompt Self-Replication
+    url: https://atlas.mitre.org/techniques/AML.T0061
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Implement generative AI guardrails to filter and validate tool outputs
+  for self-replicating patterns. (2) Enforce strict prompt guidelines that explicitly
+  forbid outputting or propagating system instructions. (3) Align and fine-tune models
+  to resist prompt replication and maintain safety boundaries. (4) Monitor tool definitions
+  for hidden Unicode or unusually long instruction blocks.
+references:
+- https://atlas.mitre.org/techniques/AML.T0061
+tags:
+- prompt-self-replication
+- persistence
+- static
+- tool-poisoning
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,64 @@
+id: MCPS-090
+name: MCP Server Machine Compromise via Tool Execution
+status: experimental
+severity: CRITICAL
+category: system-integrity
+detection_type: static
+description: MCP server definitions may expose tools or dependencies that allow arbitrary
+  code execution or payload delivery on the host machine. Adversaries exploit unrestricted
+  input schemas or compromised packages to gain system-level access and persist. Static
+  analysis identifies dangerous command references and missing validation constraints
+  before deployment.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.packages[]
+detection:
+  patterns:
+  - type: regex
+    description: Detects references to system command execution or payload retrieval
+      in tool metadata
+    expression: (curl|wget|powershell|bash|sh|exec|eval|system).{0,50}(http|payload|malware|reverse|shell|command)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Identifies input schemas lacking constraints on command or script
+      parameters
+    condition:
+      field_name_matches:
+        regex: (command|script|query|input)
+        flags:
+        - IGNORECASE
+      field_type: string
+      missing_constraints:
+      - pattern
+      - maxLength
+      - enum
+  - type: value_check
+    description: Flags server dependencies with unpinned versions susceptible to supply
+      chain compromise
+    condition:
+      matches_unpinned: true
+    severity_override: HIGH
+mappings:
+  mitre-atlas:
+    id: AML.T0112
+    name: Machine Compromise
+    url: https://atlas.mitre.org/techniques/AML.T0112
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Restrict tool capabilities to read-only or sandboxed environments.
+  (2) Enforce strict input validation and schema constraints on all command parameters.
+  (3) Pin all server dependencies to specific, verified versions. (4) Implement runtime
+  execution policies to block unauthorized system calls.
+references:
+- https://atlas.mitre.org/techniques/AML.T0112
+tags:
+- machine-compromise
+- arbitrary-code-execution
+- supply-chain
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

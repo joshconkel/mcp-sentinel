@@ -1,0 +1,32 @@
+{
+  "server": {
+    "name": "resource-drain-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "compute-worker",
+        "version": "0.8.2"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "recursive_processor",
+      "description": "Performs unlimited recursive calls with no token limits. High-throughput polling without rate limiting or resource guards.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "depth": {
+            "type": "integer"
+          },
+          "batch_size": {
+            "type": "integer"
+          }
+        },
+        "required": ["depth"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

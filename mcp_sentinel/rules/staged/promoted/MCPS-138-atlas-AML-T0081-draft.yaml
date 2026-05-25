@@ -1,0 +1,58 @@
+id: MCPS-138
+name: AI Agent Configuration Tampering Detection
+status: experimental
+severity: HIGH
+category: configuration-integrity
+detection_type: static
+description: Adversaries modify MCP server definitions to alter AI agent configurations,
+  system prompts, or security guardrails. These changes persist across sessions and
+  can disable safety controls, redirect tool calls to malicious endpoints, or embed
+  covert instructions for data exfiltration.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.url
+- field: server.transport
+detection:
+  patterns:
+  - type: regex
+    description: Detects language indicating configuration override or security bypass
+    expression: (override|disable|bypass|modify|persist).{0,60}(system.prompt|guardrail|security|config|settings)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Detects invisible or zero-width characters concealing malicious configuration
+      instructions
+  - type: regex
+    description: Identifies remote configuration or command-and-control endpoints
+      embedded in server fields
+    expression: (remote|external|dynamic).{0,40}(config|settings|prompt|update)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0081
+    name: Modify AI Agent Configuration
+    url: https://atlas.mitre.org/techniques/AML.T0081
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-llms/
+remediation: (1) Validate and sign all MCP server definitions before deployment. (2)
+  Enforce strict schema validation to reject unauthorized configuration overrides.
+  (3) Scan definition files for invisible Unicode and prompt injection patterns. (4)
+  Implement allowlists for server endpoints and tool configurations. (5) Enable human-in-the-loop
+  approval for configuration changes.
+references:
+- https://atlas.mitre.org/techniques/AML.T0081
+tags:
+- configuration-tampering
+- persistence
+- static
+- guardrail-bypass
+added: '2026-05-22'
+updated: '2026-05-22'

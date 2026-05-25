@@ -1,0 +1,54 @@
+id: MCPS-054
+name: Detection of Unsafe Execution Sinks in Call Chains
+status: experimental
+severity: HIGH
+category: call-chain-analysis
+detection_type: static
+description: MCP tool definitions and server configurations may expose direct call
+  chains that route LLM outputs or user inputs to dangerous execution sinks. These
+  configurations create exploitable paths for remote code execution when combined
+  with prompt injection attacks. Static analysis identifies references to unsafe functions
+  and unvalidated data flows within tool metadata.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Identifies execution sinks directly linked to LLM or user data flows
+    expression: (exec|eval|popen|subprocess|shell_exec|system).{0,50}(input|output|response|prompt|llm|user)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Detects direct passthrough of model generations to command execution
+      functions
+    expression: (llm|agent|model).{0,30}(output|response|generation).{0,40}(exec|eval|run|execute|shell|command)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0084.003
+    name: Call Chains
+    url: https://atlas.mitre.org/techniques/AML.T0084.003
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM02
+    name: Insecure Output Handling
+    url: https://owasp.org/www-project-top-10-llms/
+remediation: (1) Audit tool definitions for direct references to execution functions.
+  (2) Implement strict input validation and sandboxing for all tool parameters. (3)
+  Decouple LLM outputs from system commands using intermediate validation layers.
+  (4) Restrict framework agent configurations to approved, audited call chains.
+references:
+- https://atlas.mitre.org/techniques/AML.T0084.003
+tags:
+- call-chain
+- rce-prevention
+- static
+- execution-sink
+added: '2026-05-22'
+updated: '2026-05-22'

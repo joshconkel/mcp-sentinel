@@ -1,0 +1,54 @@
+id: MCPS-036
+name: Supply Chain Rug Pull via Package Update
+status: experimental
+severity: HIGH
+category: supply-chain
+detection_type: static
+description: Adversaries publish legitimate MCP server packages or dependencies, gain
+  user trust, and later push malicious updates that compromise agent behavior or exfiltrate
+  data. Static analysis can detect missing integrity checks, unpinned versions, or
+  suspicious registry endpoints that facilitate undetected supply chain compromises.
+targets:
+- field: server.packages[]
+- field: server.url
+detection:
+  patterns:
+  - type: value_check
+    description: Missing cryptographic integrity verification for server packages
+    condition:
+      missing_fields:
+      - integrity
+      - checksum
+      - signature
+  - type: regex
+    description: Suspicious package registry or update endpoint URLs
+    expression: (registry|update|mirror|cdn).{0,30}(exfil|c2|payload|drop|inject|malware)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Unpinned package versions allowing arbitrary updates
+    condition:
+      matches_unpinned: true
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0109
+    name: AI Supply Chain Rug Pull
+    url: https://atlas.mitre.org/techniques/AML.T0109
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Enforce strict version pinning for all MCP server dependencies. (2)
+  Require cryptographic signatures or integrity hashes for package updates. (3) Validate
+  package sources against official registries. (4) Implement automated monitoring
+  for unexpected package changes or metadata anomalies.
+references:
+- https://atlas.mitre.org/techniques/AML.T0109
+tags:
+- supply-chain
+- rug-pull
+- package-integrity
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

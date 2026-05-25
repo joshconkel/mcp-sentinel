@@ -1,0 +1,46 @@
+id: MCPS-079
+name: Adversarial Evasion Triggers in MCP Definitions
+status: experimental
+severity: HIGH
+category: ai-evasion
+detection_type: static
+description: MCP server and tool definitions may contain adversarial perturbations,
+  bypass strings, or mutated domain patterns designed to evade AI-based security scanners
+  or content filters. These payloads are embedded in metadata to trick downstream
+  AI models into misclassifying malicious tools or resources as benign.
+targets:
+- field: tool.description
+- field: tool.name
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Detects universal bypass strings or adversarial suffixes appended
+      to evade AI detectors
+    expression: (adversarial|perturbation|bypass|mutation).{0,40}(string|suffix|token|trigger|payload)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies DGA-like or domain mutation indicators used to bypass
+      AI-based network scanning
+    expression: (dga|domain.{0,10}generation|mutation|rotat).{0,40}(algorithm|detector|evasion|bypass)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0015
+    name: Evade AI Model
+    url: https://atlas.mitre.org/techniques/AML.T0015
+remediation: (1) Implement adversarial input detection algorithms to block atypical
+  queries. (2) Preprocess inference data to nullify adversarial perturbations. (3)
+  Deploy ensemble methods and multi-modal sensors to increase robustness. (4) Apply
+  model hardening techniques such as adversarial training.
+references:
+- https://atlas.mitre.org/techniques/AML.T0015
+tags:
+- ai-evasion
+- adversarial-input
+- static
+- initial-access
+added: '2026-05-22'
+updated: '2026-05-22'

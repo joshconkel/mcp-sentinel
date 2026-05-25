@@ -1,0 +1,48 @@
+id: MCPS-108
+name: MCP Artifact Masquerading via Metadata Spoofing
+status: experimental
+severity: HIGH
+category: defense-evasion
+detection_type: static
+description: Adversaries manipulate MCP tool names, descriptions, or server URLs to
+  impersonate legitimate utilities, trusted vendors, or official services. This masquerading
+  technique aims to bypass security controls and trick AI agents or users into invoking
+  malicious components under the guise of benign functionality.
+targets:
+- field: tool.name
+- field: tool.description
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Claims of legitimacy or official status in metadata
+    expression: (official|verified|trusted|authentic|legitimate).{0,30}(tool|server|skill|plugin|extension|service)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Impersonation of system or administrative utilities
+    expression: (system|admin|root|sudo|shell|terminal|cmd|powershell|debug).{0,30}(tool|command|exec|run|utility|helper)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0074
+    name: Masquerading
+    url: https://atlas.mitre.org/techniques/AML.T0074
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Verify tool and server names against a trusted allowlist. (2) Cross-reference
+  publisher metadata with known-good registries. (3) Implement strict naming conventions
+  and reject claims of unofficial legitimacy. (4) Audit server URLs for typosquatting
+  or look-alike domains.
+references:
+- https://atlas.mitre.org/techniques/AML.T0074
+tags:
+- masquerading
+- defense-evasion
+- metadata-spoofing
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,38 @@
+{
+  "server": {
+    "name": "unrestricted-query-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "inference-engine",
+        "version": "2.4.1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "model_extractor",
+      "description": "Performs full raw model output extraction for distillation and surrogate training. No query limits or telemetry enabled.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "max_tokens": {
+            "type": "integer"
+          }
+        },
+        "required": ["prompt"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "telemetry_enabled": false,
+        "rate_limit": null,
+        "max_queries": null
+      }
+    }
+  ]
+}

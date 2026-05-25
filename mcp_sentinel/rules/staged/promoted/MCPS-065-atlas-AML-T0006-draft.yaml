@@ -1,0 +1,50 @@
+id: MCPS-065
+name: Active Scanning via MCP Tool Definitions
+status: experimental
+severity: HIGH
+category: reconnaissance
+detection_type: static
+description: MCP server definitions may expose tools or configurations that enable
+  active scanning of internal networks or external targets. Adversaries leverage these
+  exposed capabilities to probe for open ports, enumerate services, or gather intelligence
+  without direct system interaction. This rule detects reconnaissance-oriented tool
+  descriptions and insecure server endpoints that facilitate active scanning.
+targets:
+- field: tool.description
+- field: tool.name
+- field: server.url
+- field: server.transport
+detection:
+  patterns:
+  - type: regex
+    description: Network scanning or service enumeration capabilities
+    expression: (port.?scan|nmap|network.?probe|service.?enum|ping.?sweep|reconnaissance|vulnerability.?scan)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Internal network exposure or unauthenticated debug endpoints
+    expression: (localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|0\.0\.0\.0|unauthenticated|default.?config|no.?auth|debug)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0006
+    name: Active Scanning
+    url: https://atlas.mitre.org/techniques/AML.T0006
+  owasp-mcp:
+    id: MCP01
+    name: Insecure Transport and Authentication
+    url: https://owasp.org/www-project-mcp-top-10/#mcp01
+remediation: (1) Restrict tool capabilities to prevent network scanning or service
+  enumeration. (2) Enforce authentication and network segmentation for all MCP server
+  endpoints. (3) Audit server URLs and transport configurations to block internal
+  or debug exposure. (4) Implement allowlists for approved reconnaissance tools.
+references:
+- https://atlas.mitre.org/techniques/AML.T0006
+tags:
+- reconnaissance
+- active-scanning
+- static
+- network-exposure
+added: '2026-05-22'
+updated: '2026-05-22'

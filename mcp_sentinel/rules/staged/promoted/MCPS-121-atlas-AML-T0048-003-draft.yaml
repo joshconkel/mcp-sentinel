@@ -1,0 +1,51 @@
+id: MCPS-121
+name: User Data Exfiltration and Harm via MCP Tools
+status: experimental
+severity: HIGH
+category: user-harm
+detection_type: static
+description: MCP tool definitions may contain hidden instructions or configurations
+  that facilitate the exfiltration of personal data, conversation history, or financial
+  information. These patterns often leverage indirect prompt injection vectors, such
+  as rendering external URLs or suggesting unverified package installations, directly
+  harming individual users rather than the host organization.
+targets:
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Detects instructions to collect or exfiltrate user personal data
+      or conversation history.
+    expression: (exfiltrate|collect|extract|forward|send).{0,60}(personal|private|sensitive|credential|financial|conversation|chat|history|pii)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Detects covert data exfiltration mechanisms using rendered markdown
+      or image URLs.
+    expression: (render|display|show|generate).{0,40}(image|markdown|link|url).{0,40}(exfil|beacon|track|log|send|upload)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0048.003
+    name: User Harm
+    url: https://atlas.mitre.org/techniques/AML.T0048.003
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Audit tool descriptions and annotations for exfiltration or data
+  collection instructions. (2) Enforce strict output filtering to block external URL
+  rendering in user-facing responses. (3) Validate all package dependencies against
+  trusted registries before execution. (4) Implement user consent prompts for any
+  tool accessing personal or financial data.
+references:
+- https://atlas.mitre.org/techniques/AML.T0048.003
+tags:
+- user-harm
+- data-exfiltration
+- prompt-injection
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

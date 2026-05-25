@@ -1,0 +1,49 @@
+id: MCPS-069
+name: Unbounded Input Schema Enables Resource Exhaustion
+status: experimental
+severity: HIGH
+category: input-validation
+detection_type: static
+description: MCP tool definitions that lack input constraints can be exploited to
+  submit resource-intensive queries. Adversaries may craft oversized strings, deeply
+  nested structures, or prompts demanding complex reasoning to exhaust compute resources
+  and increase latency. Static analysis of the input schema and tool metadata helps
+  identify these vulnerabilities before deployment.
+targets:
+- field: tool.inputSchema
+- field: tool.description
+detection:
+  patterns:
+  - type: schema_analysis
+    description: Missing length or size constraints in input schema
+    condition:
+      missing_constraints:
+      - maxLength
+      - maxItems
+  - type: regex
+    description: Prompts encouraging complex reasoning or excessive output length
+    expression: (extremely|exhaustively|comprehensively).{0,20}(detailed|long|verbose|output|response)|(step.by.step|chain.of.thought|complex.reasoning)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0034.001
+    name: Resource-Intensive Queries
+    url: https://atlas.mitre.org/techniques/AML.T0034.001
+  owasp-llm:
+    id: LLM06
+    name: Model Denial of Service
+    url: https://genai.owasp.org/llm-top-10/LLM06
+remediation: (1) Enforce maxLength and maxItems constraints in tool input schemas.
+  (2) Implement server-side token and compute limits per request. (3) Validate and
+  sanitize tool descriptions to avoid encouraging unbounded reasoning or output generation.
+  (4) Monitor API latency and resource consumption for anomalous spikes.
+references:
+- https://atlas.mitre.org/techniques/AML.T0034.001
+tags:
+- resource-exhaustion
+- schema-validation
+- static
+- denial-of-service
+added: '2026-05-22'
+updated: '2026-05-22'

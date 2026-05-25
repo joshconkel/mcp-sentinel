@@ -1,0 +1,58 @@
+id: MCPS-087
+name: Model Replication via Unrestricted Inference Tools
+status: experimental
+severity: HIGH
+category: model-extraction
+detection_type: static
+description: MCP server definitions exposing model inference capabilities without
+  rate limiting or output obfuscation enable adversaries to systematically query the
+  API. Collected input-output pairs can train a surrogate model that replicates the
+  target's behavior, facilitating downstream evasion or adversarial attacks.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Detects unbounded inference or generation endpoints
+    expression: (inference|generate|complete|predict).{0,60}(unlimited|no.?limit|open.?access|public.?endpoint)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Input schema lacks constraints on query volume or payload size
+    condition:
+      missing_constraints:
+      - maxItems
+      - maxLength
+      - rateLimit
+  - type: value_check
+    description: Server URL points to public or unauthenticated inference API
+    condition:
+      value_in:
+      - http://
+      - public-api.
+      - demo.
+      matches_unpinned: true
+mappings:
+  mitre-atlas:
+    id: AML.T0005.001
+    name: Train Proxy via Replication
+    url: https://atlas.mitre.org/techniques/AML.T0005.001
+  nist-ai-rmf:
+    id: PR.AIML-1
+    name: AI Model Protection
+    url: https://csrc.nist.gov/projects/risk-management-framework
+remediation: (1) Implement rate limiting and query quotas on all inference endpoints.
+  (2) Apply output obfuscation or truncation to reduce model fidelity leakage. (3)
+  Enable comprehensive AI telemetry logging to detect systematic probing patterns.
+  (4) Restrict access to model APIs using authentication and allowlisting.
+references:
+- https://atlas.mitre.org/techniques/AML.T0005.001
+tags:
+- model-replication
+- surrogate-training
+- rate-limiting
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

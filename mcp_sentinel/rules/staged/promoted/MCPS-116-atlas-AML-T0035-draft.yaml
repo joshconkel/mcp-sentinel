@@ -1,0 +1,51 @@
+id: MCPS-116
+name: AI Artifact Collection via MCP Exposure
+status: experimental
+severity: HIGH
+category: artifact-exposure
+detection_type: static
+description: MCP servers may inadvertently expose tools or resources that aggregate,
+  download, or reference sensitive AI artifacts such as model checkpoints, training
+  datasets, or internal telemetry. Adversaries can leverage these exposed endpoints
+  to collect artifacts for exfiltration or offline model analysis. Static analysis
+  identifies references to artifact storage and unrestricted data export capabilities.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.url
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: References to model weights, checkpoints, or datasets with download
+      or export verbs
+    expression: (checkpoint|weights|model\.bin|dataset|training\.data).{0,40}(download|export|fetch|access|path|retrieve)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Telemetry or internal data aggregation endpoints
+    expression: (telemetry|metrics|audit|internal\.log).{0,40}(collect|aggregate|scrape|bulk|export)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0035
+    name: AI Artifact Collection
+    url: https://atlas.mitre.org/techniques/AML.T0035
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Limit public release of model checkpoints and training datasets.
+  (2) Enforce strict access controls and encryption on artifact storage endpoints.
+  (3) Prefer cloud-hosted model serving over edge deployment to reduce exposure. (4)
+  Validate and restrict tool capabilities that aggregate or export internal telemetry.
+references:
+- https://atlas.mitre.org/techniques/AML.T0035
+tags:
+- artifact-collection
+- data-exposure
+- static
+- model-security
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,60 @@
+id: MCPS-107
+name: Indirect AI Model Access via Third-Party Service
+status: experimental
+severity: HIGH
+category: ai-model-access
+detection_type: static
+description: MCP tool and server definitions may integrate external AI-enabled products
+  or services that expose underlying model inference endpoints. Without proper isolation,
+  telemetry, or input validation, these integrations can leak model details, enable
+  indirect model access, or facilitate evasion attacks against AI security controls.
+targets:
+- field: tool.description
+- field: server.url
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: References to external AI inference services or model endpoints
+    expression: (ai|ml|neural|model).{0,40}(endpoint|service|backend|inference|api|gateway)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: AI-enabled tools missing input validation or telemetry constraints
+    condition:
+      field_name_matches:
+        regex: (ai|ml|model|inference)
+        flags:
+        - IGNORECASE
+      field_type: object
+      missing_constraints:
+      - telemetry_logging
+      - input_validation
+      - rate_limiting
+mappings:
+  mitre-atlas:
+    id: AML.T0047
+    name: AI-Enabled Product or Service
+    url: https://atlas.mitre.org/techniques/AML.T0047
+  owasp-llm:
+    id: LLM08
+    name: Model Theft
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+  nist-ai-rmf:
+    id: PR.AIML-3
+    name: AI Model Protection
+    url: https://www.nist.gov/ai-risk-management-framework
+remediation: (1) Implement comprehensive AI telemetry logging for all model inputs,
+  outputs, and intermediate agentic steps. (2) Enforce strict input validation and
+  rate limiting on tools interacting with external AI services. (3) Isolate third-party
+  AI integrations using sandboxed execution environments. (4) Audit and verify the
+  security posture of all AI-enabled dependencies before deployment.
+references:
+- https://atlas.mitre.org/techniques/AML.T0047
+tags:
+- ai-model-access
+- telemetry
+- third-party-ai
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

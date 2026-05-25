@@ -577,10 +577,1559 @@ class TestMCPS028:
 # Schema loader tests
 # ---------------------------------------------------------------------------
 
+
+class TestMCPS029:
+    """Covert Data Exfiltration via Rendered Image URLs."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-029", "MCPS-029-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-029"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-029", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS030:
+    """Cloud and AI Service Enumeration via MCP Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-030", "MCPS-030-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-030: Cloud and AI Service Enumeration via MCP Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-030", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS031:
+    """Credential Harvesting via Agent Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-031", "MCPS-031-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-031: Credential Harvesting via Agent Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-031", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS032:
+    """RAG Poisoning via Tool Description Injection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-032", "MCPS-032-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-032: RAG Poisoning via Tool Description Injection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-032", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS033:
+    """Destructive Tool Invocation via MCP Definition."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-033", "MCPS-033-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-033: Destructive Tool Invocation via MCP Definition"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-033", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS034:
+    """Trusted Output Manipulation via Tool Metadata."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-034", "MCPS-034-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-034: Trusted Output Manipulation via Tool Metadata"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-034", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-034", "MCPS-034-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS035:
+    """Deferred Malicious Instructions in Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-035", "MCPS-035-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-035: Deferred Malicious Instructions in Tool Definition"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-035", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS036:
+    """Supply Chain Rug Pull via Package Update."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-036", "MCPS-036-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-036: Supply Chain Rug Pull via Package Update"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-036", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_is_server_level(self):
+        findings = _run("MCPS-036", "MCPS-036-malicious.json")
+        assert all(f.tool_name is None for f in findings), \
+            "Server-level findings should not have a tool_name"
+
+
+class TestMCPS037:
+    """Public Code Repository Exposure in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-037", "MCPS-037-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-037: Public Code Repository Exposure in MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-037", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS038:
+    """LLM Prompt Crafting via MCP Definition Poisoning."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-038", "MCPS-038-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-038: LLM Prompt Crafting via MCP Definition Poisoning"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-038", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS039:
+    """Unrestricted Data Access via AI Agent Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-039", "MCPS-039-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-039: Unrestricted Data Access via AI Agent Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-039", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS040:
+    """Unrestricted AI Agent Tool Access Definition."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-040", "MCPS-040-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-040: Unrestricted AI Agent Tool Access Definition"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-040", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS041:
+    """Covert AI Agent C2 via Hidden Instructions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-041", "MCPS-041-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-041: Covert AI Agent C2 via Hidden Instructions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-041", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-041", "MCPS-041-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS042:
+    """Supply Chain Poisoned MCP Tool Definition."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-042", "MCPS-042-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-042: Supply Chain Poisoned MCP Tool Definition"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-042", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS043:
+    """Agent Configuration Leakage via Metadata."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-043", "MCPS-043-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-043: Agent Configuration Leakage via Metadata"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-043", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS044:
+    """Agent Tool Discovery and Capability Enumeration."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-044", "MCPS-044-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-044: Agent Tool Discovery and Capability Enumeration"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-044", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS045:
+    """Hardcoded Application Access Tokens in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-045", "MCPS-045-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-045: Hardcoded Application Access Tokens in MCP Definit"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-045", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS046:
+    """Unauthorized AI Agent Deployment Configuration."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-046", "MCPS-046-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-046: Unauthorized AI Agent Deployment Configuration"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-046", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS047:
+    """Drive-by Compromise via Web-Fetching Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-047", "MCPS-047-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-047: Drive-by Compromise via Web-Fetching Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-047", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS048:
+    """Sensitive Data Exposure via Tool Configuration."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-048", "MCPS-048-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-048: Sensitive Data Exposure via Tool Configuration"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-048", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS049:
+    """Crafted Retrieval Content in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-049", "MCPS-049-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-049: Crafted Retrieval Content in MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-049", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS050:
+    """Poisoned Training Data Ingestion via MCP Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-050", "MCPS-050-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-050: Poisoned Training Data Ingestion via MCP Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-050", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS051:
+    """Delimiter Confusion via Special Character Sets."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-051", "MCPS-051-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-051: Delimiter Confusion via Special Character Sets"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-051", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS052:
+    """MCP Server Chat History Manipulation Capability."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-052", "MCPS-052-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-052: MCP Server Chat History Manipulation Capability"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-052", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS053:
+    """MCP Tool Facilitating Dynamic AI Command Generation."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-053", "MCPS-053-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-053: MCP Tool Facilitating Dynamic AI Command Generatio"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-053", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS054:
+    """Detection of Unsafe Execution Sinks in Call Chains."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-054", "MCPS-054-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-054: Detection of Unsafe Execution Sinks in Call Chains"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-054", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS055:
+    """Phishing via Impersonation and Social Engineering."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-055", "MCPS-055-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-055: Phishing via Impersonation and Social Engineering"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-055", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS056:
+    """Supply Chain Compromise via Unpinned Dependencies."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-056", "MCPS-056-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-056: Supply Chain Compromise via Unpinned Dependencies"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-056", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS057:
+    """Self-Replicating Prompt Injection in Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-057", "MCPS-057-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-057: Self-Replicating Prompt Injection in Tool Definiti"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-057", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-057", "MCPS-057-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS058:
+    """Unverified Entity Generation Enabling Hallucination Discovery."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-058", "MCPS-058-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-058: Unverified Entity Generation Enabling Hallucinatio"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-058", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS059:
+    """Suspicious System Instruction Keywords in Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-059", "MCPS-059-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-059: Suspicious System Instruction Keywords in Tool Def"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-059", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS060:
+    """LLM System Information Discovery via Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-060", "MCPS-060-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-060: LLM System Information Discovery via Tool Definiti"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-060", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS061:
+    """Chaff Data Spamming via Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-061", "MCPS-061-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-061: Chaff Data Spamming via Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-061", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS062:
+    """MCP Tool Attack Verification and Probing."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-062", "MCPS-062-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-062: MCP Tool Attack Verification and Probing"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-062", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS063:
+    """System Prompt Exposure in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-063", "MCPS-063-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-063: System Prompt Exposure in MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-063", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS064:
+    """Detection of Unauthorized AI Service Proxy Endpoints."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-064", "MCPS-064-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-064: Detection of Unauthorized AI Service Proxy Endpoin"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-064", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_is_server_level(self):
+        findings = _run("MCPS-064", "MCPS-064-malicious.json")
+        assert all(f.tool_name is None for f in findings), \
+            "Server-level findings should not have a tool_name"
+
+
+class TestMCPS065:
+    """Active Scanning via MCP Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-065", "MCPS-065-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-065: Active Scanning via MCP Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-065", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS066:
+    """Hardcoded Credentials in MCP Server Definition."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-066", "MCPS-066-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-066: Hardcoded Credentials in MCP Server Definition"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-066", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS067:
+    """Staged Capabilities via External Registry References."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-067", "MCPS-067-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-067: Staged Capabilities via External Registry Referenc"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-067", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-067", "MCPS-067-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS068:
+    """Detects Tools Capable of Generating Deepfakes."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-068", "MCPS-068-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-068: Detects Tools Capable of Generating Deepfakes"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-068", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS069:
+    """Unbounded Input Schema Enables Resource Exhaustion."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-069", "MCPS-069-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-069: Unbounded Input Schema Enables Resource Exhaustion"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-069", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS070:
+    """Deepfake Phishing Facilitation via MCP Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-070", "MCPS-070-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-070: Deepfake Phishing Facilitation via MCP Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-070", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS071:
+    """MCP Server Proxy Model Staging Detection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-071", "MCPS-071-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-071: MCP Server Proxy Model Staging Detection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-071", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS072:
+    """Model Poisoning via Unverified Weights and Data."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-072", "MCPS-072-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-072: Model Poisoning via Unverified Weights and Data"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-072", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS073:
+    """Overly Permissive Local Agent Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-073", "MCPS-073-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-073: Overly Permissive Local Agent Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-073", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS074:
+    """Unrestricted Process Enumeration Tool."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-074", "MCPS-074-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-074: Unrestricted Process Enumeration Tool"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-074", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS075:
+    """Black-Box Transfer via Adversarial Input Crafting."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-075", "MCPS-075-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-075: Black-Box Transfer via Adversarial Input Crafting"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-075", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS076:
+    """Unsafe AI Artifact Loading via Serialization."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-076", "MCPS-076-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-076: Unsafe AI Artifact Loading via Serialization"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-076", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS077:
+    """Unrestricted API Querying for Black-Box Optimization."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-077", "MCPS-077-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-077: Unrestricted API Querying for Black-Box Optimizati"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-077", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS078:
+    """Host Escape via Disabled Safety Controls."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-078", "MCPS-078-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-078: Host Escape via Disabled Safety Controls"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-078", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS079:
+    """Adversarial Evasion Triggers in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-079", "MCPS-079-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-079: Adversarial Evasion Triggers in MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-079", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS080:
+    """MCP Tool Impersonation via Deceptive Metadata."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-080", "MCPS-080-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-080: MCP Tool Impersonation via Deceptive Metadata"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-080", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS081:
+    """Adversarial Data Crafting via Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-081", "MCPS-081-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-081: Adversarial Data Crafting via Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-081", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS082:
+    """Embedded Knowledge Leakage in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-082", "MCPS-082-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-082: Embedded Knowledge Leakage in MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-082", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS083:
+    """Sandbox and VM Evasion in Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-083", "MCPS-083-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-083: Sandbox and VM Evasion in Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-083", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS084:
+    """Deceptive Agent Baiting via Tool Metadata."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-084", "MCPS-084-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-084: Deceptive Agent Baiting via Tool Metadata"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-084", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS085:
+    """Malicious Link Execution in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-085", "MCPS-085-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-085: Malicious Link Execution in MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-085", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS086:
+    """Reputation Inflation via Fabricated Trust Signals."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-086", "MCPS-086-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-086: Reputation Inflation via Fabricated Trust Signals"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-086", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS087:
+    """Model Replication via Unrestricted Inference Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-087", "MCPS-087-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-087: Model Replication via Unrestricted Inference Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-087", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS088:
+    """AI Model and Dataset Exfiltration via MCP Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-088", "MCPS-088-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-088: AI Model and Dataset Exfiltration via MCP Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-088", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS089:
+    """Unrestricted RAG Database Access via MCP Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-089", "MCPS-089-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-089: Unrestricted RAG Database Access via MCP Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-089", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS090:
+    """MCP Server Machine Compromise via Tool Execution."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-090", "MCPS-090-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-090: MCP Server Machine Compromise via Tool Execution"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-090", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS091:
+    """Model Extraction via Unrestricted Query Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-091", "MCPS-091-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-091: Model Extraction via Unrestricted Query Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-091", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS092:
+    """Exposed Dataset and Model Artifact References."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-092", "MCPS-092-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-092: Exposed Dataset and Model Artifact References"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-092", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS093:
+    """LLM Social Engineering via Tool Metadata."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-093", "MCPS-093-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-093: LLM Social Engineering via Tool Metadata"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-093", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS094:
+    """Model Artifact Exposure in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-094", "MCPS-094-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-094: Model Artifact Exposure in MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-094", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS095:
+    """User Execution via Unsafe MCP Artifacts."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-095", "MCPS-095-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-095: User Execution via Unsafe MCP Artifacts"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-095", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS096:
+    """Exfiltration via Unrestricted AI Inference API."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-096", "MCPS-096-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-096: Exfiltration via Unrestricted AI Inference API"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-096", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS097:
+    """Model Inversion via Confidence Score Exposure."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-097", "MCPS-097-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-097: Model Inversion via Confidence Score Exposure"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-097", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS098:
+    """Malicious Dependency in MCP Server Packages."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-098", "MCPS-098-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-098: Malicious Dependency in MCP Server Packages"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-098", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_is_server_level(self):
+        findings = _run("MCPS-098", "MCPS-098-malicious.json")
+        assert all(f.tool_name is None for f in findings), \
+            "Server-level findings should not have a tool_name"
+
+
+class TestMCPS099:
+    """Hardcoded Credentials in MCP Server Definition."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-099", "MCPS-099-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-099: Hardcoded Credentials in MCP Server Definition"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-099", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS100:
+    """Untrusted Data Ingestion in Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-100", "MCPS-100-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-100: Untrusted Data Ingestion in Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-100", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS101:
+    """MCP Tool Schema Lacks Adversarial Input Guards."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-101", "MCPS-101-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-101: MCP Tool Schema Lacks Adversarial Input Guards"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-101", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS102:
+    """Unrestricted Repository Data Access in MCP Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-102", "MCPS-102-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-102: Unrestricted Repository Data Access in MCP Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-102", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS103:
+    """Backdoor Trigger Injection in Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-103", "MCPS-103-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-103: Backdoor Trigger Injection in Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-103", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-103", "MCPS-103-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS104:
+    """Uncontrolled MCP Tool Activation Triggers."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-104", "MCPS-104-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-104: Uncontrolled MCP Tool Activation Triggers"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-104", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS105:
+    """Adversarial AI Attack Vector Detection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-105", "MCPS-105-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-105: Adversarial AI Attack Vector Detection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-105", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS106:
+    """Compromised Model Loading via Untrusted Dependencies."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-106", "MCPS-106-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-106: Compromised Model Loading via Untrusted Dependenci"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-106", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_is_server_level(self):
+        findings = _run("MCPS-106", "MCPS-106-malicious.json")
+        assert all(f.tool_name is None for f in findings), \
+            "Server-level findings should not have a tool_name"
+
+
+class TestMCPS107:
+    """Indirect AI Model Access via Third-Party Service."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-107", "MCPS-107-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-107: Indirect AI Model Access via Third-Party Service"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-107", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS108:
+    """MCP Artifact Masquerading via Metadata Spoofing."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-108", "MCPS-108-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-108: MCP Artifact Masquerading via Metadata Spoofing"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-108", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS109:
+    """Model Manipulation and Weight Poisoning Detection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-109", "MCPS-109-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-109: Model Manipulation and Weight Poisoning Detection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-109", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS110:
+    """Adversarial AI Library Dependency Detection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-110", "MCPS-110-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-110: Adversarial AI Library Dependency Detection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-110", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS111:
+    """Repurposed Software Tools for AI Attacks."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-111", "MCPS-111-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-111: Repurposed Software Tools for AI Attacks"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-111", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS112:
+    """Adversarial Input Crafting via Unconstrained Tool Schemas."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-112", "MCPS-112-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-112: Adversarial Input Crafting via Unconstrained Tool "
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-112", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS113:
+    """Exposure of AI Model Outputs in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-113", "MCPS-113-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-113: Exposure of AI Model Outputs in MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-113", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS114:
+    """RAG Data Source Enumeration via MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-114", "MCPS-114-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-114: RAG Data Source Enumeration via MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-114", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS115:
+    """Data Exfiltration via External Endpoints."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-115", "MCPS-115-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-115: Data Exfiltration via External Endpoints"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-115", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS116:
+    """AI Artifact Collection via MCP Exposure."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-116", "MCPS-116-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-116: AI Artifact Collection via MCP Exposure"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-116", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS117:
+    """Exposure of Public AI Artifacts in MCP Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-117", "MCPS-117-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-117: Exposure of Public AI Artifacts in MCP Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-117", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS118:
+    """White-Box Model Access and Input Exposure."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-118", "MCPS-118-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-118: White-Box Model Access and Input Exposure"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-118", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS119:
+    """Poisoned Model Distribution via MCP Server."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-119", "MCPS-119-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-119: Poisoned Model Distribution via MCP Server"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-119", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS120:
+    """Financial Fraud and Identity Bypass Detection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-120", "MCPS-120-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-120: Financial Fraud and Identity Bypass Detection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-120", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS121:
+    """User Data Exfiltration and Harm via MCP Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-121", "MCPS-121-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-121: User Data Exfiltration and Harm via MCP Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-121", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS122:
+    """Exposed MCP Server Endpoint Without Authentication."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-122", "MCPS-122-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-122: Exposed MCP Server Endpoint Without Authentication"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-122", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_is_server_level(self):
+        findings = _run("MCPS-122", "MCPS-122-malicious.json")
+        assert all(f.tool_name is None for f in findings), \
+            "Server-level findings should not have a tool_name"
+
+
+class TestMCPS123:
+    """AI Software Supply Chain Compromise via MCP Packages."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-123", "MCPS-123-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-123: AI Software Supply Chain Compromise via MCP Packag"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-123", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_is_server_level(self):
+        findings = _run("MCPS-123", "MCPS-123-malicious.json")
+        assert all(f.tool_name is None for f in findings), \
+            "Server-level findings should not have a tool_name"
+
+
+class TestMCPS124:
+    """Unrestricted Tool Invocation & Code Execution."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-124", "MCPS-124-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-124: Unrestricted Tool Invocation & Code Execution"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-124", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS125:
+    """MCP Tool Definition Jailbreak Prompt Detection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-125", "MCPS-125-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-125: MCP Tool Definition Jailbreak Prompt Detection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-125", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-125", "MCPS-125-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS126:
+    """System Prompt Extraction via Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-126", "MCPS-126-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-126: System Prompt Extraction via Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-126", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS127:
+    """Suspicious Generative AI Model Integration."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-127", "MCPS-127-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-127: Suspicious Generative AI Model Integration"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-127", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS128:
+    """Prompt Obfuscation via Encoding and Hidden Characters."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-128", "MCPS-128-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-128: Prompt Obfuscation via Encoding and Hidden Charact"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-128", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-128", "MCPS-128-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS129:
+    """False RAG Entry Injection via MCP Ingestion Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-129", "MCPS-129-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-129: False RAG Entry Injection via MCP Ingestion Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-129", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS130:
+    """AI Agent Context Poisoning via Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-130", "MCPS-130-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-130: AI Agent Context Poisoning via Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-130", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS131:
+    """Persistent Thread Poisoning via Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-131", "MCPS-131-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-131: Persistent Thread Poisoning via Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-131", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS132:
+    """RAG Credential Harvesting via Unfiltered Ingestion."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-132", "MCPS-132-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-132: RAG Credential Harvesting via Unfiltered Ingestion"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-132", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS133:
+    """Hardcoded Credentials in MCP Configuration."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-133", "MCPS-133-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-133: Hardcoded Credentials in MCP Configuration"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-133", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS134:
+    """Data Exfiltration via Tool Input Parameters."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-134", "MCPS-134-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-134: Data Exfiltration via Tool Input Parameters"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-134", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS135:
+    """Prompt Infiltration via Untrusted Data Ingestion."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-135", "MCPS-135-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-135: Prompt Infiltration via Untrusted Data Ingestion"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-135", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS136:
+    """Supply Chain Poisoned MCP Tool Detection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-136", "MCPS-136-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-136: Supply Chain Poisoned MCP Tool Detection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-136", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS137:
+    """Supply Chain Compromise via Poisoned MCP Tool."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-137", "MCPS-137-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-137: Supply Chain Compromise via Poisoned MCP Tool"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-137", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS138:
+    """AI Agent Configuration Tampering Detection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-138", "MCPS-138-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-138: AI Agent Configuration Tampering Detection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-138", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-138", "MCPS-138-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS139:
+    """Exposed AI Agent Configuration and Secrets."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-139", "MCPS-139-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-139: Exposed AI Agent Configuration and Secrets"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-139", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS140:
+    """Agentic Resource Consumption via Tool Directives."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-140", "MCPS-140-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-140: Agentic Resource Consumption via Tool Directives"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-140", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS141:
+    """Persistent Memory Manipulation via MCP Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-141", "MCPS-141-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-141: Persistent Memory Manipulation via MCP Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-141", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS142:
+    """Unsecured AI Inference API Exposure in MCP Tools."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-142", "MCPS-142-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-142: Unsecured AI Inference API Exposure in MCP Tools"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-142", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS143:
+    """Cost Harvesting via Unbounded Tool Execution."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-143", "MCPS-143-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-143: Cost Harvesting via Unbounded Tool Execution"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-143", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS144:
+    """MCP Tool Definition Prompt Injection Detection."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-144", "MCPS-144-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-144: MCP Tool Definition Prompt Injection Detection"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-144", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-144", "MCPS-144-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS145:
+    """OS Credential Dumping via MCP Tool Definitions."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-145", "MCPS-145-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-145: OS Credential Dumping via MCP Tool Definitions"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-145", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS146:
+    """MCP Tool Definition Supply Chain Poisoning."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-146", "MCPS-146-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-146: MCP Tool Definition Supply Chain Poisoning"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-146", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS147:
+    """Triggered Prompt Injection via Event Hooks."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-147", "MCPS-147-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-147: Triggered Prompt Injection via Event Hooks"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-147", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-147", "MCPS-147-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS148:
+    """Data Poisoning via Untrusted Tool Data Sources."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-148", "MCPS-148-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-148: Data Poisoning via Untrusted Tool Data Sources"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-148", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+
+class TestMCPS149:
+    """Direct Prompt Injection via Tool Metadata."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-149", "MCPS-149-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-149: Direct Prompt Injection via Tool Metadata"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-149", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
+    def test_finding_has_tool_context(self):
+        findings = _run("MCPS-149", "MCPS-149-malicious.json")
+        assert any(f.tool_name is not None for f in findings), \
+            "Expected at least one finding with tool context"
+
+
+class TestMCPS150:
+    """Indirect Prompt Injection via External Data Ingestion."""
+
+    def test_malicious_fixture_triggers_finding(self):
+        findings = _run("MCPS-150", "MCPS-150-malicious.json")
+        assert len(findings) > 0, "Expected finding for MCPS-150: Indirect Prompt Injection via External Data Ingest"
+
+    def test_benign_fixture_produces_no_findings(self):
+        findings = _run("MCPS-150", "benign-server.json")
+        assert len(findings) == 0, f"Unexpected findings on benign fixture: {findings}"
+
 class TestSchemaLoader:
     def test_loads_json_fixture(self):
         server_def = load(FIXTURES / "benign-server.json")
-        assert server_def.server_url == "https://api.example.com/mcp"
+        assert server_def.server_url == "https://mcp.example.com/mcp"
         assert server_def.transport == "https"
         assert len(server_def.tools) == 3
         assert len(server_def.packages) == 1

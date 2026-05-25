@@ -1,0 +1,49 @@
+id: MCPS-114
+name: RAG Data Source Enumeration via MCP Definitions
+status: experimental
+severity: MEDIUM
+category: reconnaissance
+detection_type: static
+description: MCP server definitions may inadvertently expose references to retrieval
+  augmented generation (RAG) pipelines, vector stores, or external data ingestion
+  sources. Adversaries analyze these definitions to identify and target the underlying
+  data repositories for poisoning or manipulation.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.url
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: References to RAG pipelines or vector stores
+    expression: (rag|vector.store|knowledge.base|index|embed).{0,40}(source|data|repository|document|email|file|ingest)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: External or untrusted data ingestion references
+    expression: (crawl|scrape|fetch|pull|sync|ingest).{0,40}(external|third.party|untrusted|public|internet|web)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0064
+    name: Gather RAG-Indexed Targets
+    url: https://atlas.mitre.org/techniques/AML.T0064
+  owasp-llm:
+    id: LLM06
+    name: Training Data Poisoning
+    url: https://owasp.org/www-project-top-10-llm-applications/
+remediation: (1) Remove explicit references to RAG pipelines or data sources from
+  tool descriptions. (2) Abstract data ingestion details in server configurations.
+  (3) Implement strict access controls on vector stores and knowledge bases. (4) Audit
+  MCP definitions for unintended data exposure.
+references:
+- https://atlas.mitre.org/techniques/AML.T0064
+tags:
+- reconnaissance
+- rag
+- data-exposure
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

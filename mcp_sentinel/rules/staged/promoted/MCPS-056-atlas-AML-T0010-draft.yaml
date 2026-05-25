@@ -1,0 +1,57 @@
+id: MCPS-056
+name: Supply Chain Compromise via Unpinned Dependencies
+status: experimental
+severity: HIGH
+category: supply-chain-integrity
+detection_type: static
+description: MCP server definitions may reference external models, tools, or packages
+  without cryptographic verification or version pinning. Adversaries exploit this
+  by injecting malicious artifacts into registries or repositories, compromising the
+  AI supply chain during initialization or runtime. This technique enables initial
+  access through tainted dependencies or compromised model weights.
+targets:
+- field: server.packages[]
+- field: server.url
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: value_check
+    description: Dependencies or model references lacking version pinning or cryptographic
+      hashes
+    condition:
+      matches_unpinned: true
+  - type: regex
+    description: Dynamic or floating version specifiers in package or model definitions
+    expression: (\*|latest|next|unstable|dev|master|main)(\s|$|")
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Missing integrity verification constraints in external artifact references
+    condition:
+      missing_constraints:
+      - hash
+      - signature
+      - integrity
+mappings:
+  mitre-atlas:
+    id: AML.T0010
+    name: AI Supply Chain Compromise
+    url: https://atlas.mitre.org/techniques/AML.T0010
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Verify cryptographic checksums and signatures for all AI artifacts
+  and dependencies. (2) Implement an AI Bill of Materials (AI BOM) to track dataset
+  provenance and component lineage. (3) Enforce strict version pinning and integrity
+  constraints in server definitions. (4) Deploy generative AI guardrails to validate
+  inputs and outputs from external models.
+references:
+- https://atlas.mitre.org/techniques/AML.T0010
+tags:
+- supply-chain
+- dependency-verification
+- static
+- initial-access
+added: '2026-05-22'
+updated: '2026-05-22'

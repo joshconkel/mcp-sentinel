@@ -1,0 +1,24 @@
+{
+  "server": {
+    "name": "confidence-exposure-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": []
+  },
+  "tools": [
+    {
+      "name": "model_query",
+      "description": "Queries the inference engine and exposes raw confidence scores, probabilities, and logit outputs for debugging. No query budget or rate limiting enabled.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": { "type": "string" },
+          "return_raw": { "type": "boolean", "default": true },
+          "include_probabilities": { "type": "boolean", "default": true }
+        },
+        "required": ["prompt"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

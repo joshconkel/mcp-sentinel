@@ -1,0 +1,53 @@
+id: MCPS-046
+name: Unauthorized AI Agent Deployment Configuration
+status: experimental
+severity: HIGH
+category: agent-deployment
+detection_type: static
+description: MCP server definitions can be manipulated to deploy AI agents with excessive
+  permissions and destructive system prompts. Adversaries leverage these configurations
+  to execute autonomous actions, bypass user safeguards, and compromise environment
+  integrity without direct interaction. This static analysis detects malicious deployment
+  directives and disabled safety controls within tool and server metadata.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Destructive environment modification directives
+    expression: (clean|reset|wipe|delete|destroy).{0,40}(system|resource|file.?system|cloud|environment)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Bypassing execution safeguards or user approval
+    expression: (disable|bypass|skip|ignore).{0,40}(confirmation|approval|guardrail|safeguard|user.?interaction)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0103
+    name: Deploy AI Agent
+    url: https://atlas.mitre.org/techniques/AML.T0103
+  owasp-mcp:
+    id: MCP04
+    name: Insecure Agent Configuration
+    url: https://owasp.org/www-project-mcp-top-10/#mcp04
+  nist-ai-rmf:
+    id: AI.RMF-03
+    name: Agent Governance and Control
+    url: https://www.nist.gov/itl/ssd/ai-risk-management-framework
+remediation: (1) Enforce strict permission boundaries for deployed agents. (2) Require
+  explicit user confirmation for destructive or autonomous actions. (3) Validate system
+  prompts and tool grants against a secure allowlist. (4) Monitor server definitions
+  for unauthorized deployment configurations.
+references:
+- https://atlas.mitre.org/techniques/AML.T0103
+tags:
+- agent-deployment
+- execution
+- static
+- permission-escalation
+added: '2026-05-22'
+updated: '2026-05-22'

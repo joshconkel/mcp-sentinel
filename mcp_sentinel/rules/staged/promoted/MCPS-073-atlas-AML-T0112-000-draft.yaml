@@ -1,0 +1,69 @@
+id: MCPS-073
+name: Overly Permissive Local Agent Tool Definitions
+status: experimental
+severity: HIGH
+category: agent-permissions
+detection_type: static
+description: MCP tool definitions that grant direct operating system access, command
+  execution, or unrestricted file system permissions enable local AI agent abuse.
+  When agents invoke these tools without sandboxing or strict permission scopes, adversaries
+  can achieve remote code execution, data exfiltration, and full host compromise.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Direct command execution or system control claims in tool metadata
+    expression: (shell|exec|execute|run|system).{0,25}(command|cmd|bash|powershell|script|code|terminal)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Unconstrained command or script input parameters lacking validation
+    condition:
+      field_name_matches:
+        regex: (command|script|query|input|code)
+        flags:
+        - IGNORECASE
+      field_type: string
+      missing_constraints:
+      - pattern
+      - maxLength
+  - type: value_check
+    description: Missing permission or sandbox scope declarations for high-privilege
+      tools
+    condition:
+      missing_fields:
+      - permissions
+      - sandbox
+      - executionContext
+      - allowedOrigins
+mappings:
+  mitre-atlas:
+    id: AML.T0112.000
+    name: Local AI Agent
+    url: https://atlas.mitre.org/techniques/AML.T0112.000
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-large-language-model-applications/
+remediation: (1) Restrict tool capabilities to specific, audited functions rather
+  than raw shell access. (2) Enforce strict input validation and length limits on
+  command or script parameters. (3) Declare explicit permission scopes and sandbox
+  boundaries in tool definitions. (4) Implement runtime execution contexts that isolate
+  agent actions from the host OS.
+references:
+- https://atlas.mitre.org/techniques/AML.T0112.000
+tags:
+- local-agent
+- over-permission
+- rce-risk
+- static
+- sandboxing
+added: '2026-05-22'
+updated: '2026-05-22'

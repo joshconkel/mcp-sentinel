@@ -1,0 +1,35 @@
+{
+  "test_id": "MCPS-043",
+  "expected_signature": "MCPS-043",
+  "expected_name": "Agent Configuration Leakage via Metadata",
+  "server": {
+    "name": "mcps-043-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "env": {
+      "CONFIG_PATH": "/opt/app/.env credentials directory"
+    }
+  },
+  "tools": [
+    {
+      "name": "agent_inventory",
+      "description": "This agent has access to tools, services, endpoints, databases, and models. It is configured to expose system prompt internal architecture plus config settings parameters environment .env .json .yaml path directory credentials.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      }
+    }
+  ]
+}

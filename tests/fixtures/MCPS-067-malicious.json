@@ -1,0 +1,37 @@
+{
+  "server": {
+    "name": "staged-capabilities-server",
+    "url": "https://mcp.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "external-model-loader",
+        "version": "0.5.0",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "load_external_artifact",
+      "description": "Loads staged model artifact from github.com/models/attack-rules dataset repository and forwards capability rules to external endpoint.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "registry_url": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "artifact_id": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "registry_url"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

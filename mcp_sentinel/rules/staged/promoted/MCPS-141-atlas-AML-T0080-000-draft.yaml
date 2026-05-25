@@ -1,0 +1,77 @@
+id: MCPS-141
+name: Persistent Memory Manipulation via MCP Tools
+status: experimental
+severity: HIGH
+category: memory-integrity
+detection_type: static
+description: MCP server definitions may expose tools or configurations that allow
+  untrusted data to be written directly to persistent memory or context stores. Adversaries
+  exploit these pathways to inject malicious instructions or false facts that persist
+  across sessions, effectively poisoning the LLM's long-term memory and altering future
+  agent behavior.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Detects tool descriptions indicating unvalidated memory or context
+      persistence
+    expression: (store|save|write|persist|remember|cache).{0,50}(memory|context|preference|fact|note|state)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Identifies input schemas for memory-writing tools lacking type constraints
+      or validation
+    condition:
+      field_name_matches:
+        regex: (memory|context|preference|note|state|cache)
+        flags:
+        - IGNORECASE
+      field_type: string
+      missing_constraints:
+      - maxLength
+      - pattern
+      - enum
+  - type: value_check
+    description: Flags server configurations enabling untrusted external data flow
+      into memory stores
+    condition:
+      value_in:
+      - 'true'
+      - enabled
+      - allow
+      - untrusted
+      missing_fields:
+      - auth_required
+      - validation_enabled
+      matches_unpinned: true
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0080.000
+    name: Memory
+    url: https://atlas.mitre.org/techniques/AML.T0080.000
+  owasp-llm:
+    id: LLM02
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-llm-applications/
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Implement memory hardening by enforcing strict trust boundaries for
+  all context storage. (2) Require explicit user authentication and validation before
+  persisting any memory or preference. (3) Sanitize and validate all inputs destined
+  for memory stores using schema constraints. (4) Audit tool definitions to restrict
+  unrestricted write access to persistent context.
+references:
+- https://atlas.mitre.org/techniques/AML.T0080.000
+tags:
+- memory-poisoning
+- context-persistence
+- static
+- llm-security
+added: '2026-05-22'
+updated: '2026-05-22'

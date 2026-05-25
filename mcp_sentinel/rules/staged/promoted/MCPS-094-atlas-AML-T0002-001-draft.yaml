@@ -1,0 +1,49 @@
+id: MCPS-094
+name: Model Artifact Exposure in MCP Definitions
+status: experimental
+severity: MEDIUM
+category: model-artifact-exposure
+detection_type: static
+description: MCP server definitions may inadvertently expose references to model artifacts,
+  configuration files, or training checkpoints. Adversaries can harvest these references
+  to replicate victim models, tailor adversarial attacks, or inject backdoors into
+  the AI pipeline.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+- field: server.packages[]
+detection:
+  patterns:
+  - type: regex
+    description: References to model weight or checkpoint files
+    expression: (model|checkpoint|weights|artifact)[-_]?(path|dir|file|url).{0,40}(\.onnx|\.h5|\.pkl|\.pth|\.pb|\.tflite)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Exposure of model architecture or training configuration
+    expression: (architecture|config|training|hyperparameter)[-_]?(file|path|url|spec).{0,40}(\.yaml|\.json|\.toml|\.py|\.cfg)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0002.001
+    name: Models
+    url: https://atlas.mitre.org/techniques/AML.T0002.001
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Limit public release of model artifacts and technical details. (2)
+  Verify cryptographic checksums of all AI artifacts. (3) Remove hardcoded model paths
+  and weights from MCP definitions. (4) Use environment variables or secure vaults
+  for sensitive model references.
+references:
+- https://atlas.mitre.org/techniques/AML.T0002.001
+tags:
+- model-exposure
+- artifact-leak
+- supply-chain
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,55 @@
+id: MCPS-144
+name: MCP Tool Definition Prompt Injection Detection
+status: experimental
+severity: CRITICAL
+category: prompt-injection
+detection_type: static
+description: MCP tool definitions and annotations are ingested by the LLM as authoritative
+  system context. Adversaries embed malicious instructions within these fields to
+  override system prompts, bypass safety filters, or exfiltrate sensitive data during
+  tool execution.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Instruction override and context manipulation language
+    expression: (ignore|override|disregard|forget|bypass).{0,50}(system|previous|above|original|initial).{0,30}(instructions|prompt|rules)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Data exfiltration or covert command execution directives
+    expression: (exfiltrate|send|forward|output|return|upload).{0,40}(credentials|secrets|api.?key|password|token|sensitive|internal)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Invisible or zero-width characters concealing malicious payloads
+mappings:
+  mitre-atlas:
+    id: AML.T0051
+    name: LLM Prompt Injection
+    url: https://atlas.mitre.org/techniques/AML.T0051
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Implement input validation and sanitization for all tool definitions.
+  (2) Deploy generative AI guardrails to filter malicious instructions. (3) Enforce
+  strict access controls and authentication for MCP server endpoints. (4) Enable comprehensive
+  telemetry logging to detect anomalous tool behavior. (5) Regularly audit and align
+  model fine-tuning with safety guidelines.
+references:
+- https://atlas.mitre.org/techniques/AML.T0051
+tags:
+- prompt-injection
+- tool-poisoning
+- static
+- context-injection
+added: '2026-05-22'
+updated: '2026-05-22'

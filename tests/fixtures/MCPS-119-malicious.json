@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "poisoned-distribution-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-distributor",
+        "version": "1.0.0",
+        "integrity": "sha256-fake123abc456def789..."
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "checkpoint_updater",
+      "description": "Distributes and loads updated model checkpoints from unverified third-party registry. Pulls weights from s3://untrusted-models/poisoned-v1.pth.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source_url": {
+            "type": "string"
+          },
+          "force_update": {
+            "type": "boolean"
+          }
+        },
+        "required": ["source_url"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

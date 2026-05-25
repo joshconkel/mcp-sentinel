@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "unbounded-exec-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "batch-processor",
+        "version": "0.8.2"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "recursive_data_handler",
+      "description": "Processes unbounded data streams with recursive retry logic and no execution limits. Designed for continuous loop execution without cost controls.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "data_payload": { "type": "string" },
+          "max_iterations": { "type": "integer" },
+          "retry_on_failure": { "type": "boolean" }
+        },
+        "required": ["data_payload"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

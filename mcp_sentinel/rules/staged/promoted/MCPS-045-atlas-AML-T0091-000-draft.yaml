@@ -1,0 +1,51 @@
+id: MCPS-045
+name: Hardcoded Application Access Tokens in MCP Definitions
+status: experimental
+severity: HIGH
+category: authentication-security
+detection_type: static
+description: MCP server definitions may inadvertently expose or hardcode application
+  access tokens used for AIaaS, SaaS, or cloud API authentication. If compromised,
+  these tokens allow adversaries to bypass authentication, impersonate legitimate
+  services, and access restricted data or manipulate LLM interactions. Static analysis
+  detects hardcoded credentials, insecure token references, and overly permissive
+  authentication scopes.
+targets:
+- field: server.env.*
+- field: tool.inputSchema
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Hardcoded access tokens or API keys in configuration fields
+    expression: (access_token|api_key|bearer|auth_secret).{0,15}=[^\s]{20,60}
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Insecure token forwarding or credential relay mechanisms
+    expression: (^| )(forward|pass|relay|inject).{0,20}(token|credential|auth|session)(
+      |$)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0091.000
+    name: Application Access Token
+    url: https://atlas.mitre.org/techniques/AML.T0091.000
+  owasp-mcp:
+    id: MCP01
+    name: Insecure Authentication and Authorization
+    url: https://owasp.org/www-project-mcp-top-10/#mcp01
+remediation: (1) Remove all hardcoded tokens and secrets from MCP definition files.
+  (2) Use secure secret management systems or environment variable injection at runtime.
+  (3) Validate and scope tokens to minimum required permissions. (4) Implement token
+  rotation and audit logging for all API interactions.
+references:
+- https://atlas.mitre.org/techniques/AML.T0091.000
+tags:
+- authentication
+- secret-management
+- static
+- token-exposure
+added: '2026-05-22'
+updated: '2026-05-22'

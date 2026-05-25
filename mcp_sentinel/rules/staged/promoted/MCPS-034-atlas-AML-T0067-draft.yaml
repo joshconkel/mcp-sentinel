@@ -1,0 +1,46 @@
+id: MCPS-034
+name: Trusted Output Manipulation via Tool Metadata
+status: experimental
+severity: HIGH
+category: output-integrity
+detection_type: static
+description: MCP tool definitions may contain hidden instructions that manipulate
+  the LLM's output to appear more authoritative or trustworthy. Adversaries embed
+  prompts to fabricate citations, generate fake links, or use deceptive language,
+  helping them evade user scrutiny and maintain persistence.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Instructions to fabricate citations or references
+    expression: (fabricate|invent|create|generate).{0,40}(citation|reference|source|link|url)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Directives to manipulate output tone for trust or authority
+    expression: (appear|sound|seem|present).{0,30}(authoritative|trustworthy|official|verified|legitimate)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Invisible characters concealing manipulation payloads
+mappings:
+  mitre-atlas:
+    id: AML.T0067
+    name: LLM Trusted Output Components Manipulation
+    url: https://atlas.mitre.org/techniques/AML.T0067
+remediation: (1) Audit tool descriptions and annotations for output manipulation instructions.
+  (2) Implement strict output validation and citation verification pipelines. (3)
+  Scan definitions for invisible Unicode and hidden payloads. (4) Enforce least-privilege
+  tool capabilities.
+references:
+- https://atlas.mitre.org/techniques/AML.T0067
+tags:
+- defense-evasion
+- output-manipulation
+- static
+- citation-forgery
+added: '2026-05-22'
+updated: '2026-05-22'

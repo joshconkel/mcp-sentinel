@@ -1,0 +1,51 @@
+id: MCPS-040
+name: Unrestricted AI Agent Tool Access Definition
+status: experimental
+severity: HIGH
+category: tool-permissions
+detection_type: static
+description: MCP tool definitions may grant AI agents overly broad access to internal
+  APIs, databases, or external services without proper constraints. Adversaries can
+  exploit these permissive configurations to exfiltrate sensitive data or perform
+  unauthorized actions across organizational systems.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Indicates unrestricted data access or exfiltration capabilities
+    expression: (access|retrieve|query|exfiltrate|dump).{0,60}(database|api|internal|sensitive|all|full|entire)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Tool schema lacks required input validation constraints
+    condition:
+      missing_fields:
+      - required
+      - properties
+      matches_unpinned: false
+mappings:
+  mitre-atlas:
+    id: AML.T0085.001
+    name: AI Agent Tools
+    url: https://atlas.mitre.org/techniques/AML.T0085.001
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Implement comprehensive telemetry logging for all tool invocations,
+  inputs, and outputs. (2) Apply principle of least privilege to AI agent permissions
+  and tool access. (3) Enforce strict input validation and schema constraints on all
+  tool definitions. (4) Segment AI agent components and isolate tool execution environments.
+  (5) Regularly audit tool permissions and lifecycle management policies.
+references:
+- https://atlas.mitre.org/techniques/AML.T0085.001
+tags:
+- agent-tools
+- data-exfiltration
+- permission-misconfiguration
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

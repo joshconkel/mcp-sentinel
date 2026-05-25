@@ -1,0 +1,48 @@
+id: MCPS-060
+name: LLM System Information Discovery via Tool Definitions
+status: experimental
+severity: MEDIUM
+category: discovery
+detection_type: static
+description: MCP server definitions may include tools or resources designed to extract
+  or reveal the LLM's system prompt, configuration, or internal instructions. Adversaries
+  leverage these introspection capabilities to map system boundaries and craft targeted
+  attacks.
+targets:
+- field: tool.name
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Direct references to system prompts or internal configuration
+    expression: (system\s*(prompt|instruction|config)|internal\s*state|dump\s*(system|context|config))
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Action verbs indicating extraction of system context
+    expression: (extract|reveal|show|dump|leak).{0,30}(system|prompt|instruction|config|context|llm|agent)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0069
+    name: Discover LLM System Information
+    url: https://atlas.mitre.org/techniques/AML.T0069
+  owasp-llm:
+    id: LLM06
+    name: System Prompt Leakage
+    url: https://owasp.org/www-project-top-10-llm-applications/
+remediation: (1) Remove or restrict introspection tools in production MCP servers.
+  (2) Validate tool names and descriptions against a denylist of system-extraction
+  keywords. (3) Implement runtime guards to prevent tools from returning system prompts
+  or configuration data.
+references:
+- https://atlas.mitre.org/techniques/AML.T0069
+tags:
+- discovery
+- system-prompt-leakage
+- static
+- introspection
+added: '2026-05-22'
+updated: '2026-05-22'

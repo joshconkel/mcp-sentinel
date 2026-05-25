@@ -1,0 +1,53 @@
+id: MCPS-063
+name: System Prompt Exposure in MCP Definitions
+status: experimental
+severity: HIGH
+category: prompt-security
+detection_type: static
+description: MCP server definitions may inadvertently expose system prompts, guardrails,
+  or internal instruction sets within tool descriptions, annotations, or environment
+  configurations. Adversaries can harvest these to understand model constraints and
+  craft targeted prompt injection attacks to bypass safety mechanisms.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Detects system instruction language in tool metadata
+    expression: (system prompt|system instructions|guardrails|internal directives|you
+      are a|act as|always respond).{0,50}(model|assistant|agent|llm)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies embedded prompt templates or configuration leaks
+    expression: (prompt_template|system_role|instruction_set|guardrail_config|<system>).{0,40}(value|content|text|definition)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0069.002
+    name: System Prompt
+    url: https://atlas.mitre.org/techniques/AML.T0069.002
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Remove system instructions and guardrail details from public-facing
+  MCP definition fields. (2) Store prompt templates and system roles in secure, server-side
+  configuration only. (3) Implement strict schema validation to prevent metadata leakage.
+  (4) Regularly audit tool descriptions and annotations for sensitive context.
+references:
+- https://atlas.mitre.org/techniques/AML.T0069.002
+tags:
+- system-prompt
+- information-disclosure
+- static
+- guardrail-bypass
+added: '2026-05-22'
+updated: '2026-05-22'

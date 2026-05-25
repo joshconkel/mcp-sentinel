@@ -1,0 +1,53 @@
+id: MCPS-101
+name: MCP Tool Schema Lacks Adversarial Input Guards
+status: experimental
+severity: MEDIUM
+category: model-integrity
+detection_type: static
+description: MCP tool definitions that lack strict input constraints or sanitization
+  directives can be exploited to feed adversarial examples to the underlying model.
+  Over time, these inputs degrade model performance and erode system reliability,
+  aligning with data poisoning and adversarial attack vectors. This static analysis
+  identifies configurations that leave the inference pipeline vulnerable to integrity
+  erosion.
+targets:
+- field: tool.inputSchema
+- field: tool.description
+detection:
+  patterns:
+  - type: schema_analysis
+    description: Missing input constraints enabling adversarial payloads
+    condition:
+      field_type: string
+      missing_constraints:
+      - maxLength
+      - pattern
+      - format
+  - type: regex
+    description: Descriptions indicating unfiltered or raw model passthrough
+    expression: (raw|unfiltered|unsanitized|no validation|direct passthrough).{0,40}(input|data|prompt|query)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0031
+    name: Erode AI Model Integrity
+    url: https://atlas.mitre.org/techniques/AML.T0031
+  owasp-llm:
+    id: LLM08
+    name: Model Denial of Service
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Implement input restoration and sanitization preprocessing for all
+  tool inputs. (2) Enforce strict schema constraints (maxLength, pattern, format)
+  to block adversarial perturbations. (3) Deploy adversarial input detection algorithms
+  prior to model inference. (4) Utilize ensemble methods or hardened models to increase
+  robustness against poisoning and degradation attacks.
+references:
+- https://atlas.mitre.org/techniques/AML.T0031
+tags:
+- model-integrity
+- adversarial-input
+- data-poisoning
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,30 @@
+{
+  "server": {
+    "name": "public-artifact-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-loader",
+        "version": "1.1.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "external_model_fetcher",
+      "description": "Loads pre-trained weights from huggingface.co/models/victim-org/llm-checkpoint and config from github.com/repo/agent-config for public sharing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "model_id": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": ["model_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

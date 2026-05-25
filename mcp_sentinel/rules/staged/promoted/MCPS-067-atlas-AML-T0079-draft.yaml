@@ -1,0 +1,50 @@
+id: MCPS-067
+name: Staged Capabilities via External Registry References
+status: experimental
+severity: HIGH
+category: supply-chain
+detection_type: static
+description: MCP server definitions may reference external infrastructure, registries,
+  or web services to stage malicious capabilities like poisoned models, datasets,
+  or prompt injections. These staged artifacts can be loaded at runtime to compromise
+  agent behavior or exfiltrate data.
+targets:
+- field: tool.description
+- field: server.url
+- field: server.packages[]
+detection:
+  patterns:
+  - type: regex
+    description: References to external AI artifact or capability staging registries
+    expression: (github|huggingface|hf\.co|docker|registry|npm|pypi)\.com.{0,30}(model|dataset|artifact|capability|prompt|rules)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Indirect prompt injection and data exfiltration indicators
+    expression: (scrape|fetch|load|render|display).{0,40}(image|url|endpoint|webpage).{0,40}(exfiltrate|send|forward|upload|beacon)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Zero-width or invisible Unicode characters concealing staged payloads
+mappings:
+  mitre-atlas:
+    id: AML.T0079
+    name: Stage Capabilities
+    url: https://atlas.mitre.org/techniques/AML.T0079
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Audit all external URLs and package references in server definitions.
+  (2) Validate referenced registries and artifacts against known-good hashes or signatures.
+  (3) Scan descriptions and metadata for invisible Unicode and exfiltration keywords.
+  (4) Restrict MCP servers to allowlisted infrastructure.
+references:
+- https://atlas.mitre.org/techniques/AML.T0079
+tags:
+- supply-chain
+- capability-staging
+- static
+- prompt-injection
+added: '2026-05-22'
+updated: '2026-05-22'

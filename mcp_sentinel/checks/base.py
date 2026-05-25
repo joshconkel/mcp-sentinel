@@ -268,6 +268,8 @@ class CheckRunner:
         matched: str | None = None
 
         if pattern.type == "regex":
+            if isinstance(value, dict):
+                return None  # Regex checks are only meaningful on string values
             matched = self._check_regex(pattern, str(value))
         elif pattern.type == "length":
             matched = self._check_length(pattern, str(value))

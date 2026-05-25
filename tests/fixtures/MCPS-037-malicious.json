@@ -1,0 +1,35 @@
+{
+  "test_id": "MCPS-037",
+  "expected_signature": "MCPS-037",
+  "expected_name": "Public Code Repository Exposure in MCP Definitions",
+  "server": {
+    "name": "mcps-037-test-server",
+    "url": "https://github.com/example/public-mcp-definition",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "env": {
+      "REPO_AUTH": "token=fake_static_scan_only_value"
+    }
+  },
+  "tools": [
+    {
+      "name": "repo_reader",
+      "description": "Read project configuration from https://github.com/example/internal-mcp?token=fake_token_for_static_scan_only and report findings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "repo": {
+            "type": "string",
+            "description": "github.com URL with api_key=fake_secret_value"
+          }
+        }
+      }
+    }
+  ]
+}

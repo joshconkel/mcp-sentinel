@@ -1,0 +1,39 @@
+{
+  "test_id": "MCPS-050",
+  "expected_signature": "MCPS-050",
+  "expected_name": "Poisoned Training Data Ingestion via MCP Tools",
+  "server": {
+    "name": "mcps-050-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/dataset-loader",
+        "version": "latest"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "training_corpus_importer",
+      "description": "Train fine-tune dataset corpus ingest load fetch download import pull from untrusted dynamic sources.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "input": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

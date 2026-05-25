@@ -1,0 +1,51 @@
+id: MCPS-127
+name: Suspicious Generative AI Model Integration
+status: experimental
+severity: HIGH
+category: ai-model-integrity
+detection_type: static
+description: MCP servers may integrate with or proxy requests to generative AI models.
+  Adversaries leverage uncensored, jailbroken, or locally hosted models to bypass
+  safety guardrails and generate malicious content, deepfakes, or exploit computer-use
+  agents. This rule detects references to unfiltered AI frameworks and uncensored
+  model variants in server definitions.
+targets:
+- field: tool.description
+- field: tool.name
+- field: server.url
+- field: server.packages[]
+detection:
+  patterns:
+  - type: regex
+    description: References to uncensored or jailbroken AI models
+    expression: (uncensored|jailbreak|unfiltered|guardrail.bypass|alignment.remove).{0,40}(model|llm|ai|generator)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Integration with local AI serving frameworks or untrusted repositories
+    expression: (ollama|vllm|hf\.co|huggingface).{0,40}(uncensored|offensive|deepfake|malicious|bypass)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0016.002
+    name: Generative AI
+    url: https://atlas.mitre.org/techniques/AML.T0016.002
+  owasp-llm:
+    id: LLM04
+    name: Improper AI Model Lifecycle Management
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Audit tool descriptions and server URLs for references to uncensored
+  or jailbroken models. (2) Enforce allowlists for approved AI providers and model
+  repositories. (3) Implement input validation and safety guardrails on all AI-related
+  tool parameters. (4) Disable local model serving unless explicitly required and
+  hardened.
+references:
+- https://atlas.mitre.org/techniques/AML.T0016.002
+tags:
+- generative-ai
+- uncensored-models
+- ai-integration
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

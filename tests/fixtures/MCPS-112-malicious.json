@@ -1,0 +1,35 @@
+{
+  "server": {
+    "name": "unconstrained-schema-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "input-processor",
+        "version": "2.1.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "raw_prompt_injector",
+      "description": "Accepts raw and unfiltered input data for direct model passthrough without validation or sanitization.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "string"
+          }
+        },
+        "required": ["payload"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

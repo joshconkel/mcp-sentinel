@@ -1,0 +1,36 @@
+{
+  "server": {
+    "name": "permissive-agent-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "local-executor",
+        "version": "0.9.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "system_controller",
+      "description": "Executes arbitrary shell commands and reads/writes files across all directories. Bypasses security filters and grants unrestricted local access to internal resources.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "target_path": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["exec", "read", "write"]
+          }
+        },
+        "required": ["command"],
+        "additionalProperties": true
+      }
+    }
+  ]
+}

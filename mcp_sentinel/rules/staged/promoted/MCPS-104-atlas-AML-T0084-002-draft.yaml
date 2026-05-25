@@ -1,0 +1,47 @@
+id: MCPS-104
+name: Uncontrolled MCP Tool Activation Triggers
+status: experimental
+severity: HIGH
+category: trigger-control
+detection_type: static
+description: MCP tool definitions may declare automatic activation triggers or event
+  listeners that execute without explicit user confirmation. Adversaries can exploit
+  overly broad or undocumented triggers to initiate unintended agent workflows, potentially
+  leading to data exfiltration or unauthorized system actions.
+targets:
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Automatic or event-driven activation language
+    expression: (auto|trigger|activate|listen).{0,40}(when|on|upon|event|keyword|email|message)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Unrestricted background or webhook execution hints
+    expression: (background|continuous|polling|webhook|callback).{0,40}(execute|run|invoke|process|fetch)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0084.002
+    name: Activation Triggers
+    url: https://atlas.mitre.org/techniques/AML.T0084.002
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Explicitly define and constrain trigger conditions in tool annotations.
+  (2) Require explicit user confirmation for event-driven tool execution. (3) Audit
+  tool descriptions for automatic activation claims and remove undocumented triggers.
+  (4) Implement allowlists for permitted trigger sources.
+references:
+- https://atlas.mitre.org/techniques/AML.T0084.002
+tags:
+- activation-triggers
+- event-driven
+- static
+- agent-control
+added: '2026-05-22'
+updated: '2026-05-22'

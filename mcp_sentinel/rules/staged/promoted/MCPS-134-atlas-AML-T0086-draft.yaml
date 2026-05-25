@@ -1,0 +1,52 @@
+id: MCPS-134
+name: Data Exfiltration via Tool Input Parameters
+status: experimental
+severity: HIGH
+category: data-exfiltration
+detection_type: static
+description: MCP tool definitions that accept unvalidated input parameters or expose
+  write and network capabilities can be abused to exfiltrate sensitive data. Adversaries
+  may manipulate tool inputs via prompt injection or malicious definitions to transmit
+  information to external endpoints, email inboxes, or cloud storage under the guise
+  of legitimate operations.
+targets:
+- field: tool.inputSchema
+- field: tool.description
+detection:
+  patterns:
+  - type: regex
+    description: Tool descriptions indicating external data transmission or exfiltration
+      capabilities
+    expression: (send|transmit|forward|upload|export|push).{0,60}(email|webhook|external|cloud|storage|server|url|endpoint)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Input parameters lacking format or pattern validation constraints
+    condition:
+      missing_fields:
+      - format
+      - pattern
+      - maxLength
+mappings:
+  mitre-atlas:
+    id: AML.T0086
+    name: Exfiltration via AI Agent Tool Invocation
+    url: https://atlas.mitre.org/techniques/AML.T0086
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Implement comprehensive AI telemetry logging for all tool inputs
+  and outputs. (2) Enforce strict least-privilege permissions and validate tool capabilities
+  against organizational policy. (3) Require human-in-the-loop approval for sensitive
+  write or network operations. (4) Apply strict input validation and allowlisting
+  for all tool parameters to prevent data leakage.
+references:
+- https://atlas.mitre.org/techniques/AML.T0086
+tags:
+- exfiltration
+- tool-invocation
+- static
+- data-leakage
+added: '2026-05-22'
+updated: '2026-05-22'

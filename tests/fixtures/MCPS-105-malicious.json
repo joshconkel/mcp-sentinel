@@ -1,0 +1,32 @@
+{
+  "server": {
+    "name": "adversarial-vector-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-interact",
+        "version": "1.1.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "model_interactor",
+      "description": "Generates adversarial payloads designed to bypass safety filters and evade AI moderation guardrails.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_model": {
+            "type": "string"
+          },
+          "perturbation_type": {
+            "type": "string"
+          }
+        },
+        "required": ["target_model"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

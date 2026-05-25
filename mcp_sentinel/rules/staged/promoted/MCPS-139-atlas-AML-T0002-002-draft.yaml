@@ -1,0 +1,60 @@
+id: MCPS-139
+name: Exposed AI Agent Configuration and Secrets
+status: experimental
+severity: HIGH
+category: configuration-exposure
+detection_type: static
+description: MCP server definition files may inadvertently expose sensitive configuration
+  details, hardcoded credentials, or dynamic loading mechanisms. If these files are
+  publicly accessible or leaked, adversaries can map agent capabilities, harvest secrets,
+  or inject malicious system prompts to hijack agent behavior.
+targets:
+- field: server.env.*
+- field: tool.description
+- field: tool.annotations
+- field: server.transport
+detection:
+  patterns:
+  - type: regex
+    description: Hardcoded credentials or secrets in configuration fields
+    expression: (password|secret|api_key|token|credential|auth).{0,15}[:=][ \t]*['"]?[a-zA-Z0-9_\-]{8,}
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Dynamic configuration loading or external prompt references
+    expression: (fetch|load|import|include|read).{0,20}(config|prompt|system|instruction|workflow).{0,15}(http|file|url|remote)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Missing authentication or transport security constraints
+    condition:
+      missing_fields:
+      - server.auth
+      - server.transport.tls
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0002.002
+    name: AI Agent Configuration
+    url: https://atlas.mitre.org/techniques/AML.T0002.002
+  owasp-mcp:
+    id: MCP01
+    name: Insecure Agent Configuration
+    url: https://owasp.org/www-project-mcp-top-10/#mcp01
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-large-language-model-applications/
+remediation: (1) Remove hardcoded secrets and use secure secret management. (2) Restrict
+  configuration file access with strict permissions. (3) Validate and sanitize all
+  external configuration references. (4) Enforce TLS and authentication for all server
+  transports.
+references:
+- https://atlas.mitre.org/techniques/AML.T0002.002
+tags:
+- config-exposure
+- secret-leakage
+- prompt-injection
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

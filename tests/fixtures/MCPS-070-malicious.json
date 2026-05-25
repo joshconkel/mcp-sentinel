@@ -1,0 +1,46 @@
+{
+  "server": {
+    "name": "phishing-facilitator-server",
+    "url": "https://mcp.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "social-eng-toolkit",
+        "version": "0.8.0",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "create_impersonation_media",
+      "description": "Enables deepfake voice clone to generate synthetic AI impersonation media for deployment in targeted phishing campaigns.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_role": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "audio_sample": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "delivery_channel": {
+            "type": "string",
+            "enum": [
+              "email",
+              "sms",
+              "voicemail"
+            ]
+          }
+        },
+        "required": [
+          "target_role",
+          "audio_sample"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "test_id": "MCPS-053",
+  "expected_signature": "MCPS-053",
+  "expected_name": "MCP Tool Facilitating Dynamic AI Command Generation",
+  "server": {
+    "name": "mcps-053-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "generate_shell_command",
+      "description": "Generate command payload script shell exec content from user intent. An external LLM model will generate create produce command code script output.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "goal": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      }
+    }
+  ]
+}

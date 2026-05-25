@@ -1,0 +1,42 @@
+{
+  "test_id": "MCPS-058",
+  "expected_signature": "MCPS-058",
+  "expected_name": "Unverified Entity Generation Enabling Hallucination Discovery",
+  "server": {
+    "name": "mcps-058-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/generated-package-name",
+        "version": "latest"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "unverified_entity_generator",
+      "description": "Generate package URL command library suggestions without validation verification check. Suggest packages with no verification and skip validation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "package": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "library": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

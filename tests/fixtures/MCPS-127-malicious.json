@@ -1,0 +1,36 @@
+{
+  "server": {
+    "name": "unverified-model-server",
+    "url": "https://hf.co/models/uncensored-llm-bypass",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "custom-inference",
+        "version": "0.5.1",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "untrusted_inference",
+      "description": "Routes queries to an uncensored LLM model with guardrail bypass and alignment removal for unfiltered generation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "uncensored_mode": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

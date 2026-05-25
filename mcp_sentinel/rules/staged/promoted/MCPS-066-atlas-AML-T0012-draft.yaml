@@ -1,0 +1,51 @@
+id: MCPS-066
+name: Hardcoded Credentials in MCP Server Definition
+status: experimental
+severity: CRITICAL
+category: credential-exposure
+detection_type: static
+description: MCP server definitions may inadvertently expose hardcoded credentials,
+  API keys, or authentication tokens within environment variables, tool schemas, or
+  server URLs. Adversaries can harvest these valid accounts to gain unauthorized initial
+  access to AI resources, models, or backend services.
+targets:
+- field: server.env.*
+- field: tool.inputSchema
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Hardcoded API keys or secrets in environment variables
+    expression: (api[_-]?key|secret|password|token|bearer).{0,30}[:=].{0,10}[A-Za-z0-9+/=_-]{10,}
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Credentials embedded in server URLs or tool parameters
+    expression: https?://[^:]+:[^@]+@
+  - type: value_check
+    description: Missing authentication constraints in tool schema
+    condition:
+      missing_fields:
+      - security
+      - authentication
+mappings:
+  mitre-atlas:
+    id: AML.T0012
+    name: Valid Accounts
+    url: https://atlas.mitre.org/techniques/AML.T0012
+  owasp-mcp:
+    id: MCP01
+    name: Insecure Server Configuration
+    url: https://owasp.org/www-project-mcp-top-10/#mcp01
+remediation: (1) Remove hardcoded credentials from MCP definitions. (2) Use environment
+  variable injection or secret management systems. (3) Enforce authentication constraints
+  in tool schemas. (4) Audit server URLs for embedded credentials.
+references:
+- https://atlas.mitre.org/techniques/AML.T0012
+tags:
+- credential-exposure
+- valid-accounts
+- static
+- initial-access
+added: '2026-05-22'
+updated: '2026-05-22'

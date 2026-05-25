@@ -1,0 +1,46 @@
+id: MCPS-099
+name: Hardcoded Credentials in MCP Server Definition
+status: experimental
+severity: HIGH
+category: credential-exposure
+detection_type: static
+description: MCP server definition files may inadvertently contain hardcoded credentials,
+  API keys, or authentication tokens within environment variables, URLs, or tool schemas.
+  Static analysis detects these insecure storage practices to prevent credential leakage
+  during deployment or version control. Exposed secrets can be harvested by adversaries
+  to gain unauthorized access to backend services.
+targets:
+- field: server.env.*
+- field: server.url
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Hardcoded secrets in configuration fields
+    expression: (?i)(password|passwd|api[_-]?key|secret|token|auth)[\s:=]+[A-Za-z0-9+/=]{8,40}
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Credentials embedded in server URLs
+    expression: https?://[^\s:]{0,30}:[^\s@]{0,30}@
+mappings:
+  mitre-atlas:
+    id: AML.T0055
+    name: Unsecured Credentials
+    url: https://atlas.mitre.org/techniques/AML.T0055
+  owasp-mcp:
+    id: MCP04
+    name: Insecure Authentication and Authorization
+    url: https://owasp.org/www-project-mcp-top-10/#mcp04
+remediation: (1) Remove hardcoded credentials from definition files. (2) Use environment
+  variable injection or secret management systems. (3) Enforce TLS for all server
+  communications. (4) Validate tool schemas to reject credential inputs at runtime.
+references:
+- https://atlas.mitre.org/techniques/AML.T0055
+tags:
+- credential-exposure
+- hardcoded-secrets
+- static
+- configuration
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,50 @@
+id: MCPS-133
+name: Hardcoded Credentials in MCP Configuration
+status: experimental
+severity: HIGH
+category: credential-access
+detection_type: static
+description: MCP server and tool definitions often embed sensitive credentials like
+  API keys, tokens, or database connection strings directly in configuration fields
+  or environment variables. When these secrets are hardcoded or improperly masked,
+  attackers who gain read access to the definition files can extract them to compromise
+  downstream services. This vulnerability bypasses agent-level security controls by
+  providing direct access to external infrastructure.
+targets:
+- field: server.env.*
+- field: tool.inputSchema
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Detects hardcoded API keys, tokens, or secrets in configuration fields
+    expression: (api[_-]?key|token|secret|password|auth).{0,15}[:=].{0,5}[A-Za-z0-9_\-]{20,128}
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies database connection strings or cloud provider credentials
+    expression: (connection[_-]?string|database[_-]?url|endpoint).{0,20}://[A-Za-z0-9@:]{10,100}
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0083
+    name: Credentials from AI Agent Configuration
+    url: https://atlas.mitre.org/techniques/AML.T0083
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Remove hardcoded credentials from MCP definition files. (2) Use environment
+  variables or a dedicated secret manager for sensitive values. (3) Implement pre-commit
+  hooks to scan for secrets before deployment. (4) Restrict file permissions on configuration
+  directories to prevent unauthorized reads.
+references:
+- https://atlas.mitre.org/techniques/AML.T0083
+tags:
+- credential-access
+- hardcoded-secrets
+- configuration-security
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

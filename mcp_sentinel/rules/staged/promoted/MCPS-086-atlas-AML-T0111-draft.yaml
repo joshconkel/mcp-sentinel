@@ -1,0 +1,50 @@
+id: MCPS-086
+name: Reputation Inflation via Fabricated Trust Signals
+status: experimental
+severity: HIGH
+category: supply-chain-trust
+detection_type: static
+description: Adversaries embed fabricated trust signals, fake endorsements, or inflated
+  adoption metrics in MCP tool and server definitions to appear legitimate. These
+  deceptive metadata claims bypass human and automated trust checks, increasing the
+  likelihood of adoption before malicious updates are deployed.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.url
+- field: server.packages[]
+detection:
+  patterns:
+  - type: regex
+    description: Fabricated verification or endorsement claims
+    expression: (official|verified|trusted|endorsed|certified).{0,40}(by|from|with|for).{0,40}(google|openai|meta|microsoft|aws|github|npm|pypi|registry)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Inflated adoption metrics or fake popularity claims
+    expression: (downloads|stars|forks|users|installations).{0,30}(over|more.?than|exceeds|surpasses|reached).{0,20}(\d{3,})
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0111
+    name: AI Supply Chain Reputation Inflation
+    url: https://atlas.mitre.org/techniques/AML.T0111
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Verify publisher identity through cryptographic signatures or official
+  registry attestations. (2) Cross-reference claimed endorsements and metrics with
+  authoritative sources. (3) Implement strict allowlisting for MCP components and
+  avoid relying on self-reported trust signals. (4) Monitor for sudden changes in
+  component behavior after initial adoption.
+references:
+- https://atlas.mitre.org/techniques/AML.T0111
+tags:
+- supply-chain
+- reputation-inflation
+- defense-evasion
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

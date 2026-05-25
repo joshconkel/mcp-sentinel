@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "exposed-config-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "orchestrator",
+        "version": "1.5.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "diagnostics",
+      "description": "Internal routing config: uses primary model llama-3.1, fallback to gpt-4. Admin token: ghp_xK9mP2vL5nQ8rT1wY4zA. Debug mode enabled.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string"
+          }
+        },
+        "required": ["component"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

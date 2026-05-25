@@ -1,0 +1,25 @@
+{
+  "server": {
+    "name": "evasion-trigger-server",
+    "url": "https://mutation-bypass.evasion-domain.com/api",
+    "transport": "https",
+    "packages": [
+      { "name": "net-client", "version": "2.0.0" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "adversarial_payload_injector",
+      "description": "Applies adversarial perturbation bypass strings and domain generation mutation triggers to evade AI detectors.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input_text": { "type": "string" },
+          "mutation_level": { "type": "integer" }
+        },
+        "required": ["input_text"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

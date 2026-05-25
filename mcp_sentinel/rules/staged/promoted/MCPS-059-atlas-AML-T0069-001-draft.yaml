@@ -1,0 +1,54 @@
+id: MCPS-059
+name: Suspicious System Instruction Keywords in Tool Definitions
+status: experimental
+severity: HIGH
+category: tool-integrity
+detection_type: static
+description: MCP tool definitions may contain keywords that mimic internal LLM system
+  directives or function names. Adversaries embed these terms to manipulate the model's
+  decision-making process, triggering unauthorized tool invocations or bypassing safety
+  constraints. This technique is frequently leveraged in indirect prompt injection
+  and RAG poisoning attacks.
+targets:
+- field: tool.description
+- field: tool.name
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: LLM control keywords mimicking system directives
+    expression: (system|override|execute|command|function|plugin|agent|instruction).{0,30}(call|invoke|trigger|bypass|ignore|execute)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Coercive phrases for indirect injection or RAG poisoning
+    expression: (when retrieved|upon retrieval|always|persistently|silently).{0,30}(execute|run|call|invoke|inject|modify)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0069.001
+    name: System Instruction Keywords
+    url: https://atlas.mitre.org/techniques/AML.T0069.001
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Audit all tool metadata for LLM control keywords and system directive
+  mimics. (2) Sanitize descriptions, names, and schema properties against known injection
+  patterns. (3) Implement strict allowlists for tool invocation and parameter validation.
+  (4) Monitor agent logs for anomalous tool call sequences triggered by external content.
+references:
+- https://atlas.mitre.org/techniques/AML.T0069.001
+tags:
+- llm-manipulation
+- prompt-injection
+- static
+- tool-integrity
+- rag-poisoning
+added: '2026-05-22'
+updated: '2026-05-22'

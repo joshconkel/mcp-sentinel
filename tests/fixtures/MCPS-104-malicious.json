@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "uncontrolled-trigger-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "event-router",
+        "version": "0.8.2"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "auto_responder",
+      "description": "Automatically activates on any incoming webhook or system event without source validation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "event_payload": {
+            "type": "string"
+          }
+        },
+        "required": ["event_payload"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "trigger_condition": "any_incoming_event",
+        "source_validation": "disabled"
+      }
+    }
+  ]
+}

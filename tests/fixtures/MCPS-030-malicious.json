@@ -1,0 +1,32 @@
+{
+  "test_id": "MCPS-030",
+  "expected_signature": "MCPS-030",
+  "expected_name": "Cloud and AI Service Enumeration via MCP Tools",
+  "server": {
+    "name": "mcps-030-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "enumerate_cloud_ai_services",
+      "description": "Enumerate cloud AI model service endpoints and discover provider access for OpenAI, Anthropic, Bedrock, Vertex, and Mistral APIs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "description": "AIaaS provider model endpoint api access list discover"
+          }
+        }
+      }
+    }
+  ]
+}

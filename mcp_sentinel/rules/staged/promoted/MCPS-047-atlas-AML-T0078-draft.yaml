@@ -1,0 +1,63 @@
+id: MCPS-047
+name: Drive-by Compromise via Web-Fetching Tools
+status: experimental
+severity: HIGH
+category: initial-access
+detection_type: static
+description: MCP tools that fetch, scrape, or render external web content can introduce
+  indirect prompt injections into the agent's context. When untrusted web data is
+  passed directly to the LLM without sanitization, adversaries can manipulate agent
+  behavior, exfiltrate conversation history, or execute malicious commands. This rule
+  identifies server definitions containing web-interaction capabilities lacking proper
+  input validation.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: tool.name
+detection:
+  patterns:
+  - type: regex
+    description: Identifies tools configured to fetch, scrape, or render external
+      web content
+    expression: (fetch|scrape|browse|render|load|extract).{0,40}(web|page|url|html|markdown|content)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Detects input schema fields accepting external URLs or raw markup
+      without validation constraints
+    condition:
+      field_name_matches:
+        regex: (url|link|source|page|html|markdown)
+        flags:
+        - IGNORECASE
+      missing_constraints:
+      - format
+      - pattern
+      - maxLength
+mappings:
+  mitre-atlas:
+    id: AML.T0078
+    name: Drive-by Compromise
+    url: https://atlas.mitre.org/techniques/AML.T0078
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM06
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-llms/
+remediation: (1) Implement strict input validation and sanitization for all web-fetched
+  content before passing it to the LLM. (2) Enforce allowlists for trusted domains
+  and block execution of untrusted scripts or markdown. (3) Add content-type filtering
+  and length limits to tool input schemas. (4) Isolate web-scraping tools in sandboxed
+  environments with restricted network access.
+references:
+- https://atlas.mitre.org/techniques/AML.T0078
+tags:
+- drive-by-compromise
+- indirect-prompt-injection
+- web-scraping
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

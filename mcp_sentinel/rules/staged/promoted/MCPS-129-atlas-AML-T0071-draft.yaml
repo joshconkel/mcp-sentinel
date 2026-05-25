@@ -1,0 +1,66 @@
+id: MCPS-129
+name: False RAG Entry Injection via MCP Ingestion Tools
+status: experimental
+severity: HIGH
+category: rag-integrity
+detection_type: static
+description: MCP tools and resources configured for document ingestion may lack input
+  sanitization, allowing adversaries to inject false RAG entries. These poisoned entries
+  bypass monitoring and manipulate LLM responses during retrieval. The rule detects
+  ingestion endpoints with weak schema constraints or metadata containing RAG manipulation
+  keywords.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: RAG ingestion claims combined with prompt injection language
+    expression: (ingest|index|embed|retrieve).{0,40}(rag|knowledge|document|context).{0,40}(ignore|override|system|instruction|prompt)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Metadata manipulation keywords indicating RAG entry spoofing
+    expression: (metadata|title|author|timestamp|source).{0,40}(inject|spoof|forge|override|bypass|hide)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Unconstrained document input fields vulnerable to RAG poisoning
+    condition:
+      field_name_matches:
+        regex: (content|document|text|payload|attachment|file)
+        flags:
+        - IGNORECASE
+      missing_constraints:
+      - maxLength
+      - format
+      - pattern
+      - enum
+mappings:
+  mitre-atlas:
+    id: AML.T0071
+    name: False RAG Entry Injection
+    url: https://atlas.mitre.org/techniques/AML.T0071
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM02
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-llms/
+remediation: (1) Implement strict input validation and sanitization for all document
+  ingestion endpoints. (2) Enforce schema constraints including maxLength, format,
+  and content-type filtering. (3) Deploy RAG-specific content filtering to detect
+  and quarantine suspicious metadata or injection patterns. (4) Audit tool definitions
+  for unconstrained text fields and restrict ingestion privileges.
+references:
+- https://atlas.mitre.org/techniques/AML.T0071
+tags:
+- rag-poisoning
+- defense-evasion
+- static
+- input-validation
+added: '2026-05-22'
+updated: '2026-05-22'

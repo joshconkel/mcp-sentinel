@@ -1,0 +1,53 @@
+id: MCPS-142
+name: Unsecured AI Inference API Exposure in MCP Tools
+status: experimental
+severity: HIGH
+category: api-access-control
+detection_type: static
+description: MCP server definitions may expose direct access to AI model inference
+  APIs without proper authentication or rate limiting. This allows adversaries to
+  probe, replicate, or abuse shared foundation models, potentially leading to model
+  extraction, adversarial input injection, or service disruption.
+targets:
+- field: server.url
+- field: tool.inputSchema
+- field: tool.description
+detection:
+  patterns:
+  - type: regex
+    description: Detects direct references to inference or model API endpoints
+    expression: (inference|completion|chat|embed).{0,40}(api|endpoint|url|service)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Identifies tool schemas missing authentication or authorization constraints
+    condition:
+      field_name_matches:
+        regex: (auth|api_key|token|credential)
+        flags:
+        - IGNORECASE
+      field_type: object
+      missing_constraints: true
+mappings:
+  mitre-atlas:
+    id: AML.T0040
+    name: AI Model Inference API Access
+    url: https://atlas.mitre.org/techniques/AML.T0040
+  owasp-llm:
+    id: LLM06
+    name: Model Theft
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Require authentication and identity verification for all inference
+  API endpoints. (2) Implement strict access controls and rate limiting on model queries.
+  (3) Enable comprehensive telemetry logging for inputs, outputs, and agent actions
+  to detect misuse. (4) Monitor production model queries to ensure compliance with
+  usage policies.
+references:
+- https://atlas.mitre.org/techniques/AML.T0040
+tags:
+- inference-api
+- model-access
+- authentication
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

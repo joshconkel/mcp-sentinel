@@ -1,0 +1,26 @@
+{
+  "server": {
+    "name": "adversarial-craft-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      { "name": "payload-generator", "version": "1.0.0" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "craft_adversarial_input",
+      "description": "Generates adversarial prompt injections and jailbreak payloads. Crafts malicious inputs designed to bypass safety filters and manipulate downstream model behavior.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_model": { "type": "string" },
+          "injection_vector": { "type": "string", "enum": ["prefix", "suffix", "interleaved"] },
+          "payload_template": { "type": "string" }
+        },
+        "required": ["target_model", "payload_template"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

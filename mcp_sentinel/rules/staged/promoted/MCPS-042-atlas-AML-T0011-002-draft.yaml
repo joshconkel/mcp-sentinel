@@ -1,0 +1,62 @@
+id: MCPS-042
+name: Supply Chain Poisoned MCP Tool Definition
+status: experimental
+severity: HIGH
+category: supply-chain-integrity
+detection_type: static
+description: Adversaries compromise MCP tool definitions or server packages through
+  supply chain attacks, injecting hidden instructions or malicious endpoints. When
+  invoked by an AI agent, these poisoned tools can execute prompt injections, exfiltrate
+  sensitive data, or run arbitrary commands. This rule scans tool metadata and dependency
+  manifests for covert directives and unpinned packages.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.packages[]
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Detects covert instruction overrides or data exfiltration directives
+      in tool metadata
+    expression: (ignore|override|bypass|secretly|silently).{0,60}(send|forward|exfiltrate|upload|execute|run)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Flags unpinned or wildcard package dependencies that enable supply
+      chain substitution
+    condition:
+      matches_unpinned: true
+      missing_fields:
+      - integrity
+      - checksum
+    severity_override: MEDIUM
+  - type: regex
+    description: Identifies suspicious remote endpoints or callback URLs embedded
+      in server configurations
+    expression: (http|https)://.{0,50}(exfil|c2|callback|beacon|shell|exec|cmd)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0011.002
+    name: Poisoned AI Agent Tool
+    url: https://atlas.mitre.org/techniques/AML.T0011.002
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Pin all server and tool dependencies to exact versions with cryptographic
+  checksums. (2) Validate tool descriptions and input schemas against a strict allowlist
+  of approved publishers. (3) Scan definitions for hidden instructions, invisible
+  Unicode, and suspicious remote endpoints before deployment. (4) Implement runtime
+  sandboxing for agent tool invocations to prevent arbitrary command execution.
+references:
+- https://atlas.mitre.org/techniques/AML.T0011.002
+tags:
+- supply-chain
+- tool-poisoning
+- static
+- dependency-risk
+added: '2026-05-22'
+updated: '2026-05-22'

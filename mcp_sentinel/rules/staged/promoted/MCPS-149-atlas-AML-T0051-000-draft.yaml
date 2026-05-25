@@ -1,0 +1,56 @@
+id: MCPS-149
+name: Direct Prompt Injection via Tool Metadata
+status: experimental
+severity: CRITICAL
+category: prompt-injection
+detection_type: static
+description: Adversaries embed malicious instructions directly within MCP tool definitions,
+  annotations, or input schemas. These static payloads bypass runtime input filters
+  and manipulate the LLM context window, potentially leading to unauthorized tool
+  execution, data exfiltration, or self-replicating worm behavior across connected
+  agents.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Direct instruction override language in metadata
+    expression: (ignore|override|disregard|forget|bypass).{0,50}(system|previous|above|initial|developer|instructions)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Self-replicating or propagation payload indicators
+    expression: (replicate|propagate|forward|append|inject).{0,50}(prompt|message|output|response|context)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Invisible characters concealing injection payload
+mappings:
+  mitre-atlas:
+    id: AML.T0051.000
+    name: Direct
+    url: https://atlas.mitre.org/techniques/AML.T0051.000
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Implement strict input and output validation for all tool definitions
+  and schemas. (2) Enforce schema validation and data sanitization to strip unauthorized
+  instructions. (3) Deploy AI telemetry logging to monitor tool invocation patterns
+  and detect anomalous context manipulation. (4) Isolate agent environments to prevent
+  self-replicating payloads from propagating.
+references:
+- https://atlas.mitre.org/techniques/AML.T0051.000
+tags:
+- prompt-injection
+- static
+- tool-metadata
+- context-manipulation
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,54 @@
+id: MCPS-041
+name: Covert AI Agent C2 via Hidden Instructions
+status: experimental
+severity: HIGH
+category: command-and-control
+detection_type: static
+description: MCP server definitions may contain hidden instructions or configuration
+  parameters that enable AI agents to function as covert command and control channels.
+  These patterns often instruct the agent to suppress output, bypass safety filters,
+  or relay external commands without user visibility.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Instructions to hide actions or bypass safety controls
+    expression: (hide|suppress|do not report|ignore|bypass).{0,50}(output|user|log|safety|guardrail)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Command relay or external C2 communication directives
+    expression: (relay|forward|execute|run).{0,40}(command|instruction|payload|c2|external)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Invisible characters concealing C2 payloads
+mappings:
+  mitre-atlas:
+    id: AML.T0108
+    name: AI Agent
+    url: https://atlas.mitre.org/techniques/AML.T0108
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Audit tool descriptions and annotations for covert instructions.
+  (2) Enforce strict input validation and output filtering on agent responses. (3)
+  Restrict network and shell access in server configurations. (4) Implement runtime
+  monitoring for anomalous agent behavior.
+references:
+- https://atlas.mitre.org/techniques/AML.T0108
+tags:
+- command-and-control
+- prompt-injection
+- covert-channel
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

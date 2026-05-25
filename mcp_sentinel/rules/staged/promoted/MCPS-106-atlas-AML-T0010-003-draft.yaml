@@ -1,0 +1,57 @@
+id: MCPS-106
+name: Compromised Model Loading via Untrusted Dependencies
+status: experimental
+severity: HIGH
+category: model-supply-chain
+detection_type: static
+description: MCP server definitions may reference external AI models or packages for
+  inference and fine-tuning. Adversaries compromise these model artifacts with backdoors
+  or malicious code, which execute when the server loads them. This rule detects unversioned
+  references and missing integrity constraints in model dependencies.
+targets:
+- field: server.packages[]
+- field: server.url
+detection:
+  patterns:
+  - type: value_check
+    description: Unpinned model or package references
+    condition:
+      matches_unpinned: true
+  - type: regex
+    description: External model loading or fine-tuning directives
+    expression: (load|download|fine.?tune|import).{0,50}(model|weights|checkpoint|hub)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Missing cryptographic integrity constraints
+    condition:
+      missing_constraints:
+      - checksum
+      - signature
+      - hash
+mappings:
+  mitre-atlas:
+    id: AML.T0010.003
+    name: Model
+    url: https://atlas.mitre.org/techniques/AML.T0010.003
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+  nist-ai-rmf:
+    id: RMF-1.1
+    name: Model Provenance and Integrity
+    url: https://csrc.nist.gov/pubs/ai-rmf/1.0
+remediation: (1) Enforce cryptographic signing and verification for all model artifacts
+  and dependencies. (2) Pin exact versions and checksums for all external model references.
+  (3) Validate models in isolated sandboxes before loading into production MCP servers.
+  (4) Restrict model loading to approved internal registries.
+references:
+- https://atlas.mitre.org/techniques/AML.T0010.003
+tags:
+- model-supply-chain
+- dependency-verification
+- static
+- integrity
+added: '2026-05-22'
+updated: '2026-05-22'

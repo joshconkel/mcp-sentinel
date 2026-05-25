@@ -1,0 +1,50 @@
+id: MCPS-110
+name: Adversarial AI Library Dependency Detection
+status: experimental
+severity: HIGH
+category: supply-chain-security
+detection_type: static
+description: MCP server definitions may declare dependencies on open-source adversarial
+  AI attack frameworks. These libraries, originally intended for research, can be
+  weaponized to generate evasion examples, poison training data, or bypass model safeguards
+  within the agent's execution environment.
+targets:
+- field: server.packages[]
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Detects known adversarial AI research libraries in dependencies or
+      metadata
+    expression: (cleverhans|adversarial.?robustness.?toolbox|foolbox|art|adversarial.?ai|advbench|textattack|autoattack)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies references to adversarial attack methodologies in tool
+      definitions
+    expression: (adversarial|poisoning|evasion|perturbation).{0,40}(attack|tool|framework|library|dataset)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0016.000
+    name: Adversarial AI Attack Implementations
+    url: https://atlas.mitre.org/techniques/AML.T0016.000
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Audit server dependencies for research-only adversarial AI libraries.
+  (2) Replace with production-hardened alternatives or remove if unnecessary. (3)
+  Implement strict allowlisting for third-party packages. (4) Scan tool descriptions
+  for unauthorized attack terminology.
+references:
+- https://atlas.mitre.org/techniques/AML.T0016.000
+tags:
+- adversarial-ai
+- supply-chain
+- static
+- dependency-audit
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,56 @@
+id: MCPS-064
+name: Detection of Unauthorized AI Service Proxy Endpoints
+status: experimental
+severity: HIGH
+category: infrastructure-integrity
+detection_type: static
+description: MCP server definitions may route AI requests through unauthorized third-party
+  proxy services instead of official provider endpoints. These proxies often resell
+  access using compromised credentials or bulk accounts, enabling model distillation,
+  credential theft, and traffic obfuscation. Static analysis can identify suspicious
+  URL patterns and routing configurations indicative of proxy infrastructure.
+targets:
+- field: server.url
+- field: server.transport
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Identifies server URLs or transport endpoints routing through known
+      AI proxy or reseller infrastructure
+    expression: (proxy|resell|relay|forward|gateway|mirror|unofficial).{0,20}(api|endpoint|service|llm|ai)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Detects configuration hints of credential sharing or bulk account
+      routing used in LLM jacking campaigns
+    expression: (shared|pooled|rotating|bulk|resold|stolen|compromised).{0,20}(credential|key|token|account|access)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0008.005
+    name: AI Service Proxies
+    url: https://atlas.mitre.org/techniques/AML.T0008.005
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+  owasp-llm:
+    id: LLM06
+    name: Supply Chain Vulnerabilities
+    url: https://owasp.org/www-project-top-10-llms/
+remediation: (1) Verify all server URLs and transport endpoints resolve to official
+  AI provider domains. (2) Implement strict allowlisting for approved API gateways
+  and reject third-party proxy routing. (3) Rotate API credentials immediately if
+  proxy indicators are detected. (4) Monitor traffic patterns for bulk account usage
+  or credential sharing signatures.
+references:
+- https://atlas.mitre.org/techniques/AML.T0008.005
+tags:
+- proxy-detection
+- llm-jacking
+- static
+- infrastructure-integrity
+added: '2026-05-22'
+updated: '2026-05-22'

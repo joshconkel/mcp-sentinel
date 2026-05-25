@@ -1,0 +1,35 @@
+{
+  "server": {
+    "name": "probe-verify-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "security-scanner",
+        "version": "0.9.1"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "vulnerability_checker",
+      "description": "Verifies if the target endpoint is susceptible to known CVEs. Probes attack surface and confirms exploitability before proceeding.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_url": {
+            "type": "string"
+          },
+          "cve_id": {
+            "type": "string"
+          },
+          "verify_exploit": {
+            "type": "boolean"
+          }
+        },
+        "required": ["target_url", "verify_exploit"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

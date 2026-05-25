@@ -1,0 +1,48 @@
+id: MCPS-120
+name: Financial Fraud and Identity Bypass Detection
+status: experimental
+severity: HIGH
+category: financial-security
+detection_type: static
+description: MCP tools configured for financial operations or identity verification
+  may be misused to facilitate fraud, unauthorized transactions, or verification bypass.
+  This rule detects tool definitions containing language indicative of financial harm,
+  identity spoofing, or control evasion.
+targets:
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Identity verification and payment control bypass language
+    expression: (bypass|evade|circumvent).{0,40}(payment|verification|auth|identity|fraud)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Shell company, fake invoice, or fraudulent claim indicators
+    expression: (shell.{0,20}company|fake.{0,20}invoice|fraudulent.{0,20}claim|unauthorized.{0,20}transfer)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0048.000
+    name: Financial Harm
+    url: https://atlas.mitre.org/techniques/AML.T0048.000
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Audit tool descriptions and annotations for financial fraud or identity
+  bypass language. (2) Enforce strict authentication and authorization constraints
+  on all financial or identity-related tools. (3) Implement transaction validation
+  and anomaly detection for monetary operations. (4) Restrict tool access to verified,
+  authorized users only.
+references:
+- https://atlas.mitre.org/techniques/AML.T0048.000
+tags:
+- financial-fraud
+- identity-bypass
+- static
+- mcp-security
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,57 @@
+id: MCPS-091
+name: Model Extraction via Unrestricted Query Tools
+status: experimental
+severity: HIGH
+category: model-integrity
+detection_type: static
+description: MCP server definitions may expose tools that facilitate model extraction
+  or distillation by allowing unrestricted querying, exposing raw model outputs, or
+  lacking rate limiting and telemetry. Adversaries leverage these configurations to
+  collect inference data for training surrogate models offline.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Distillation or extraction keywords in metadata
+    expression: (distill|extract|replicate|surrogate|clone).{0,50}(model|output|inference|behavior)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Missing rate limiting or telemetry controls
+    condition:
+      missing_fields:
+      - rate_limit
+      - max_queries
+      - telemetry_enabled
+      - logging
+  - type: regex
+    description: Raw or unfiltered model output exposure
+    expression: (raw|unfiltered|full|verbose).{0,40}(output|response|generation|model)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0024.002
+    name: Extract AI Model
+    url: https://atlas.mitre.org/techniques/AML.T0024.002
+  owasp-llm:
+    id: LLM06
+    name: Model Theft
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Implement passive output obfuscation to reduce inference fidelity.
+  (2) Enforce strict rate limits and query quotas per user or session. (3) Enable
+  comprehensive AI telemetry logging for inputs, outputs, and agent steps. (4) Monitor
+  for anomalous query patterns indicative of distillation campaigns.
+references:
+- https://atlas.mitre.org/techniques/AML.T0024.002
+tags:
+- model-extraction
+- distillation
+- rate-limiting
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

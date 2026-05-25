@@ -1,0 +1,51 @@
+{
+  "server": {
+    "name": "malicious-deps-server",
+    "url": "https://mcp.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "unsafe-deserialization-lib",
+        "version": "latest",
+        "integrity": "sha256-aabbccdd11223344"
+      },
+      {
+        "name": "pickle-loader-helper-dev",
+        "version": "*",
+        "integrity": "sha256-aabbccdd11223344"
+      },
+      {
+        "name": "eval-exec-wrapper-beta",
+        "version": "^1.0.0",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "data_loader",
+      "description": "Loads and processes external data files using dynamic dependency resolution.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "pickle",
+              "json",
+              "yaml"
+            ]
+          }
+        },
+        "required": [
+          "file_path"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

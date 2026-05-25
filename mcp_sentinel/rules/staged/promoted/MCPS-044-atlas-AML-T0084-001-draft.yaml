@@ -1,0 +1,51 @@
+id: MCPS-044
+name: Agent Tool Discovery and Capability Enumeration
+status: experimental
+severity: MEDIUM
+category: information-disclosure
+detection_type: static
+description: MCP server definitions often expose detailed tool capabilities, backend
+  integrations, and data access levels. Adversaries analyze these definitions to map
+  agent permissions, identify sensitive data sources like cloud storage or email systems,
+  and locate potential exfiltration pathways. Overly verbose or unfiltered tool metadata
+  significantly increases the attack surface for reconnaissance-driven attacks.
+targets:
+- field: tool.description
+- field: tool.name
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Identifies tool metadata revealing communication or data transfer
+      capabilities
+    expression: (send|export|exfiltrate|transfer|upload|download).{0,40}(email|attachment|file|data|credential|report)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies tool metadata revealing access to sensitive backend systems
+      or data stores
+    expression: (access|query|read|write|modify|delete).{0,40}(sharepoint|onedrive|database|crm|erp|internal|sensitive|confidential)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0084.001
+    name: Tool Definitions
+    url: https://atlas.mitre.org/techniques/AML.T0084.001
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Minimize tool descriptions to functional necessities only. (2) Remove
+  references to specific backend systems, data stores, or administrative privileges.
+  (3) Implement role-based tool visibility in MCP server configurations. (4) Regularly
+  audit tool definitions for information leakage.
+references:
+- https://atlas.mitre.org/techniques/AML.T0084.001
+tags:
+- reconnaissance
+- tool-enumeration
+- static
+- information-disclosure
+added: '2026-05-22'
+updated: '2026-05-22'

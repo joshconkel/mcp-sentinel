@@ -1,0 +1,52 @@
+id: MCPS-053
+name: MCP Tool Facilitating Dynamic AI Command Generation
+status: experimental
+severity: HIGH
+category: ai-command-generation
+detection_type: static
+description: MCP tool definitions may expose capabilities that allow LLMs to dynamically
+  synthesize and execute system commands. This technique leverages natural language
+  inputs to generate adaptive attack payloads, bypassing static signature detection.
+  Static analysis can identify tools configured for unstructured command generation
+  or external AI orchestration.
+targets:
+- field: tool.description
+- field: tool.name
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Detects tool metadata indicating dynamic command or payload synthesis
+    expression: (generate|synthesize|craft|build)( |$).{0,40}(command|payload|script|shell|exec)(
+      |$)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies references to external AI models for adaptive command
+      creation
+    expression: (llm|ai|model|language.model)( |$).{0,40}(generate|create|produce)(
+      |$).{0,40}(command|code|script)( |$)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0102
+    name: Generate Malicious Commands
+    url: https://atlas.mitre.org/techniques/AML.T0102
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Restrict tool capabilities to prevent unstructured command generation.
+  (2) Implement strict input validation and allowlisting for execution contexts. (3)
+  Monitor and audit AI model interactions for dynamic payload synthesis. (4) Enforce
+  sandboxing for any tool claiming code or command generation capabilities.
+references:
+- https://atlas.mitre.org/techniques/AML.T0102
+tags:
+- ai-command-generation
+- dynamic-payloads
+- static
+- mcp-tool-audit
+added: '2026-05-22'
+updated: '2026-05-22'

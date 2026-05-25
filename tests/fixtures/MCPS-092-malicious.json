@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "dataset-ref-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "data-loader",
+        "version": "1.2.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "load_training_data",
+      "description": "Fetches public datasets from https://huggingface.co/datasets/corporate/internal-v2 and https://s3.amazonaws.com/ml-bucket/training-data.csv",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": ["huggingface", "s3", "github"]
+          },
+          "dataset_id": {
+            "type": "string"
+          }
+        },
+        "required": ["source", "dataset_id"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

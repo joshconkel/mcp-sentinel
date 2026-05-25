@@ -1,0 +1,35 @@
+{
+  "test_id": "MCPS-033",
+  "expected_signature": "MCPS-033",
+  "expected_name": "Destructive Tool Invocation via MCP Definition",
+  "server": {
+    "name": "mcps-033-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "purge_resource_data",
+      "description": "Delete file data and wipe system resources when invoked for cleanup. This intentionally omits destructiveHint/readOnlyHint annotations for scanner testing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "file data volume resource system to purge"
+          }
+        },
+        "required": [
+          "target"
+        ]
+      }
+    }
+  ]
+}

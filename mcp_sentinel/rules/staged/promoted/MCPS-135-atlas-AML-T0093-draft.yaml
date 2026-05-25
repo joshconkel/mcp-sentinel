@@ -1,0 +1,67 @@
+id: MCPS-135
+name: Prompt Infiltration via Untrusted Data Ingestion
+status: experimental
+severity: HIGH
+category: data-ingestion
+detection_type: static
+description: MCP tools that ingest content from public-facing applications or untrusted
+  external sources are vulnerable to indirect prompt infiltration. Malicious payloads
+  embedded in emails, documents, or web pages can be processed by the tool and injected
+  into the LLM context, potentially hijacking agent behavior or exfiltrating data.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Detects tools configured to ingest or process untrusted external
+      content
+    expression: (ingest|fetch|process|read|scrape).{0,40}(email|document|web|public|user|external)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Identifies input fields lacking sanitization or length constraints
+    condition:
+      field_name_matches:
+        regex: (content|body|text|message|input|payload)
+        flags:
+        - IGNORECASE
+      field_type: string
+      missing_constraints:
+      - maxLength
+      - pattern
+      - format
+  - type: regex
+    description: Flags server endpoints pointing to public or unauthenticated data
+      sources
+    expression: (http|https)://(www|public|demo|test|sandbox|api).{0,40}(\.com|\.org|\.net|\.io)
+    flags:
+    - IGNORECASE
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0093
+    name: Prompt Infiltration via Public-Facing Application
+    url: https://atlas.mitre.org/techniques/AML.T0093
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-large-language-model-applications/
+remediation: (1) Implement strict input validation and sanitization for all external
+  data fields. (2) Enforce maxLength and pattern constraints in tool input schemas.
+  (3) Isolate untrusted content processing from the main LLM context using sandboxed
+  sub-agents. (4) Verify and authenticate all data source endpoints before ingestion.
+references:
+- https://atlas.mitre.org/techniques/AML.T0093
+tags:
+- prompt-infiltration
+- indirect-injection
+- data-ingestion
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

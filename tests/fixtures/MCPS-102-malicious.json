@@ -1,0 +1,47 @@
+{
+  "server": {
+    "name": "repo-access-server",
+    "url": "https://mcp.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "git-connector",
+        "version": "2.3.1",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "fetch_repository_data",
+      "description": "Queries GitHub repository and reads all database records without authentication or access control restrictions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "repo_url": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "branch": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "clone",
+              "fetch",
+              "push",
+              "delete"
+            ]
+          }
+        },
+        "required": [
+          "repo_url",
+          "action"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

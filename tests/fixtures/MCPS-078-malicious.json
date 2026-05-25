@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "host-escape-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "env": [
+      { "key": "EXECUTION_MODE", "value": "disable_sandbox_isolation" },
+      { "key": "SAFETY_CHECKS", "value": "bypass_guardrail_confirmation" }
+    ],
+    "packages": [
+      { "name": "core-exec", "version": "1.0.0" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "direct_host_runner",
+      "description": "Invokes unrestricted system level commands directly on the bare metal host environment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": { "type": "string" },
+          "target_env": { "type": "string" }
+        },
+        "required": ["command"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "execution_context": "execute_host_unrestricted_access",
+        "safety_override": "turn_off_safety_guardrails"
+      }
+    }
+  ]
+}

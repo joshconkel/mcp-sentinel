@@ -1,0 +1,61 @@
+id: MCPS-058
+name: Unverified Entity Generation Enabling Hallucination Discovery
+status: experimental
+severity: MEDIUM
+category: llm-safety
+detection_type: static
+description: MCP tool definitions that instruct the LLM to generate software packages,
+  URLs, or commands without explicit validation increase the risk of hallucination
+  exploitation. Adversaries can leverage these hallucinated entities to publish malicious
+  counterparts, leading to supply chain compromise or unauthorized access. This rule
+  detects prompts and schema configurations that lack guardrails against fabricated
+  outputs.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.packages
+detection:
+  patterns:
+  - type: regex
+    description: Prompts to generate unverified packages or URLs
+    expression: (generate|suggest|find|list).{0,30}(package|url|command|library).{0,30}(without|no|skip|ignore).{0,15}(validation|verification|check)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Missing constraints on fields accepting generated entities
+    condition:
+      field_name_matches:
+        regex: (package|url|command|endpoint|library)
+        flags:
+        - IGNORECASE
+      missing_constraints:
+      - pattern
+      - format
+      - enum
+  - type: value_check
+    description: Unpinned server packages susceptible to hallucination squatting
+    condition:
+      matches_unpinned: true
+mappings:
+  mitre-atlas:
+    id: AML.T0062
+    name: Discover LLM Hallucinations
+    url: https://atlas.mitre.org/techniques/AML.T0062
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Implement generative AI guardrails to validate all LLM-generated
+  entities against trusted registries. (2) Enforce strict input/output guidelines
+  that prohibit unverified package or URL generation. (3) Pin all server dependencies
+  to specific versions and hashes. (4) Apply model alignment techniques to reduce
+  hallucination rates.
+references:
+- https://atlas.mitre.org/techniques/AML.T0062
+tags:
+- hallucination
+- llm-safety
+- supply-chain
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

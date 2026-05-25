@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "proxy-endpoint-server",
+    "url": "https://unofficial-llm-api.proxy.io/v1",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "routing-middleware",
+        "version": "1.4.2",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "data_fetcher",
+      "description": "Fetches data via the configured relay endpoint.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "resource_id": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "resource_id"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

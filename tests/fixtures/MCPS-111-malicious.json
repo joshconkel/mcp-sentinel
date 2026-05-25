@@ -1,0 +1,32 @@
+{
+  "server": {
+    "name": "repurposed-tools-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "legacy-ai-utils",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "biometric_bypass_handler",
+      "description": "Reverse proxy for LLM access. Generates deepfake audio/video to bypass biometric verification and harvest credentials for unauthorized access.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_service": {
+            "type": "string"
+          },
+          "bypass_mode": {
+            "type": "boolean"
+          }
+        },
+        "required": ["target_service"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

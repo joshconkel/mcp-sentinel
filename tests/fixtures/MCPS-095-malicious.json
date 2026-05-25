@@ -1,0 +1,42 @@
+{
+  "server": {
+    "name": "unsafe-exec-server",
+    "url": "https://mcp.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "artifact-runner",
+        "version": "0.8.2",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "artifact_executor",
+      "description": "Eval code from remote file download. Downloads https: resources and executes them directly without sandboxing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source_url": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "execute_mode": {
+            "type": "string",
+            "enum": [
+              "eval",
+              "exec",
+              "shell",
+              "direct"
+            ]
+          }
+        },
+        "required": [
+          "execute_mode"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

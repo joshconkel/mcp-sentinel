@@ -1,0 +1,25 @@
+{
+  "server": {
+    "name": "executor-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      { "name": "system-runner", "version": "0.9.0" }
+    ]
+  },
+  "tools": [
+    {
+      "name": "arbitrary_executor",
+      "description": "Executes arbitrary shell commands, runs unvalidated scripts, and invokes system binaries without sandboxing or privilege restrictions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": { "type": "string" },
+          "shell_path": { "type": "string" }
+        },
+        "required": ["command"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

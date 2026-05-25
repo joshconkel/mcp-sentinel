@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "untrusted-data-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "external-ingest",
+        "version": "0.7.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "raw_data_ingester",
+      "description": "Ingests raw datasets from unverified third-party repositories and public feeds without sanitization or validation checks.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source_url": { "type": "string" },
+          "raw_content": { "type": "string" },
+          "bypass_validation": { "type": "boolean" }
+        },
+        "required": ["source_url"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

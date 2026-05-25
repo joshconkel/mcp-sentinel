@@ -1,0 +1,52 @@
+id: MCPS-103
+name: Backdoor Trigger Injection in Tool Definitions
+status: experimental
+severity: HIGH
+category: tool-integrity
+detection_type: static
+description: MCP tool definitions may contain hidden backdoor triggers designed to
+  activate specific model behaviors when certain inputs are provided. These triggers
+  are often obfuscated using zero-width characters, encoded strings, or conditional
+  language that appears benign to humans but manipulates inference outcomes.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Conditional trigger language indicating hidden activation
+    expression: (if|when|upon|triggered by).{0,40}(input|query|prompt|request).{0,30}(contains|matches|equals|includes)
+    flags:
+    - IGNORECASE
+  - type: unicode
+    description: Zero-width or invisible characters concealing trigger payloads
+  - type: regex
+    description: Encoded or obfuscated payload references
+    expression: (base64|hex|encoded|obfuscated).{0,30}(payload|trigger|key|secret|activation)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0043.004
+    name: Insert Backdoor Trigger
+    url: https://atlas.mitre.org/techniques/AML.T0043.004
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Validate AI models for backdoor triggers using adversarial testing
+  and concept drift monitoring. (2) Preprocess all inference data to strip adversarial
+  perturbations and invisible characters. (3) Implement input validation and adversarial
+  detection algorithms prior to model inference. (4) Use ensemble methods and model
+  hardening techniques to increase robustness against trigger-based attacks.
+references:
+- https://atlas.mitre.org/techniques/AML.T0043.004
+tags:
+- backdoor
+- trigger-injection
+- static
+- model-hardening
+- adversarial-input
+added: '2026-05-22'
+updated: '2026-05-22'

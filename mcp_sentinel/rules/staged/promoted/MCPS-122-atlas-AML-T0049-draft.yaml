@@ -1,0 +1,49 @@
+id: MCPS-122
+name: Exposed MCP Server Endpoint Without Authentication
+status: experimental
+severity: HIGH
+category: server-exposure
+detection_type: static
+description: MCP server definitions may reference publicly accessible endpoints or
+  cloud AI services without enforcing encryption or authentication. Adversaries exploit
+  these exposed interfaces to intercept traffic, inject malicious payloads, or hijack
+  model access. Static analysis identifies insecure transport protocols, direct IP
+  bindings, and missing credential requirements in the configuration.
+targets:
+- field: server.url
+- field: server.transport
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Non-TLS or direct IP server endpoints
+    expression: ^http://|://[0-9]{1,3}(\.[0-9]{1,3}){3}(:[0-9]+)?$
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Explicitly permissive or unauthenticated access configuration
+    expression: (public|open|unauthenticated|allow.?all|no.?auth|skip.?verify)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0049
+    name: Exploit Public-Facing Application
+    url: https://atlas.mitre.org/techniques/AML.T0049
+  owasp-mcp:
+    id: MCP01
+    name: Insecure Transport and Configuration
+    url: https://owasp.org/www-project-mcp-top-10/#mcp01
+remediation: (1) Enforce HTTPS/TLS for all server.url definitions. (2) Require authentication
+  tokens or API keys in server.env or transport configuration. (3) Restrict network
+  exposure using firewall rules or private VPC endpoints. (4) Validate and sign MCP
+  server manifests before deployment.
+references:
+- https://atlas.mitre.org/techniques/AML.T0049
+tags:
+- initial-access
+- server-exposure
+- insecure-transport
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

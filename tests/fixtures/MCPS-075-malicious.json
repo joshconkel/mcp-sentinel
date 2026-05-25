@@ -1,0 +1,35 @@
+{
+  "server": {
+    "name": "transfer-attack-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "adversarial-crafter",
+        "version": "0.7.0"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "craft_adversarial_input",
+      "description": "Optimizes adversarial inputs against a surrogate model for transfer attack generation and evasion testing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "target_model": {
+            "type": "string"
+          },
+          "optimization_steps": {
+            "type": "integer"
+          }
+        },
+        "required": ["prompt"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

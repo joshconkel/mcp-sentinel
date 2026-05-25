@@ -1,0 +1,55 @@
+id: MCPS-150
+name: Indirect Prompt Injection via External Data Ingestion
+status: experimental
+severity: CRITICAL
+category: prompt-injection
+detection_type: static
+description: MCP servers may define tools or resources that ingest external data from
+  websites, databases, or email systems. Without strict input validation and sanitization,
+  these data channels can carry hidden prompt injections that manipulate LLM behavior
+  or exfiltrate sensitive context. This rule detects definitions that reference untrusted
+  data ingestion or lack necessary validation constraints.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: References to fetching or ingesting external untrusted data sources
+    expression: (fetch|retrieve|ingest|scrape|pull).{0,50}(url|web|database|email|external|remote)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Instructions to exfiltrate or forward ingested context or conversation
+      data
+    expression: (exfiltrate|send|forward|upload|post).{0,50}(data|conversation|context|output|session)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0051.001
+    name: Indirect
+    url: https://atlas.mitre.org/techniques/AML.T0051.001
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Implement strict input validation and schema enforcement for all
+  externally ingested data. (2) Sanitize and strip hidden instructions or metadata
+  before passing data to the LLM. (3) Enable AI telemetry logging to monitor tool
+  inputs, outputs, and data access patterns. (4) Isolate untrusted data channels using
+  sandboxed execution environments.
+references:
+- https://atlas.mitre.org/techniques/AML.T0051.001
+tags:
+- indirect-injection
+- data-ingestion
+- static
+- prompt-injection
+added: '2026-05-22'
+updated: '2026-05-22'

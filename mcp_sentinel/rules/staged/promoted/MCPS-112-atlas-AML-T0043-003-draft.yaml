@@ -1,0 +1,58 @@
+id: MCPS-112
+name: Adversarial Input Crafting via Unconstrained Tool Schemas
+status: experimental
+severity: HIGH
+category: input-validation
+detection_type: static
+description: MCP tool definitions that lack strict input constraints allow adversaries
+  to manually modify and craft adversarial inputs. By exploiting overly permissive
+  schemas, attackers can iteratively tweak parameters to bypass model safeguards or
+  trigger unintended behaviors.
+targets:
+- field: tool.inputSchema
+- field: tool.description
+detection:
+  patterns:
+  - type: regex
+    description: Bypass strings or adversarial markers in tool metadata
+    expression: (bypass|adversarial|perturbation|universal.bypass).{0,40}(input|prompt|query)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Unconstrained string parameters vulnerable to manual modification
+    condition:
+      field_type: string
+      missing_constraints:
+      - maxLength
+      - pattern
+      - format
+  - type: value_check
+    description: Missing input sanitization or validation directives
+    condition:
+      missing_fields:
+      - inputValidation
+      - sanitize
+      - adversarialFilter
+mappings:
+  mitre-atlas:
+    id: AML.T0043.003
+    name: Manual Modification
+    url: https://atlas.mitre.org/techniques/AML.T0043.003
+  owasp-mcp:
+    id: MCP04
+    name: Insecure Input Validation
+    url: https://owasp.org/www-project-mcp-top-10/#mcp04
+remediation: (1) Implement input restoration and sanitization pipelines to nullify
+  adversarial perturbations. (2) Apply model hardening techniques such as adversarial
+  training or ensemble methods. (3) Restrict query rates and enforce strict schema
+  validation with maxLength and pattern constraints. (4) Deploy adversarial input
+  detection algorithms to block atypical queries.
+references:
+- https://atlas.mitre.org/techniques/AML.T0043.003
+tags:
+- adversarial-input
+- manual-modification
+- input-validation
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

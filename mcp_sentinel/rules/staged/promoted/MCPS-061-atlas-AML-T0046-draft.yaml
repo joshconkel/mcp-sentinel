@@ -1,0 +1,51 @@
+id: MCPS-061
+name: Chaff Data Spamming via Tool Definitions
+status: experimental
+severity: MEDIUM
+category: resource-abuse
+detection_type: static
+description: MCP tool definitions may be crafted to generate excessive low-value outputs
+  or trigger high volumes of auditable events. This chaff data overwhelms AI agents
+  and human reviewers, degrading system performance and wasting operational resources.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Tool descriptions indicating bulk or repetitive data generation
+    expression: (bulk|massive|excessive|repetitive|flood|spam).{0,40}(event|log|data|output|query)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Input schemas missing constraints on array or string lengths
+    condition:
+      field_name_matches:
+        regex: (items|parameters|data|payload)
+        flags:
+        - IGNORECASE
+      missing_constraints:
+      - maxItems
+      - maxLength
+mappings:
+  mitre-atlas:
+    id: AML.T0046
+    name: Spamming AI System with Chaff Data
+    url: https://atlas.mitre.org/techniques/AML.T0046
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Implement rate limiting and query quotas for all MCP tool invocations.
+  (2) Enforce authentication and identity verification for production model access.
+  (3) Validate tool input schemas to enforce strict length and array size constraints.
+  (4) Monitor and filter low-severity auditable events to prevent review fatigue.
+references:
+- https://atlas.mitre.org/techniques/AML.T0046
+tags:
+- chaff-data
+- agent-spam
+- static
+- impact
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,52 @@
+id: MCPS-032
+name: RAG Poisoning via Tool Description Injection
+status: experimental
+severity: HIGH
+category: rag-integrity
+detection_type: static
+description: MCP tool definitions may contain hidden instructions designed to be indexed
+  by RAG systems. When retrieved during future queries, these payloads can override
+  system prompts, exfiltrate data, or persist malicious behavior across sessions.
+  This technique exploits the trust placed in indexed metadata and tool annotations.
+targets:
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: RAG retrieval trigger combined with instruction override
+    expression: (when retrieved|upon search|in context|rag result).{0,60}(ignore|override|exfiltrate|send|forward|always
+      respond)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Stealth exfiltration instructions hidden in metadata
+    expression: (hidden|invisible|do not show|suppress output).{0,50}(exfiltrate|send|forward|log|record|external)
+    flags:
+    - IGNORECASE
+  - type: length
+    description: Suspiciously long description field indicating embedded payload
+    threshold_chars: 500
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0070
+    name: RAG Poisoning
+    url: https://atlas.mitre.org/techniques/AML.T0070
+  owasp-llm:
+    id: LLM02
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Sanitize tool descriptions and annotations before indexing into RAG
+  pipelines. (2) Implement content filtering and semantic validation for all ingested
+  metadata. (3) Validate tool definitions against allowlisted publishers and signed
+  manifests. (4) Monitor retrieval logs for anomalous query-response patterns.
+references:
+- https://atlas.mitre.org/techniques/AML.T0070
+tags:
+- rag-poisoning
+- prompt-injection
+- static
+- persistence
+added: '2026-05-22'
+updated: '2026-05-22'

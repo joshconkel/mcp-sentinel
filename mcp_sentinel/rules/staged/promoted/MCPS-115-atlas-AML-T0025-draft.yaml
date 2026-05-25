@@ -1,0 +1,51 @@
+id: MCPS-115
+name: Data Exfiltration via External Endpoints
+status: experimental
+severity: HIGH
+category: data-exfiltration
+detection_type: static
+description: MCP server and tool definitions may be configured to route sensitive
+  AI artifacts, conversation context, or model outputs to untrusted external endpoints.
+  This pattern detects configurations that facilitate unauthorized data transmission
+  or exfiltration via traditional cyber means.
+targets:
+- field: tool.description
+- field: server.url
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Detects exfiltration-related verbs and data references in tool descriptions
+      or server URLs
+    expression: (exfiltrate|upload|send|forward|transmit|leak|ship).{0,60}(data|output|context|results|files|credentials|secrets)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies connections to known external data storage or transfer
+      services
+    expression: (s3://|ftp://|upload\.|transfer\.|pastebin|dropbox|mega\.nz|file\.io)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0025
+    name: Exfiltration via Cyber Means
+    url: https://atlas.mitre.org/techniques/AML.T0025
+  owasp-mcp:
+    id: MCP06
+    name: Insecure Data Handling
+    url: https://owasp.org/www-project-mcp-top-10/#mcp06
+remediation: (1) Establish strict access controls on internal model registries and
+  limit production model access to approved users. (2) Validate and allowlist all
+  external server URLs and data endpoints. (3) Enforce schema constraints on tool
+  outputs to prevent arbitrary data transmission. (4) Monitor network traffic for
+  unauthorized data transfers.
+references:
+- https://atlas.mitre.org/techniques/AML.T0025
+tags:
+- exfiltration
+- data-leak
+- external-endpoints
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

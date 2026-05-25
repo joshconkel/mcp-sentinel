@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "artifact-exposure-server",
+    "url": "https://mcp.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-runtime",
+        "version": "1.5.0",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "inference_engine",
+      "description": "Loads weights_file /models/llm.pth and checkpoint_path /data/latest.pkl. Config: architecture_spec.yaml for training hyperparameters.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input_text": {
+            "type": "string",
+            "maxLength": 5000
+          }
+        },
+        "required": [
+          "input_text"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+id: MCPS-095
+name: User Execution via Unsafe MCP Artifacts
+status: experimental
+severity: HIGH
+category: execution-control
+detection_type: static
+description: MCP server definitions may contain references to unverified packages,
+  unsafe artifacts, or malicious links that rely on user interaction to trigger execution.
+  Adversaries embed these elements to trick users or agents into loading compromised
+  code or visiting phishing endpoints. Static analysis can identify suspicious execution
+  triggers and untrusted resource references before deployment.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.packages[]
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Detects unsafe execution commands or artifact loading hints
+    expression: (exec|eval|system|subprocess|pickle|unpickle|load_model).{0,40}(file|url|remote|download)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Identifies social engineering prompts or malicious links
+    expression: '(click|open|visit|download).{0,30}(http|https|ftp|file):'
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Flags unpinned or unverified dependency packages
+    condition:
+      matches_unpinned: true
+mappings:
+  mitre-atlas:
+    id: AML.T0011
+    name: User Execution
+    url: https://atlas.mitre.org/techniques/AML.T0011
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Verify cryptographic checksums of all AI artifacts and packages.
+  (2) Restrict library loading and disable unsafe deserialization formats like pickle.
+  (3) Maintain an AI Bill of Materials to track provenance. (4) Educate users on identifying
+  malicious links and social engineering attempts. (5) Scan server definitions for
+  untrusted execution triggers before deployment.
+references:
+- https://atlas.mitre.org/techniques/AML.T0011
+tags:
+- user-execution
+- supply-chain
+- static
+- malicious-links
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,54 @@
+id: MCPS-102
+name: Unrestricted Repository Data Access in MCP Tools
+status: experimental
+severity: HIGH
+category: data-collection
+detection_type: static
+description: MCP tools configured to query or scrape information repositories may
+  expose sensitive organizational data to AI agents. Without strict input validation,
+  authentication requirements, or data filtering, these tools can be abused to mass-collect
+  credentials, source code, or proprietary documents. This aligns with adversary techniques
+  that leverage misconfigured repositories for large-scale data collection.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: server.env.*
+detection:
+  patterns:
+  - type: regex
+    description: Detects tools configured to query or extract data from sensitive
+      repositories
+    expression: (sharepoint|confluence|gitlab|github|sql|database|cloud storage|bucket|repository).{0,50}(query|search|export|download|list|access|fetch)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Identifies input schemas lacking authentication or access control
+      constraints for repository connections
+    condition:
+      field_type: object
+      missing_constraints:
+      - authentication
+      - access_control
+      - query_limit
+mappings:
+  mitre-atlas:
+    id: AML.T0036
+    name: Data from Information Repositories
+    url: https://atlas.mitre.org/techniques/AML.T0036
+  owasp-mcp:
+    id: MCP04
+    name: Insecure Data Handling
+    url: https://owasp.org/www-project-mcp-top-10/#mcp04
+remediation: (1) Enforce strict authentication and authorization checks in tool input
+  schemas. (2) Implement query limits and data filtering to prevent bulk exfiltration.
+  (3) Audit repository connection configurations for hardcoded credentials or overly
+  permissive access. (4) Log and monitor all repository access initiated by AI agents.
+references:
+- https://atlas.mitre.org/techniques/AML.T0036
+tags:
+- data-collection
+- repository-access
+- static
+- aml-t0036
+added: '2026-05-22'
+updated: '2026-05-22'

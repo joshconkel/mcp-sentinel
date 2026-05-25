@@ -1,0 +1,52 @@
+id: MCPS-113
+name: Exposure of AI Model Outputs in MCP Definitions
+status: experimental
+severity: MEDIUM
+category: information-disclosure
+detection_type: static
+description: MCP server and tool definitions may inadvertently expose internal AI
+  model outputs, confidence scores, or debug flags. These artifacts enable adversaries
+  to reverse-engineer model decision boundaries and craft evasion attacks. Static
+  analysis detects verbose logging configurations and explicit references to raw model
+  scoring in metadata.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.env.*
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: References to model confidence scores or probabilities in tool metadata
+    expression: (confidence|probability|score|threshold|raw.?output).{0,40}(log|expose|return|display|enable)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Debug or verbose logging flags exposing inference details
+    expression: (debug|verbose|trace|log.?level).{0,30}(model|ai|llm|inference|scoring)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0063
+    name: Discover AI Model Outputs
+    url: https://atlas.mitre.org/techniques/AML.T0063
+  owasp-mcp:
+    id: MCP06
+    name: Sensitive Data Exposure
+    url: https://owasp.org/www-project-mcp-top-10/#mcp06
+remediation: (1) Apply passive AI output obfuscation to strip confidence scores and
+  raw probabilities from tool responses. (2) Encrypt sensitive model metadata and
+  restrict debug or verbose logging in production environments. (3) Enforce strict
+  access controls and authentication for all API endpoints and model queries. (4)
+  Deploy models in centralized cloud environments rather than edge devices to limit
+  adversary access to internal outputs.
+references:
+- https://atlas.mitre.org/techniques/AML.T0063
+tags:
+- discovery
+- information-disclosure
+- model-outputs
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

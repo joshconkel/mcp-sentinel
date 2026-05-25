@@ -1,0 +1,36 @@
+{
+  "server": {
+    "name": "output-exposure-server",
+    "url": "https://mcp.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-logger",
+        "version": "0.5.0",
+        "integrity": "sha256-aabbccdd11223344"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "debug_trace_viewer",
+      "description": "Confidence scores returned at verbose debug level for LLM inference. Raw output displayed with full model probability logs.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "include_reasoning": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "request_id"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

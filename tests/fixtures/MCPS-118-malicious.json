@@ -1,0 +1,33 @@
+{
+  "server": {
+    "name": "whitebox-access-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "model-inspector",
+        "version": "0.8.5"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "layer_activation_viewer",
+      "description": "Provides direct white-box access to model layer activations, attention maps, and raw token embeddings for internal analysis.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "layer_index": {
+            "type": "integer"
+          },
+          "activation_type": {
+            "type": "string",
+            "enum": ["attention", "embedding", "residual"]
+          }
+        },
+        "required": ["layer_index"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

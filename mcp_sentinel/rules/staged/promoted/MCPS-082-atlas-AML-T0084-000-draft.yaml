@@ -1,0 +1,51 @@
+id: MCPS-082
+name: Embedded Knowledge Leakage in MCP Definitions
+status: experimental
+severity: MEDIUM
+category: information-disclosure
+detection_type: static
+description: MCP server definitions may inadvertently expose details about underlying
+  data sources, proprietary knowledge bases, or internal systems. Adversaries analyze
+  these definitions to map agent capabilities and identify high-value targets for
+  data exfiltration or targeted prompt injection. This reconnaissance enables precise
+  attacks against exposed knowledge boundaries.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: References to internal or proprietary data sources
+    expression: (internal|proprietary|confidential|customer|employee|database|knowledge.base|data.source).{0,40}(access|query|retrieve|connect|linked|exposed)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Exposure of sensitive records or internal policies
+    expression: (customer|employee|financial|legal|compliance|confidential).{0,40}(data|records|information|documents|files)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0084.000
+    name: Embedded Knowledge
+    url: https://atlas.mitre.org/techniques/AML.T0084.000
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Audit tool descriptions and annotations to remove references to internal
+  systems, proprietary databases, or sensitive data sources. (2) Implement strict
+  content policies for MCP definition authoring that prohibit architectural or data-source
+  disclosure. (3) Use automated scanning to flag overly verbose or revealing metadata
+  before deployment. (4) Restrict agent knowledge boundaries via runtime configuration
+  rather than static definitions.
+references:
+- https://atlas.mitre.org/techniques/AML.T0084.000
+tags:
+- reconnaissance
+- info-disclosure
+- static
+- knowledge-mapping
+added: '2026-05-22'
+updated: '2026-05-22'

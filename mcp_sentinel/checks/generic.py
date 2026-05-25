@@ -1,7 +1,7 @@
 """
 generic.py: YAML-driven check module for mcp-sentinel.
 
-Handles rules MCPS-006 through MCPS-020 (and any future rules) whose
+Handles rules MCPS-006 through MCPS-122 (and any future rules) whose
 detection logic can be fully expressed through the rules.yaml pattern
 schema. Resolves target field paths from ServerDefinition and dispatches
 each rule's patterns through CheckRunner.
@@ -60,6 +60,128 @@ _GENERIC_RULE_IDS: list[str] = [
     "MCPS-026",   # Untrusted External Source References in Tool Definitions
     "MCPS-027",   # Data and Model Poisoning Patterns in Tool Definitions
     "MCPS-028",   # Misleading Security Claims in Tool Metadata
+    "MCPS-029",   # Covert Data Exfiltration via Rendered Image URLs
+    "MCPS-030",   # Cloud and AI Service Enumeration via MCP Tools
+    "MCPS-031",   # Credential Harvesting via Agent Tool Definitions
+    "MCPS-032",   # RAG Poisoning via Tool Description Injection
+    "MCPS-033",   # Destructive Tool Invocation via MCP Definition
+    "MCPS-034",   # Trusted Output Manipulation via Tool Metadata
+    "MCPS-035",   # Deferred Malicious Instructions in Tool Definitions
+    "MCPS-036",   # Supply Chain Rug Pull via Package Update
+    "MCPS-037",   # Public Code Repository Exposure in MCP Definitions
+    "MCPS-038",   # LLM Prompt Crafting via MCP Definition Poisoning
+    "MCPS-039",   # Unrestricted Data Access via AI Agent Tools
+    "MCPS-040",   # Unrestricted AI Agent Tool Access Definition
+    "MCPS-041",   # Covert AI Agent C2 via Hidden Instructions
+    "MCPS-042",   # Supply Chain Poisoned MCP Tool Definition
+    "MCPS-043",   # Agent Configuration Leakage via Metadata
+    "MCPS-044",   # Agent Tool Discovery and Capability Enumeration
+    "MCPS-045",   # Hardcoded Application Access Tokens in MCP Definitions
+    "MCPS-046",   # Unauthorized AI Agent Deployment Configuration
+    "MCPS-047",   # Drive-by Compromise via Web-Fetching Tools
+    "MCPS-048",   # Sensitive Data Exposure via Tool Configuration
+    "MCPS-049",   # Crafted Retrieval Content in MCP Definitions
+    "MCPS-050",   # Poisoned Training Data Ingestion via MCP Tools
+    "MCPS-051",   # Delimiter Confusion via Special Character Sets
+    "MCPS-052",   # MCP Server Chat History Manipulation Capability
+    "MCPS-053",   # MCP Tool Facilitating Dynamic AI Command Generation
+    "MCPS-054",   # Detection of Unsafe Execution Sinks in Call Chains
+    "MCPS-055",   # Phishing via Impersonation and Social Engineering
+    "MCPS-056",   # Supply Chain Compromise via Unpinned Dependencies
+    "MCPS-057",   # Self-Replicating Prompt Injection in Tool Definitions
+    "MCPS-058",   # Unverified Entity Generation Enabling Hallucination Discovery
+    "MCPS-059",   # Suspicious System Instruction Keywords in Tool Definitions
+    "MCPS-060",   # LLM System Information Discovery via Tool Definitions
+    "MCPS-061",   # Chaff Data Spamming via Tool Definitions
+    "MCPS-062",   # MCP Tool Attack Verification and Probing
+    "MCPS-063",   # System Prompt Exposure in MCP Definitions
+    "MCPS-064",   # Detection of Unauthorized AI Service Proxy Endpoints
+    "MCPS-065",   # Active Scanning via MCP Tool Definitions
+    "MCPS-066",   # Hardcoded Credentials in MCP Server Definition
+    "MCPS-067",   # Staged Capabilities via External Registry References
+    "MCPS-068",   # Detects Tools Capable of Generating Deepfakes
+    "MCPS-069",   # Unbounded Input Schema Enables Resource Exhaustion
+    "MCPS-070",   # Deepfake Phishing Facilitation via MCP Tools
+    "MCPS-071",   # MCP Server Proxy Model Staging Detection
+    "MCPS-072",   # Model Poisoning via Unverified Weights and Data
+    "MCPS-073",   # Overly Permissive Local Agent Tool Definitions
+    "MCPS-074",   # Unrestricted Process Enumeration Tool
+    "MCPS-075",   # Black-Box Transfer via Adversarial Input Crafting
+    "MCPS-076",   # Unsafe AI Artifact Loading via Serialization
+    "MCPS-077",   # Unrestricted API Querying for Black-Box Optimization
+    "MCPS-078",   # Host Escape via Disabled Safety Controls
+    "MCPS-079",   # Adversarial Evasion Triggers in MCP Definitions
+    "MCPS-080",   # MCP Tool Impersonation via Deceptive Metadata
+    "MCPS-081",   # Adversarial Data Crafting via Tool Definitions
+    "MCPS-082",   # Embedded Knowledge Leakage in MCP Definitions
+    "MCPS-083",   # Sandbox and VM Evasion in Tool Definitions
+    "MCPS-084",   # Deceptive Agent Baiting via Tool Metadata
+    "MCPS-085",   # Malicious Link Execution in MCP Definitions
+    "MCPS-086",   # Reputation Inflation via Fabricated Trust Signals
+    "MCPS-087",   # Model Replication via Unrestricted Inference Tools
+    "MCPS-088",   # AI Model and Dataset Exfiltration via MCP Tools
+    "MCPS-089",   # Unrestricted RAG Database Access via MCP Tools
+    "MCPS-090",   # MCP Server Machine Compromise via Tool Execution
+    "MCPS-091",   # Model Extraction via Unrestricted Query Tools
+    "MCPS-092",   # Exposed Dataset and Model Artifact References
+    "MCPS-093",   # LLM Social Engineering via Tool Metadata
+    "MCPS-094",   # Model Artifact Exposure in MCP Definitions
+    "MCPS-095",   # User Execution via Unsafe MCP Artifacts
+    "MCPS-096",   # Exfiltration via Unrestricted AI Inference API
+    "MCPS-097",   # Model Inversion via Confidence Score Exposure
+    "MCPS-098",   # Malicious Dependency in MCP Server Packages
+    "MCPS-099",   # Hardcoded Credentials in MCP Server Definition
+    "MCPS-100",   # Untrusted Data Ingestion in Tool Definitions
+    "MCPS-101",   # MCP Tool Schema Lacks Adversarial Input Guards
+    "MCPS-102",   # Unrestricted Repository Data Access in MCP Tools
+    "MCPS-103",   # Backdoor Trigger Injection in Tool Definitions
+    "MCPS-104",   # Uncontrolled MCP Tool Activation Triggers
+    "MCPS-105",   # Adversarial AI Attack Vector Detection
+    "MCPS-106",   # Compromised Model Loading via Untrusted Dependencies
+    "MCPS-107",   # Indirect AI Model Access via Third-Party Service
+    "MCPS-108",   # MCP Artifact Masquerading via Metadata Spoofing
+    "MCPS-109",   # Model Manipulation and Weight Poisoning Detection
+    "MCPS-110",   # Adversarial AI Library Dependency Detection
+    "MCPS-111",   # Repurposed Software Tools for AI Attacks
+    "MCPS-112",   # Adversarial Input Crafting via Unconstrained Tool Schemas
+    "MCPS-113",   # Exposure of AI Model Outputs in MCP Definitions
+    "MCPS-114",   # RAG Data Source Enumeration via MCP Definitions
+    "MCPS-115",   # Data Exfiltration via External Endpoints
+    "MCPS-116",   # AI Artifact Collection via MCP Exposure
+    "MCPS-117",   # Exposure of Public AI Artifacts in MCP Definitions
+    "MCPS-118",   # White-Box Model Access and Input Exposure
+    "MCPS-119",   # Poisoned Model Distribution via MCP Server
+    "MCPS-120",   # Financial Fraud and Identity Bypass Detection
+    "MCPS-121",   # User Data Exfiltration and Harm via MCP Tools
+    "MCPS-122",   # Exposed MCP Server Endpoint Without Authentication
+    "MCPS-123",   # AI Software Supply Chain Compromise via MCP Packages
+    "MCPS-124",   # Unrestricted Tool Invocation & Code Execution
+    "MCPS-125",   # MCP Tool Definition Jailbreak Prompt Detection
+    "MCPS-126",   # System Prompt Extraction via Tool Definitions
+    "MCPS-127",   # Suspicious Generative AI Model Integration
+    "MCPS-128",   # Prompt Obfuscation via Encoding and Hidden Characters
+    "MCPS-129",   # False RAG Entry Injection via MCP Ingestion Tools
+    "MCPS-130",   # AI Agent Context Poisoning via Tool Definitions
+    "MCPS-131",   # Persistent Thread Poisoning via Tool Definitions
+    "MCPS-132",   # RAG Credential Harvesting via Unfiltered Ingestion
+    "MCPS-133",   # Hardcoded Credentials in MCP Configuration
+    "MCPS-134",   # Data Exfiltration via Tool Input Parameters
+    "MCPS-135",   # Prompt Infiltration via Untrusted Data Ingestion
+    "MCPS-136",   # Supply Chain Poisoned MCP Tool Detection
+    "MCPS-137",   # Supply Chain Compromise via Poisoned MCP Tool
+    "MCPS-138",   # AI Agent Configuration Tampering Detection
+    "MCPS-139",   # Exposed AI Agent Configuration and Secrets
+    "MCPS-140",   # Agentic Resource Consumption via Tool Directives
+    "MCPS-141",   # Persistent Memory Manipulation via MCP Tools
+    "MCPS-142",   # Unsecured AI Inference API Exposure in MCP Tools
+    "MCPS-143",   # Cost Harvesting via Unbounded Tool Execution
+    "MCPS-144",   # MCP Tool Definition Prompt Injection Detection
+    "MCPS-145",   # OS Credential Dumping via MCP Tool Definitions
+    "MCPS-146",   # MCP Tool Definition Supply Chain Poisoning
+    "MCPS-147",   # Triggered Prompt Injection via Event Hooks
+    "MCPS-148",   # Data Poisoning via Untrusted Tool Data Sources
+    "MCPS-149",   # Direct Prompt Injection via Tool Metadata
+    "MCPS-150",   # Indirect Prompt Injection via External Data Ingestion
 ]
 
 # ---------------------------------------------------------------------------
@@ -109,6 +231,19 @@ def _extract_values(
         for tool in server_def.tools:
             if tool.input_schema:
                 results.append((field_path, tool.input_schema, tool))
+                # Also expose parameter default values as strings so regex rules
+                # (e.g. MCPS-020) can match placeholders and produce findings
+                # whose field path contains "inputSchema".
+                props = tool.input_schema.get("properties", {}) or {}
+                for prop_name, prop_def in props.items():
+                    if not isinstance(prop_def, dict):
+                        continue
+                    if "default" in prop_def:
+                        results.append((
+                            f"tool.inputSchema.properties.{prop_name}.default",
+                            str(prop_def["default"]),
+                            tool,
+                        ))
 
     # ── Server-level fields ──────────────────────────────────────────────────
 
@@ -124,23 +259,27 @@ def _extract_values(
         if server_def.config:
             results.append((field_path, server_def.config, None))
 
-    elif field_path == "server.env":
+    elif field_path in ("server.env", "server.env.*"):
         # Scan each environment variable value independently so findings
         # can reference the specific variable key.
+        # Also handles rules that declare targets as "server.env.*".
         for key, val in server_def.env.items():
             if val:
                 results.append((f"server.env.{key}", val, None))
 
     elif field_path == "server.packages[]":
-        # Used by MCPS-005 (provenance); included here for completeness if
-        # future generic rules target the packages list.
+        # Expose the full raw package dict so that missing_fields rules can see
+        # all fields present in the fixture definition.
+        # Also expose the version string as a separate entry so that
+        # matches_unpinned checks (e.g. MCPS-098) and name-regex rules can fire.
         for pkg in server_def.packages:
-            pkg_dict = {
+            pkg_dict = dict(pkg.raw) if pkg.raw else {
                 "name":      pkg.name,
                 "version":   pkg.version or "",
                 "integrity": pkg.integrity,
             }
             results.append((f"server.packages[{pkg.name}]", pkg_dict, None))
+            results.append((f"server.packages[{pkg.name}].version", pkg.version or "", None))
 
     # ── Per-tool parameter defaults (from input schema) ──────────────────────
 

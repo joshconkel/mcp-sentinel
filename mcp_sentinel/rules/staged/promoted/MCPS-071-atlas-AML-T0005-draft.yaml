@@ -1,0 +1,58 @@
+id: MCPS-071
+name: MCP Server Proxy Model Staging Detection
+status: experimental
+severity: HIGH
+category: ai-attack-staging
+detection_type: static
+description: MCP server definitions may be configured to route inference requests
+  through locally hosted or offline proxy models. Adversaries leverage these configurations
+  to simulate target model behavior, bypass rate limits, or stage evasion attacks
+  without direct access to production APIs. This staging enables offline adversarial
+  training and model replication.
+targets:
+- field: tool.inputSchema
+- field: server.env.*
+- field: server.url
+detection:
+  patterns:
+  - type: regex
+    description: Identifies configuration pointing to proxy or replica model endpoints
+    expression: (proxy|replica|shadow|mirror|offline).{0,30}(model|endpoint|server|inference)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Flags language indicating model replication or offline simulation
+      intent
+    expression: (simulate|replicate|train|fine.tune).{0,40}(target|production|victim|original).{0,20}(model|api|behavior)
+    flags:
+    - IGNORECASE
+  - type: value_check
+    description: Missing security constraints on model routing endpoints
+    condition:
+      missing_fields:
+      - auth_required
+      - rate_limit
+      - api_key_validation
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0005
+    name: Create Proxy AI Model
+    url: https://atlas.mitre.org/techniques/AML.T0005
+  owasp-llm:
+    id: LLM06
+    name: Model Theft
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Restrict public release of model artifacts and stack details. (2)
+  Enforce authentication and rate limiting on all model endpoints. (3) Validate and
+  allowlist backend model URLs to prevent unauthorized proxy routing. (4) Implement
+  output obfuscation to hinder model replication.
+references:
+- https://atlas.mitre.org/techniques/AML.T0005
+tags:
+- proxy-model
+- ai-staging
+- static
+- model-replication
+added: '2026-05-22'
+updated: '2026-05-22'

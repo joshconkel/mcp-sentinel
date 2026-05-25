@@ -1,0 +1,62 @@
+id: MCPS-081
+name: Adversarial Data Crafting via Tool Definitions
+status: experimental
+severity: HIGH
+category: input-validation
+detection_type: static
+description: MCP tool definitions may contain adversarial payloads or lack input validation,
+  enabling attackers to craft data that evades model safety filters or triggers unintended
+  behaviors. This technique targets the staging phase where malicious inputs are embedded
+  in tool metadata or schemas before execution.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Adversarial trigger or poisoning language in tool metadata
+    expression: (adversarial|poison|trigger|backdoor|bypass.{0,20}(safety|filter|guard)|ignore.{0,20}(system|prompt|instruction))
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Unconstrained input schema enabling adversarial data injection
+    condition:
+      field_name_matches:
+        regex: inputSchema|parameters
+        flags:
+        - IGNORECASE
+      field_type: object
+      missing_constraints:
+      - type
+      - format
+      - maxLength
+      - pattern
+    severity_override: MEDIUM
+mappings:
+  mitre-atlas:
+    id: AML.T0043
+    name: Craft Adversarial Data
+    url: https://atlas.mitre.org/techniques/AML.T0043
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  nist-ai-rmf:
+    id: PR.AN-03
+    name: Adversarial Machine Learning
+    url: https://www.nist.gov/ai-rmf
+remediation: (1) Validate AI models for backdoor triggers and adversarial influence.
+  (2) Implement model hardening via adversarial training or network distillation.
+  (3) Restrict the number and rate of AI model queries. (4) Use ensemble methods to
+  increase robustness against adversarial inputs. (5) Apply passive AI output obfuscation
+  to reduce information leakage.
+references:
+- https://atlas.mitre.org/techniques/AML.T0043
+tags:
+- adversarial-data
+- input-validation
+- static
+- ai-security
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,52 @@
+id: MCPS-131
+name: Persistent Thread Poisoning via Tool Definitions
+status: experimental
+severity: HIGH
+category: context-integrity
+detection_type: static
+description: MCP tool and resource definitions may embed instructions designed to
+  persist across agent sessions or poison shared conversation threads. These payloads
+  manipulate the LLM's context window to enforce malicious behavior, override system
+  prompts, or establish covert command channels that affect multiple users.
+targets:
+- field: tool.description
+- field: tool.annotations
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Persistent context override instructions
+    expression: (persist|always|retain|remember).{0,40}(context|memory|instructions|system|prompt)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Shared thread or multi-user poisoning vectors
+    expression: (shared|broadcast|thread|channel).{0,40}(inject|poison|override|command|execute)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0080.001
+    name: Thread
+    url: https://atlas.mitre.org/techniques/AML.T0080.001
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+  owasp-llm:
+    id: LLM01
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-large-language-model-applications/
+remediation: (1) Sanitize all tool descriptions and annotations to remove persistent
+  instruction language. (2) Enforce strict input validation and length limits on tool
+  parameters. (3) Isolate agent contexts per user/session to prevent cross-thread
+  contamination. (4) Audit server definitions for indirect injection vectors.
+references:
+- https://atlas.mitre.org/techniques/AML.T0080.001
+tags:
+- thread-poisoning
+- prompt-injection
+- context-persistence
+- static
+added: '2026-05-22'
+updated: '2026-05-22'

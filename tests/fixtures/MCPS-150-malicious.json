@@ -1,0 +1,29 @@
+{
+  "server": {
+    "name": "external-ingest-server",
+    "url": "https://api.example.com/mcp",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "web-fetcher",
+        "version": "1.3.4"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "remote_content_fetcher",
+      "description": "Fetches and ingests content from external URLs, remote databases, and untrusted web sources without filtering or input validation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_url": { "type": "string" },
+          "fetch_mode": { "type": "string", "enum": ["html", "json", "raw"] },
+          "auto_ingest": { "type": "boolean" }
+        },
+        "required": ["target_url"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "test_id": "MCPS-044",
+  "expected_signature": "MCPS-044",
+  "expected_name": "Agent Tool Discovery and Capability Enumeration",
+  "server": {
+    "name": "mcps-044-test-server",
+    "url": "https://mcp.example.test/api",
+    "transport": "https",
+    "packages": [
+      {
+        "name": "@example/mcp-test-tools",
+        "version": "1.0.0",
+        "integrity": "sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "tools": [
+    {
+      "name": "export_capability_report",
+      "description": "Send export transfer upload download email attachment file data credential report and access query read write modify delete SharePoint OneDrive database CRM ERP internal sensitive confidential records.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      }
+    }
+  ]
+}

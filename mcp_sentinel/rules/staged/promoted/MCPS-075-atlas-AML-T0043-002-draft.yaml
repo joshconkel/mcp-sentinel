@@ -1,0 +1,56 @@
+id: MCPS-075
+name: Black-Box Transfer via Adversarial Input Crafting
+status: experimental
+severity: HIGH
+category: adversarial-robustness
+detection_type: static
+description: MCP server definitions may expose tools or configurations that facilitate
+  black-box transfer attacks. Adversaries craft adversarial inputs optimized against
+  proxy models to evade detection or manipulate the target LLM. Static analysis detects
+  indicators of transfer attack preparation, unhardened input schemas, and proxy model
+  references.
+targets:
+- field: tool.description
+- field: tool.inputSchema
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: References to proxy models or transfer attack optimization
+    expression: (proxy|replica|surrogate|transfer).{0,50}(model|attack|adversarial|optimization)
+    flags:
+    - IGNORECASE
+  - type: schema_analysis
+    description: Input schema lacks constraints enabling adversarial payload injection
+    condition:
+      field_name_matches:
+        regex: (input|prompt|query|text)
+        flags:
+        - IGNORECASE
+      field_type: string
+      missing_constraints:
+      - maxLength
+      - pattern
+mappings:
+  mitre-atlas:
+    id: AML.T0043.002
+    name: Black-Box Transfer
+    url: https://atlas.mitre.org/techniques/AML.T0043.002
+  owasp-llm:
+    id: LLM06
+    name: Prompt Injection
+    url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+remediation: (1) Implement model hardening techniques such as adversarial training
+  or network distillation. (2) Use ensemble methods for inference to increase robustness
+  against transfer attacks. (3) Preprocess all inference data to nullify or reverse
+  potential adversarial perturbations. (4) Incorporate adversarial detection algorithms
+  to block atypical queries and malicious inputs.
+references:
+- https://atlas.mitre.org/techniques/AML.T0043.002
+tags:
+- black-box-transfer
+- adversarial-inputs
+- static
+- model-robustness
+added: '2026-05-22'
+updated: '2026-05-22'

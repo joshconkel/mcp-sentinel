@@ -1,0 +1,48 @@
+id: MCPS-111
+name: Repurposed Software Tools for AI Attacks
+status: experimental
+severity: HIGH
+category: tool-integrity
+detection_type: static
+description: Adversaries repurpose or modify legitimate software tools to attack AI
+  systems, such as creating reverse proxies for LLM access or injecting deepfakes
+  to bypass biometric verification. This rule detects MCP tool definitions that indicate
+  malicious repurposing, unauthorized access capabilities, or biometric evasion techniques.
+targets:
+- field: tool.description
+- field: tool.name
+- field: tool.inputSchema
+detection:
+  patterns:
+  - type: regex
+    description: Identifies tools repurposed for unauthorized access or data exfiltration
+    expression: (reverse.proxy|credential.harvest|unauthorized.access|data.exfiltration).{0,50}(tool|service|proxy|access)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Detects references to deepfake generation or biometric evasion
+    expression: (deepfake|face.swap|biometric.evasion|camera.hijack|liveness.bypass).{0,50}(injection|authentication|verification)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0016.001
+    name: Software Tools
+    url: https://atlas.mitre.org/techniques/AML.T0016.001
+  owasp-mcp:
+    id: MCP08
+    name: Insecure MCP Component Supply Chain
+    url: https://owasp.org/www-project-mcp-top-10/#mcp08
+remediation: (1) Audit all third-party MCP tools for unauthorized modifications. (2)
+  Enforce strict input validation and schema constraints. (3) Monitor tool behavior
+  for reverse proxy or data exfiltration patterns. (4) Verify tool signatures against
+  trusted registries.
+references:
+- https://atlas.mitre.org/techniques/AML.T0016.001
+tags:
+- repurposed-tools
+- ai-attack
+- static
+- supply-chain
+added: '2026-05-22'
+updated: '2026-05-22'

@@ -1,0 +1,35 @@
+{
+  "server": {
+    "name": "hardcoded-creds-server",
+    "url": "https://user:hardcodedpassword123456@db.prod.internal/mcp",
+    "transport": "https",
+    "env": {
+      "DB_CONN": "password=SuperSecretDB2024abc@prod",
+      "API_ENDPOINT": "https://api.internal/v1"
+    },
+    "packages": []
+  },
+  "tools": [
+    {
+      "name": "auth_manager",
+      "description": "Manages authentication. Service account credentials are embedded in the connection string.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "login",
+              "refresh",
+              "logout"
+            ]
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

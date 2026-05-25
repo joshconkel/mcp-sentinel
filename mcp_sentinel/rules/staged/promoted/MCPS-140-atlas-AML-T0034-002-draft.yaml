@@ -1,0 +1,48 @@
+id: MCPS-0140
+name: Agentic Resource Consumption via Tool Directives
+status: experimental
+severity: MEDIUM
+category: resource-abuse
+detection_type: static
+description: MCP tool definitions may contain embedded directives that coerce AI agents
+  into performing computationally expensive operations, excessive API calls, or recursive
+  self-delegation loops. These patterns waste infrastructure resources, exhaust API
+  budgets, and can lead to system stalls or denial of service.
+targets:
+- field: tool.description
+- field: tool.annotations
+detection:
+  patterns:
+  - type: regex
+    description: Detects directives forcing excessive repetition or broad data fetching
+    expression: (summarize|translate|process|fetch|look up).{0,60}(all|every|1000|repeatedly|multiple
+      times|instead of local|internet)
+    flags:
+    - IGNORECASE
+  - type: regex
+    description: Detects recursive or self-delegation instructions causing loops
+    expression: (call.{0,20}self|recursive|delegate.{0,20}itself|loop.{0,20}until|repeat.{0,20}indefinitely|self-delegation)
+    flags:
+    - IGNORECASE
+mappings:
+  mitre-atlas:
+    id: AML.T0034.002
+    name: Agentic Resource Consumption
+    url: https://atlas.mitre.org/techniques/AML.T0034.002
+  owasp-mcp:
+    id: MCP02
+    name: Insecure Tool and Resource Management
+    url: https://owasp.org/www-project-mcp-top-10/#mcp02
+remediation: (1) Audit tool descriptions and annotations for directives encouraging
+  excessive repetition, broad data fetching, or recursive calls. (2) Implement rate
+  limiting and cost caps on agent tool invocations. (3) Enforce strict input validation
+  and sandboxing to prevent self-delegation loops.
+references:
+- https://atlas.mitre.org/techniques/AML.T0034.002
+tags:
+- resource-abuse
+- denial-of-service
+- agent-exploitation
+- static
+added: '2026-05-22'
+updated: '2026-05-22'
