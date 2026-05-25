@@ -73,7 +73,14 @@ target-version = "py310"
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
+# Test assertion messages intentionally include full rule names for diagnostics.
 "tests/*" = ["E501"]
+# Typer's design requires typer.Option() calls in function-parameter defaults;
+# B008 is a false positive for this well-established CLI framework pattern.
+"mcp_sentinel/cli.py" = ["B008"]
+# HTML templates embedded as Python strings can't be wrapped at arbitrary
+# column boundaries without injecting unwanted whitespace into the rendered output.
+"mcp_sentinel/reporter.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.10"
