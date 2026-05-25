@@ -7,7 +7,7 @@
 [![OWASP MCP Top 10](https://img.shields.io/badge/OWASP-MCP_Top_10-003087?style=flat)](https://owasp.org/www-project-mcp-top-10/)
 [![OWASP Agentic Top 10](https://img.shields.io/badge/OWASP-Agentic_Top_10_2026-003087?style=flat)](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
 [![MITRE ATLAS](https://img.shields.io/badge/MITRE-ATLAS-C41230?style=flat)](https://atlas.mitre.org)
-[![Status](https://img.shields.io/badge/Status-Active_Development-orange?style=flat)]()
+[![Status](https://img.shields.io/badge/Status-Active_Development-orange?style=flat)]()</p>
 
 ---
 
@@ -27,7 +27,7 @@ Most teams securing agentic AI focus on the model layer (prompt injection, jailb
 $ mcp-sentinel scan --schema ./my-server.json
 
 mcp-sentinel v0.1.0  |  MCP Server Security Auditor
-Loaded 5 rules  |  5 threat sources active
+Loaded 150 rules  |  5 threat sources active
 
 Scanning: my-server.json
 ────────────────────────────────────────────────────────────
@@ -84,17 +84,60 @@ Adding a new framework (internal standards, ISO 42001, EU AI Act controls) requi
 
 ---
 
-## Phase 1 Checks
+## Rule Set (Phase 1)
 
-| ID | Name | Severity | Type |
+The scanner ships **150 rules** across 80+ threat categories. Five are `active` (fully validated); the remaining 145 are `experimental` (enabled by default, may have higher false-positive rates).
+
+### Active Rules
+
+| ID | Name | Severity | Category |
 |---|---|---|---|
-| MCPS-001 | Tool Poisoning via Description Field | CRITICAL | Static |
-| MCPS-002 | Secret and Token Exposure in Tool Definitions | CRITICAL | Static |
-| MCPS-003 | Overly Permissive Parameter Schemas | HIGH | Static |
-| MCPS-004 | Insecure Transport Configuration | HIGH | Static |
-| MCPS-005 | Agentic Supply Chain: Unverified Tool Provenance | HIGH | Static |
+| MCPS-001 | Tool Poisoning via Description Field | CRITICAL | tool-integrity |
+| MCPS-002 | Secret and Token Exposure in Tool Definitions | CRITICAL | secret-management |
+| MCPS-003 | Overly Permissive Parameter Schemas | HIGH | input-validation |
+| MCPS-004 | Insecure Transport Configuration | HIGH | infrastructure |
+| MCPS-005 | Agentic Supply Chain: Unverified Tool Provenance | HIGH | supply-chain |
 
-Phases 2 (LLM-assisted semantic analysis) and 3 (live server probing) are planned. See [planning/ROADMAP.md](planning/ROADMAP.md).
+### Experimental Rules — Coverage by Category
+
+| Category | Count | Example Rules |
+|---|---|---|
+| prompt-injection | 6 | MCPS-038, MCPS-049, MCPS-057, MCPS-129, MCPS-144, MCPS-150 |
+| tool-integrity | 6 | MCPS-006 (annotations), MCPS-028 (misleading claims), MCPS-034, MCPS-080, MCPS-108 |
+| information-disclosure | 6 | MCPS-012 (internal network), MCPS-043, MCPS-048, MCPS-060, MCPS-063, MCPS-113 |
+| supply-chain | 7 | MCPS-026, MCPS-056, MCPS-067, MCPS-098, MCPS-119, MCPS-123, MCPS-136 |
+| supply-chain-integrity | 4 | MCPS-042, MCPS-106, MCPS-137, MCPS-146 |
+| data-exfiltration | 4 | MCPS-096, MCPS-115, MCPS-121, MCPS-134 |
+| credential-access | 4 | MCPS-031, MCPS-045, MCPS-066, MCPS-099 |
+| data-integrity | 4 | MCPS-027, MCPS-050, MCPS-100, MCPS-148 |
+| model-integrity | 5 | MCPS-072, MCPS-076, MCPS-087, MCPS-109, MCPS-119 |
+| reconnaissance | 4 | MCPS-030, MCPS-044, MCPS-060, MCPS-074 |
+| defense-evasion | 5 | MCPS-035, MCPS-078, MCPS-079, MCPS-083, MCPS-125 |
+| 70+ others | 90+ | See `rules.yaml` for complete list |
+
+Rules cover: prompt injection, tool poisoning, credential exposure, supply chain attacks, data exfiltration, model extraction, adversarial AI, deepfake facilitation, RAG poisoning, context manipulation, multi-agent security, and more.
+
+Promote a rule from `experimental` to `active` by updating its `status` field in `rules.yaml` — no code changes required.
+
+---
+
+## Rule Engine Architecture
+
+`mcp-sentinel` uses a two-tier check system:
+
+**Dedicated check modules** (MCPS-001 through MCPS-005) contain hand-written Python for checks that require complex logic — cross-field comparisons, multi-step validation, conditional severity — that YAML patterns cannot express cleanly.
+
+**Generic rule engine** (`checks/generic.py`, MCPS-006 through MCPS-150) drives all remaining rules entirely from `rules.yaml` pattern definitions. The engine resolves each rule's `targets` field to server definition values, then runs the rule's detection patterns against those values. No Python code is needed to add a new rule in this range.
+
+Supported pattern types:
+
+| Type | What It Does |
+|---|---|
+| `regex` | Compiled regex match against string values; supports IGNORECASE, MULTILINE, DOTALL |
+| `value_check` | Structured condition evaluation: `missing_fields`, `matches_unpinned`, `value_in` |
+| `schema_analysis` | JSON Schema structure checks: constrained fields, missing validators, `additionalProperties` |
+| `unicode` | Scans for invisible/zero-width codepoints |
+| `length` | Flags strings exceeding a threshold |
 
 ---
 
@@ -136,8 +179,8 @@ mcp-sentinel rules list
 # Validate rules.yaml and source references
 mcp-sentinel rules validate
 
-# Check threat sources for staleness
-mcp-sentinel sources check
+# Check threat sources for staleness (flag sources not reviewed in 180 days)
+mcp-sentinel sources check --warn-after 180
 ```
 
 ---
@@ -194,9 +237,10 @@ mcp-sentinel/
 │   ├── engine.py                   # Rule engine: loads rules, dispatches checks, scores
 │   ├── models.py                   # Core dataclasses (Finding, ServerDefinition, etc.)
 │   ├── reporter.py                 # Terminal, JSON, and HTML output formatters
-│   ├── checks/                     # One module per check rule
+│   ├── checks/                     # Check modules
 │   │   ├── __init__.py             # @register decorator and check registry
 │   │   ├── base.py                 # CheckRunner and all pattern type handlers
+│   │   ├── generic.py              # Generic engine driving MCPS-006 through MCPS-150
 │   │   ├── tool_poisoning.py       # MCPS-001
 │   │   ├── secrets.py              # MCPS-002
 │   │   ├── parameters.py           # MCPS-003
@@ -207,17 +251,21 @@ mcp-sentinel/
 │   │   └── live.py                 # Live server probing (Phase 3 stub)
 │   └── rules/                      # Versioned threat intelligence
 │       ├── sources.yaml            # Threat source registry (OWASP, MITRE, NIST)
-│       └── rules.yaml              # Rule definitions with multi-source mappings
+│       └── rules.yaml              # 150 rule definitions with multi-source mappings
 ├── tests/
-│   ├── test_checks.py              # Unit and integration tests
+│   ├── test_checks.py              # 350 unit and integration tests
 │   └── fixtures/                   # Benign and malicious MCP server definitions
+│       ├── benign-server.json      # Zero-finding baseline across all 150 rules
+│       ├── MCPS-001-malicious.json
+│       ├── MCPS-002-malicious.json
+│       └── ... (one per rule)
 ├── planning/                       # Architecture, threat model, and roadmap
 │   ├── ARCHITECTURE.md
 │   ├── THREAT-MODEL.md
 │   └── ROADMAP.md
 ├── .github/
-│   ├── workflows/mcp-scan.yml      # CI: test, lint, demo scan
-│   ├── ISSUE_TEMPLATE/             # Bug reports, false positives, new rule requests
+│   ├── workflows/mcp-scan.yml      # CI: test, lint, type-check, demo scan
+│   ├── ISSUE_TEMPLATE/
 │   └── PULL_REQUEST_TEMPLATE.md
 ├── Makefile                        # Common developer tasks
 └── pyproject.toml                  # Package configuration and dependencies
@@ -231,13 +279,13 @@ mcp-sentinel/
 # Install with dev dependencies
 make install-dev
 
-# Run all tests
+# Run all 350 tests
 make test
 
 # Run tests with coverage
 make test-cov
 
-# Lint
+# Lint (ruff) and type-check (mypy)
 make lint
 
 # Scan a malicious fixture (demo)
@@ -255,7 +303,7 @@ Run `make help` to see all available targets.
 
 Contributions are welcome. The highest-value contributions are new rules with evidence-backed mappings to OWASP, MITRE ATLAS, or equivalent frameworks.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full process including the evidence requirements and fixture requirements for new rules.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full process including evidence requirements and fixture requirements for new rules.
 
 ---
 
