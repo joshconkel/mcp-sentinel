@@ -1,0 +1,3 @@
+# Exclude scanning caches from future git commits
+.mypy_cache/
+.ruff_cache/
