@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Threat Model: mcp-sentinel — Threat Model Draft</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; color: #ccc; font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace; }
+
+  .layout { display: grid; grid-template-columns: 1fr 380px; height: 100vh; }
+  .layout.panel-closed { grid-template-columns: 1fr 0; }
+
+  .diagram-side { overflow: hidden; display: flex; flex-direction: column; }
+  .header { padding: 16px 20px 0; }
+  .header h1 { font-size: 16px; font-weight: 500; color: #eee; }
+  .header p { font-size: 11px; color: #555; margin-top: 2px; }
+
+  .diagram-wrap { flex: 1; overflow: auto; position: relative; padding: 16px; }
+  .diagram-wrap .mermaid { transition: transform 0.15s ease; transform-origin: top left; cursor: default; }
+  .diagram-wrap.is-zoomed { cursor: grab; }
+  .diagram-wrap.is-panning { cursor: grabbing; user-select: none; }
+
+  .zoom-controls {
+    position: absolute; top: 8px; right: 8px; display: flex; gap: 2px;
+    background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 2px; z-index: 10;
+  }
+  .zoom-controls button {
+    width: 28px; height: 28px; border: none; background: transparent;
+    color: #666; font-size: 14px; cursor: pointer; border-radius: 3px;
+  }
+  .zoom-controls button:hover { background: #252525; color: #ccc; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 8px 20px; border-top: 1px solid #222; font-size: 10px; color: #555; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  .panel { background: #161616; border-left: 1px solid #222; overflow-y: auto; transition: width 0.2s, opacity 0.2s; padding: 20px; }
+  .panel-closed .panel { width: 0; padding: 0; opacity: 0; overflow: hidden; }
+  .panel-close { float: right; background: none; border: 1px solid #333; color: #666; font-size: 11px; padding: 2px 8px; border-radius: 3px; cursor: pointer; }
+  .panel-close:hover { color: #ccc; border-color: #555; }
+  .panel-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-top: 16px; margin-bottom: 4px; }
+  .panel-label:first-of-type { margin-top: 8px; }
+  .panel-title { font-size: 15px; color: #eee; font-weight: 500; }
+  .panel-file { font-size: 11px; color: #4a9eff; margin-top: 2px; }
+  .panel-desc { font-size: 12px; color: #999; line-height: 1.5; }
+  .panel-data { font-size: 11px; color: #aaa; background: #1c1c1c; border: 1px solid #282828; border-radius: 4px; padding: 8px 10px; white-space: pre-wrap; line-height: 1.5; }
+  .panel-tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 3px; margin: 2px 4px 2px 0; background: #3a1c1c; color: #ff8a8a; border: 1px solid #5a2a2a; }
+  .panel-code { font-size: 11px; color: #bbb; background: #0d0d0d; border: 1px solid #222; border-radius: 4px; padding: 10px 12px; overflow-x: auto; line-height: 1.6; white-space: pre; }
+  .panel-code .line-num { color: #444; margin-right: 12px; user-select: none; }
+  .panel-empty { text-align: center; color: #444; font-size: 12px; margin-top: 40vh; transform: translateY(-50%); }
+
+  .mermaid .node { cursor: pointer; }
+  .mermaid .node:hover rect, .mermaid .node:hover polygon, .mermaid .node:hover circle { filter: brightness(1.3); }
+  .mermaid .node.selected rect, .mermaid .node.selected polygon, .mermaid .node.selected circle { stroke: #fff; stroke-width: 2px; }
+  .mermaid .edgePath.selected path { stroke: #fff !important; stroke-width: 2px !important; }
+
+  /* Yourdon-DeMarco data store: authentic open-ended rectangle (top/bottom lines only, open sides) */
+  .mermaid .node.store rect { fill: transparent !important; stroke: none !important; }
+  .mermaid .node.store .label-container { border-top: 2px solid #fbbf24; border-bottom: 2px solid #fbbf24; border-left: none; border-right: none; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    .panel { border-left: none; border-top: 1px solid #222; max-height: 45vh; }
+    .panel-closed .panel { max-height: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout panel-closed" id="layout">
+  <div class="diagram-side">
+    <div class="header">
+      <h1>mcp-sentinel — Threat Model Draft</h1>
+      <p>MCP server security auditor: local scan runtime + offline rule-maintenance pipeline — draft for threat-modeling prep, not a final artifact</p>
+    </div>
+    <div class="diagram-wrap" id="diagramWrap">
+      <div class="zoom-controls">
+        <button onclick="zoomDiagram(1.2)" title="Zoom in">+</button>
+        <button onclick="zoomDiagram(0.8)" title="Zoom out">&minus;</button>
+        <button onclick="resetZoom()" title="Reset">&#8634;</button>
+      </div>
+      <pre class="mermaid" id="diagram">
+
+flowchart TD
+    subgraph Legend["Legend"]
+        direction LR
+        L1[External Entity]
+        L2((1.0<br/>Process))
+        L3[[D1 Data Store]]
+        L1 ==>|"[TAG] sync, crosses boundary"| L2
+        L2 -.->|"async / event"| L3
+    end
+
+    Operator[Security Engineer / Operator]
+    Stakeholder[Security / Compliance Stakeholder]
+    RuleMaintainer[Rule Maintainer]
+    GitHubAtlas[MITRE ATLAS-data*<br/>raw.githubusercontent.com]
+    AnthropicAPI[Anthropic API*<br/>optional backend]
+    LMStudio[LM Studio*<br/>local, default backend]
+
+    subgraph ScanRuntime["Local Scan Runtime (per-invocation, no network calls)"]
+        CLI((1.0<br/>CLI))
+        SchemaLoader((2.0<br/>Schema Loader))
+        RuleEngine((3.0<br/>Rule Engine))
+        Reporter((4.0<br/>Reporter))
+        D1[[D1 MCP Server<br/>Definition]]
+        D2[[D2 rules.yaml /<br/>sources.yaml]]
+        D3[[D3 Scan Reports<br/>terminal/JSON/HTML]]
+    end
+
+    subgraph RuleMaintenance["Rule Maintenance Pipeline (offline, dev-time)"]
+        ATLASIngest((5.0<br/>ATLAS Ingest))
+        PromoteStaged((6.0<br/>Promote Staged))
+        D4[[D4 Staged Rule<br/>Drafts]]
+    end
+
+    Operator -->|"[CODE] scan --schema path"| CLI
+    CLI -->|"file path"| SchemaLoader
+    SchemaLoader -.-|"[CODE] server definition"| D1
+    SchemaLoader -->|"ServerDefinition"| RuleEngine
+    D2 -.-|"[PUBLIC] rules + source mappings"| RuleEngine
+    RuleEngine -->|"[FINDING] List of Finding"| Reporter
+    Reporter -->|"[FINDING] terminal output"| Operator
+    Reporter -->|"[FINDING] JSON/HTML report"| D3
+    D3 -.->|"[FINDING] shared report"| Stakeholder
+
+    ATLASIngest ==>|"[PUBLIC] fetch ATLAS.yaml, unpinned branch"| GitHubAtlas
+    ATLASIngest ==>|"[SECRET][PUBLIC] api_key + threat-intel text"| AnthropicAPI
+    ATLASIngest -->|"[PUBLIC] threat-intel text"| LMStudio
+    ATLASIngest -->|"[PUBLIC] draft rule YAML"| D4
+    RuleMaintainer -.-|"[CODE] review drafts"| D4
+    RuleMaintainer -->|"promote command"| PromoteStaged
+    PromoteStaged -.-|"[CODE] draft YAML"| D4
+    PromoteStaged ==>|"[WRITE] validated rule entries"| D2
+
+    classDef api fill:#4a9eff,stroke:#1e5a99,color:#000
+    classDef service fill:#4ade80,stroke:#1e8f4a,color:#000
+    classDef database fill:#fbbf24,stroke:#a86f00,color:#000
+
+    class Operator,Stakeholder,RuleMaintainer api;
+    class CLI,SchemaLoader,RuleEngine,Reporter,ATLASIngest,PromoteStaged service;
+    class LMStudio service;
+    class GitHubAtlas,AnthropicAPI database;
+    class D1,D2,D3,D4 database,store;
+
+      </pre>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4a9eff"></div> API / entry point</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div> Internal service</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fbbf24"></div> Data store / external</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#c084fc"></div> Async / queue</div>
+      <div class="legend-item">— thick edge = trust boundary crossing —</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel">
+    <div id="panelContent"><p class="panel-empty">Click a node or a boundary-crossing edge to inspect</p></div>
+  </div>
+</div>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    flowchart: { useMaxWidth: false, htmlLabels: true, curve: 'basis' },
+    securityLevel: 'loose'
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.mermaid .node').forEach(node => {
+      node.style.cursor = 'pointer';
+      node.addEventListener('click', () => {
+        const nodeId = node.id?.replace(/^flowchart-/, '').replace(/-\d+$/, '') || '';
+        selectItem(nodeId);
+      });
+    });
+  }, 500);
+</script>
+
+<script>
+  const ITEM_DATA = {
+  "Operator": {
+    "id": "Operator",
+    "label": "Security Engineer / Operator",
+    "role": "external_entity",
+    "layer": "api",
+    "trustZone": "N/A (human actor)",
+    "file": "N/A",
+    "line": "",
+    "description": "Runs `mcp-sentinel scan --schema <file>` locally or in CI to audit an MCP server definition."
+  },
+  "Stakeholder": {
+    "id": "Stakeholder",
+    "label": "Security / Compliance Stakeholder",
+    "role": "external_entity",
+    "layer": "api",
+    "trustZone": "N/A (human actor)",
+    "file": "N/A",
+    "line": "",
+    "description": "Consumes the HTML report for a non-technical, risk-scored view mapped to OWASP/MITRE/NIST frameworks."
+  },
+  "RuleMaintainer": {
+    "id": "RuleMaintainer",
+    "label": "Rule Maintainer",
+    "role": "external_entity",
+    "layer": "api",
+    "trustZone": "N/A (human actor)",
+    "file": "CONTRIBUTING.md",
+    "line": 1,
+    "description": "Reviews auto-generated draft rules in staged/ before running promote_staged.py to merge them into the live rule set."
+  },
+  "GitHubAtlas": {
+    "id": "GitHubAtlas",
+    "label": "MITRE ATLAS data*",
+    "role": "external_entity",
+    "layer": "database",
+    "trustZone": "Third-Party (public)",
+    "file": "scripts/ingest_atlas.py",
+    "line": 92,
+    "description": "Fetches ATLAS.yaml directly from raw.githubusercontent.com on the main/master branch \u2014 unpinned, no commit hash or integrity check.",
+    "code": "ATLAS_URLS = [\n    \"https://raw.githubusercontent.com/mitre-atlas/atlas-data/main/dist/ATLAS.yaml\",\n    \"https://raw.githubusercontent.com/mitre-atlas/atlas-data/master/dist/ATLAS.yaml\",\n]"
+  },
+  "AnthropicAPI": {
+    "id": "AnthropicAPI",
+    "label": "Anthropic API*",
+    "role": "external_entity",
+    "layer": "database",
+    "trustZone": "Third-Party Vendor",
+    "file": "scripts/ingest_atlas.py",
+    "line": 507,
+    "description": "Optional backend (--backend anthropic) used to help draft new detection rules from ATLAS threat-intel text. Default backend is local LM Studio.",
+    "code": "api_key = os.environ.get(\"ANTHROPIC_API_KEY\")\nif not api_key:\n    ...\nself._client = _anthropic.Anthropic(api_key=api_key)"
+  },
+  "LMStudio": {
+    "id": "LMStudio",
+    "label": "LM Studio*",
+    "role": "external_entity",
+    "layer": "service",
+    "trustZone": "Local (maintainer workstation)",
+    "file": "scripts/ingest_atlas.py",
+    "line": 452,
+    "description": "Default local backend for rule-drafting assistance. Colored 'service' (internal) despite the external-entity shape, since it never leaves the maintainer's machine \u2014 same treatment as LM Studio in the Veritas-POC example."
+  },
+  "CLI": {
+    "id": "CLI",
+    "label": "1.0 CLI",
+    "role": "process",
+    "layer": "api",
+    "trustZone": "Local Scan Runtime",
+    "file": "mcp_sentinel/cli.py",
+    "line": 38,
+    "description": "Typer-based entry point. Dispatches scan / rules list / rules validate / sources check.",
+    "code": "@app.command()\ndef scan(\n    schema: Path = typer.Option(...),\n    ...\n):"
+  },
+  "SchemaLoader": {
+    "id": "SchemaLoader",
+    "label": "2.0 Schema Loader",
+    "role": "process",
+    "layer": "service",
+    "trustZone": "Local Scan Runtime",
+    "file": "mcp_sentinel/loaders/schema.py",
+    "line": 158,
+    "description": "Parses the MCP server JSON/YAML definition and normalizes it into a ServerDefinition dataclass. No network I/O \u2014 Phase 3 live.py (probing a running MCP server over SSE/WebSocket) is a documented placeholder, not yet implemented.",
+    "code": "transport = \"websocket\"\nws_block   = server_block.get(\"websocket\", {}) or {}\nws_origins = ws_block.get(\"origins\")"
+  },
+  "RuleEngine": {
+    "id": "RuleEngine",
+    "label": "3.0 Rule Engine",
+    "role": "process",
+    "layer": "service",
+    "trustZone": "Local Scan Runtime",
+    "file": "mcp_sentinel/engine.py",
+    "line": 79,
+    "description": "Loads sources.yaml and rules.yaml, runs each applicable check (regex, schema_analysis, unicode, dynamic-placeholder) against the ServerDefinition, and emits Finding objects.",
+    "code": "data = yaml.safe_load(sources_path.read_text(encoding=\"utf-8\"))\n...\ndata = yaml.safe_load(rules_path.read_text(encoding=\"utf-8\"))"
+  },
+  "Reporter": {
+    "id": "Reporter",
+    "label": "4.0 Reporter",
+    "role": "process",
+    "layer": "service",
+    "trustZone": "Local Scan Runtime",
+    "file": "mcp_sentinel/reporter.py",
+    "line": 242,
+    "description": "Renders findings as a Rich terminal table, CI-friendly JSON with exit codes, or a self-contained HTML report (no external CDN scripts).",
+    "code": "out_path.write_text(text, encoding=\"utf-8\")\n...\nout_path.write_text(html, encoding=\"utf-8\")"
+  },
+  "ATLASIngest": {
+    "id": "ATLASIngest",
+    "label": "5.0 ATLAS Ingest",
+    "role": "process",
+    "layer": "service",
+    "trustZone": "Rule Maintenance Pipeline",
+    "file": "scripts/ingest_atlas.py",
+    "line": 1,
+    "description": "Offline maintainer script. Fetches MITRE ATLAS technique data and uses an LLM (local LM Studio by default, or Anthropic API) to help draft new detection rules, written to staged/ for human review."
+  },
+  "PromoteStaged": {
+    "id": "PromoteStaged",
+    "label": "6.0 Promote Staged",
+    "role": "process",
+    "layer": "service",
+    "trustZone": "Rule Maintenance Pipeline",
+    "file": "scripts/promote_staged.py",
+    "line": 1,
+    "description": "Validates reviewed drafts and appends passing ones directly into rules.yaml (and registers the rule ID in checks/generic.py) \u2014 this is the only path by which the live rule set changes.",
+    "code": "# 4. For each passing draft, appends it to rules.yaml\n# 5. Adds the rule ID to _GENERIC_RULE_IDS in checks/generic.py"
+  },
+  "e_atlas_github": {
+    "id": "e_atlas_github",
+    "label": "ATLAS Ingest -> GitHub (fetch)",
+    "layer": "database",
+    "dataClassification": [
+      "PUBLIC"
+    ],
+    "checksTriggered": [
+      "network",
+      "ownership"
+    ],
+    "strideNotes": "Tampering: the fetch targets main/master unpinned, with no commit hash or checksum verification \u2014 a compromised upstream branch could inject misleading 'threat intel' that shapes locally generated detection rules.",
+    "reviewerNote": "Consider pinning to a specific commit SHA or verifying a checksum before this feeds rule generation."
+  },
+  "e_atlas_anthropic": {
+    "id": "e_atlas_anthropic",
+    "label": "ATLAS Ingest -> Anthropic API",
+    "layer": "database",
+    "dataClassification": [
+      "SECRET",
+      "PUBLIC"
+    ],
+    "checksTriggered": [
+      "network",
+      "ownership",
+      "auth"
+    ],
+    "strideNotes": "Information disclosure: lower severity than the equivalent edge in Veritas-POC \u2014 the data sent is public MITRE ATLAS text, not proprietary source code. Still confirm no internal context ever gets appended to the prompt.\nSpoofing: is ANTHROPIC_API_KEY scoped/rotated separately from any other org key?",
+    "reviewerNote": "Confirm this optional backend is opt-in only (--backend anthropic) and not silently triggered in any automated context."
+  },
+  "e_promote_rules": {
+    "id": "e_promote_rules",
+    "label": "Promote Staged -> D2 rules.yaml (write)",
+    "layer": "database",
+    "dataClassification": [
+      "WRITE"
+    ],
+    "checksTriggered": [
+      "auth"
+    ],
+    "strideNotes": "Elevation of privilege / tampering: this is the only path that changes what mcp-sentinel will ever detect. A careless or malicious promoted rule (e.g., overly narrow regex) could silently suppress true positives across every future scan \u2014 same pattern as the gate_policy.txt write-path flagged in the Veritas-POC example.",
+    "reviewerNote": "Confirm rules.yaml changes require PR review / CODEOWNERS, separate from general repo write access, and that promote_staged.py's regex-fixing step (step 2) doesn't itself weaken a rule's intent."
+  }
+};
+
+  let scale = 1;
+  const wrap = document.getElementById('diagramWrap');
+  const dia = () => document.querySelector('.mermaid');
+
+  function zoomDiagram(factor) {
+    scale = Math.min(Math.max(scale * factor, 0.3), 5);
+    dia().style.transform = 'scale(' + scale + ')';
+    wrap.classList.toggle('is-zoomed', scale > 1);
+  }
+  function resetZoom() { scale = 1; dia().style.transform = 'scale(1)'; wrap.classList.remove('is-zoomed'); }
+  wrap.addEventListener('wheel', e => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    zoomDiagram(e.deltaY < 0 ? 1.1 : 0.9);
+  }, { passive: false });
+
+  let panStart = null;
+  wrap.addEventListener('mousedown', e => {
+    if (e.target.closest('.zoom-controls')) return;
+    if (scale <= 1) return;
+    panStart = { x: e.clientX, y: e.clientY, sl: wrap.scrollLeft, st: wrap.scrollTop };
+    wrap.classList.add('is-panning');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!panStart) return;
+    wrap.scrollLeft = panStart.sl - (e.clientX - panStart.x);
+    wrap.scrollTop = panStart.st - (e.clientY - panStart.y);
+  });
+  window.addEventListener('mouseup', () => { panStart = null; wrap.classList.remove('is-panning'); });
+
+  function selectItem(itemId) {
+    const data = ITEM_DATA[itemId];
+    if (!data) return;
+
+    document.getElementById('layout').classList.remove('panel-closed');
+    document.querySelectorAll('.mermaid .node').forEach(n => n.classList.remove('selected'));
+    const el = document.getElementById('flowchart-' + itemId + '-0') || document.querySelector('[id^="flowchart-' + itemId + '"]');
+    if (el) el.classList.add('selected');
+
+    const p = document.getElementById('panelContent');
+    const layerColors = { api: '#4a9eff', service: '#4ade80', database: '#fbbf24', async: '#c084fc' };
+    const layerColor = layerColors[data.layer] || '#888';
+
+    let codeHtml = '';
+    if (data.code) {
+      const lines = data.code.split('\n');
+      const startLine = data.line || 1;
+      codeHtml = lines.map((l, i) => '<span class="line-num">' + (startLine + i) + '</span>' + escHtml(l)).join('\n');
+    }
+
+    const tags = (data.dataClassification || []).map(t => `<span class="panel-tag">${escHtml(t)}</span>`).join('');
+    const checks = (data.checksTriggered || []).join(', ');
+
+    p.innerHTML = `
+      <button class="panel-close" onclick="closePanel()">close</button>
+      <div class="panel-label">${data.role === undefined ? 'Boundary Crossing' : 'Node'}</div>
+      <div class="panel-title" style="color:${layerColor}">${escHtml(data.label || data.id)}</div>
+      ${data.file ? `<div class="panel-file">${escHtml(data.file)}:${data.line || '?'}</div>` : ''}
+      ${data.trustZone ? `<div class="panel-label">Trust Zone</div><div class="panel-desc">${escHtml(data.trustZone)}</div>` : ''}
+      ${data.description ? `<div class="panel-label">Description</div><div class="panel-desc">${escHtml(data.description)}</div>` : ''}
+      ${tags ? `<div class="panel-label">Data Classification</div><div>${tags}</div>` : ''}
+      ${checks ? `<div class="panel-label">Boundary Checks Triggered</div><div class="panel-desc">${escHtml(checks)}</div>` : ''}
+      ${data.strideNotes ? `<div class="panel-label">STRIDE Notes</div><div class="panel-data">${escHtml(data.strideNotes)}</div>` : ''}
+      ${data.reviewerNote ? `<div class="panel-label">Reviewer: Verify</div><div class="panel-data">${escHtml(data.reviewerNote)}</div>` : ''}
+      ${data.code ? `<div class="panel-label">Evidence</div><pre class="panel-code">${codeHtml}</pre>` : ''}
+    `;
+  }
+
+  function closePanel() {
+    document.getElementById('layout').classList.add('panel-closed');
+    document.querySelectorAll('.mermaid .node').forEach(n => n.classList.remove('selected'));
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
