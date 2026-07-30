@@ -83,8 +83,37 @@ checks without replacing them.
 - [ ] `checks/semantic.py` (new check type: `semantic`)
 - [ ] Anthropic SDK integration with configurable model selection
 - [ ] Prompt templates for tool description analysis (stored in `rules/prompts/`)
+  - Structurally separate the analyzer's own instructions from the tool-description
+    content being analyzed (explicit delimiters, an instruction to disregard any
+    directives embedded in the analyzed text) — the description field being sent
+    for analysis is exactly the injection vector MCPS-001 exists to catch, so the
+    analyzer prompt needs the same hardening. See THREAT-MODEL.md section 6.
+  - Gate semantic analysis behind MCPS-001's own pattern check as a pre-filter,
+    not only as an independent parallel check
+- [ ] **Decision needed:** data sent per tool — description-only, or description +
+      full `inputSchema`? Not yet decided; affects both cost and exposure scope.
 - [ ] Structured JSON output from the LLM parsed into `Finding` objects
-- [ ] `--no-llm` flag to run Phase 1 checks only (offline / cost-sensitive environments)
+  - Validate the response against an explicit schema before constructing `Finding`
+    objects — a successful API call is not the same claim as trustworthy content
+- [ ] `--llm` flag to opt in to semantic analysis, off by default even with the
+      `phase2` extra installed (replaces the `--no-llm` framing this milestone
+      previously used, which implied default-on — corrected after design review)
+- [ ] Pre-call tool exclude list — excluded tools are never transmitted to the
+      Anthropic API at all, distinct from the false-positive ignore list in
+      Milestone 2.3 (which only suppresses findings *after* a tool was analyzed)
+  - Warn when an exclude-list entry matches zero tools in a run, so a stale entry
+    (e.g. after a tool rename) fails visibly instead of silently
+  - Prefer a stable identifier over a mutable display name for matching, where one exists
+- [ ] Audit log of which tools/fields were sent externally, when, and under which
+      scan invocation — Stakeholder reports are consumed for compliance purposes,
+      and an org may need to attest whether proprietary tool content ever left its control
+- [ ] Explicit, enforced constraint that the analyzer has no tool-calling capability
+      wired in — not left as an assumption implied by roadmap wording, so a later
+      addition can't grant it action access without a deliberate design review
+- [ ] Document this data flow prominently in user-facing docs (README, `--help`
+      text), not only here; evaluate whether a local/self-hosted model path
+      (mirroring the existing `--backend lmstudio` default in `scripts/ingest_atlas.py`)
+      should be offered so the capability doesn't strictly require a third-party route
 
 ### Milestone 2.2: Semantic Rules
 
@@ -94,15 +123,24 @@ checks without replacing them.
 - [ ] MCPS-S02: Semantic Scope Creep Detection
   - Flags tool descriptions that claim access far beyond what the tool name implies
     (e.g., a `format_date` tool description referencing filesystem or network access)
+- [ ] THREAT-MODEL.md section for MCPS-S01/MCPS-S02, per this repo's own convention
+      that every new check gets a corresponding attack-scenario section — see the
+      drafted section 6, which also covers the analyzer-targeted-injection scenario
+      (an attacker targeting the semantic analyzer itself, not just a downstream agent)
 
 ### Milestone 2.3: Calibration and Cost Controls
 
 - [ ] Per-run token usage reporting
+- [ ] Per-run (or per-day) API-call budget with a clear failure mode when exceeded
+      (skip remaining tools with a warning) — reporting alone doesn't cap runaway
+      cost or rate on a large definition or a CI pipeline re-scanning on every commit
 - [ ] Configurable LLM analysis scope (description-only, full schema, both)
-- [ ] False positive feedback mechanism (local ignore list for known-safe tools)
+- [ ] False positive feedback mechanism (local ignore list for known-safe tools —
+      suppresses findings *after* a tool was analyzed; distinct from the pre-call
+      exclude list in Milestone 2.1, which prevents transmission in the first place)
 - [ ] Phase 2 documentation updates
 
-**Phase 2 ship criteria:** Semantic checks running against known-bad tool descriptions with measurable detection rate, token cost reporting working, and `--no-llm` flag allowing full Phase 1 function without API access.
+**Phase 2 ship criteria:** Semantic checks running against known-bad tool descriptions with measurable detection rate; the Anthropic response schema-validated before constructing findings; the analyzer prompt hardened against injection from the content it analyzes; an audit log of external transmissions in place; a per-run API-call budget enforced (not just usage reporting); token cost reporting working; and the `--llm` flag defaulting off, with full Phase 1 function available with no API access required.
 
 ---
 
