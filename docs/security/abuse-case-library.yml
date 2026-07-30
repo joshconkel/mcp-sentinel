@@ -1,0 +1,535 @@
+library_version: 1
+last_updated: 2026-07-29
+
+patterns:
+  - id: AC-001
+    title: IDOR / BOLA via predictable resource identifier
+    type: abuse
+    category: Authorization & access control
+    source: "OWASP API Security Top 10 2023, API1 (Broken Object Level Authorization)"
+    description: >
+      An attacker changes a resource identifier (numeric ID, sequential
+      slug, guessable UUID pattern) in a request to access or modify
+      another user's/tenant's resource that they shouldn't be authorized
+      to reach.
+    applicability_signals:
+      - Feature exposes a resource (record, file, report, export) by ID
+      - Authorization check is missing or only checks authentication, not ownership
+    typical_severity: high
+    typical_mitigations:
+      - Enforce ownership/tenant checks server-side on every access, not just at listing time
+      - Use non-guessable identifiers (random UUIDs) as defense in depth, not as the primary control
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: AC-002
+    title: Broken object property level authorization (mass assignment + excessive data exposure)
+    type: abuse
+    category: Authorization & access control
+    source: "OWASP API Security Top 10 2023, API3 (merges 2019's API3 Excessive Data Exposure and API6 Mass Assignment)"
+    description: >
+      Two related failure modes at the property level rather than the object
+      level: (a) an attacker includes extra fields in a create/update request
+      (role, isAdmin, accountBalance) that the client UI doesn't expose but
+      the backend blindly binds to the model; (b) a read endpoint returns a
+      full internal object and relies on the client to filter out sensitive
+      fields, which an attacker can simply not do.
+    applicability_signals:
+      - Feature has a create/update endpoint backed by an ORM/model binding
+      - Feature has a read endpoint that serializes an internal model directly rather than an explicit response schema
+      - Any field on the model is privileged (role, balance, verified status) or sensitive
+    typical_severity: high
+    typical_mitigations:
+      - Explicit allow-lists for bindable fields on every write path
+      - Explicit response DTOs/schemas for every read path, never serialize the internal model directly
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: AC-003
+    title: SSRF via user-supplied URL/webhook
+    type: abuse
+    category: Trust boundary / input handling
+    source: "OWASP API Security Top 10 2023, API7; also OWASP Top 10 2021, A10"
+    description: >
+      A feature that fetches or calls back to a user-supplied URL (webhook
+      registration, "import from URL," link preview) is used to make the
+      server issue requests to internal-only endpoints (cloud metadata
+      services, internal admin panels, other internal services).
+    applicability_signals:
+      - Feature accepts a user-supplied URL that the server itself will fetch or POST to
+    typical_severity: critical
+    typical_mitigations:
+      - Block requests to private/internal IP ranges and cloud metadata endpoints
+      - Use an allow-list of permitted destination domains where feasible
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: AC-004
+    title: Broken authentication / credential stuffing on auth-adjacent endpoints
+    type: abuse
+    category: Authorization & access control
+    source: "OWASP API Security Top 10 2023, API2"
+    description: >
+      Weak token issuance/validation, missing MFA, or unthrottled login/
+      credential-check endpoints let an attacker use stolen or brute-forced
+      credentials, or forge/replay tokens, to impersonate a legitimate user.
+    applicability_signals:
+      - Feature includes any login, token-issuance, password-check, or session-creation endpoint
+      - No rate limiting or lockout on repeated failed attempts
+    typical_severity: high
+    typical_mitigations:
+      - Rate limit and lock out after repeated failures; support MFA
+      - Short-lived tokens with proper rotation, not long-lived static credentials
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: AC-005
+    title: Broken function-level authorization (UI-hidden admin function reachable directly)
+    type: abuse
+    category: Authorization & access control
+    source: "OWASP API Security Top 10 2023, API5"
+    description: >
+      An administrative or privileged function is hidden in the UI for
+      non-admin users but the underlying endpoint performs no
+      function-level authorization check, so any authenticated user who
+      calls it directly can reach it.
+    applicability_signals:
+      - Feature has an admin-only or privileged action with a corresponding backend endpoint
+      - Authorization for that endpoint is enforced only in the UI/client, not the endpoint itself
+    typical_severity: high
+    typical_mitigations:
+      - Enforce role/permission checks at the endpoint, independent of what the UI shows
+      - Test every privileged endpoint directly (not just through the UI) as part of the feature's security review
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: AC-006
+    title: Injection via unparameterized user input
+    type: abuse
+    category: Trust boundary / input handling
+    source: "OWASP Top 10 2021, A03"
+    description: >
+      User-supplied input is concatenated into a query, command, or template
+      without parameterization or escaping, allowing an attacker to alter
+      the intended structure of that query/command (SQL, NoSQL, OS command,
+      template, LDAP, etc.).
+    applicability_signals:
+      - Feature accepts free-text input that is used to build a query, command, or template server-side
+    typical_severity: critical
+    typical_mitigations:
+      - Parameterized queries / prepared statements, never string concatenation
+      - Escape or sandbox any user input reaching a template engine or shell
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: AC-007
+    title: Account enumeration via differential responses
+    type: abuse
+    category: Authorization & access control
+    source: "OWASP Cornucopia (Authentication suit concept); CWE-203"
+    description: >
+      A login, password-reset, or account-creation flow returns different
+      responses (error messages, response times, HTTP status codes)
+      depending on whether an email/username is registered, letting an
+      attacker enumerate valid accounts to target with further attacks.
+    applicability_signals:
+      - Feature has a login, password-reset-request, or signup flow that checks whether an identifier already exists
+    typical_severity: medium
+    typical_mitigations:
+      - Return identical responses (message, timing, status) regardless of whether the account exists
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: AC-008
+    title: Session fixation / session token not rotated after authentication
+    type: abuse
+    category: Authorization & access control
+    source: "OWASP Cornucopia (Session Management suit concept)"
+    description: >
+      A session identifier issued before authentication remains valid and
+      unchanged after the user authenticates, letting an attacker who set
+      or obtained that pre-auth session ID hijack the now-authenticated
+      session.
+    applicability_signals:
+      - Feature involves session creation and a subsequent authentication step
+    typical_severity: medium
+    typical_mitigations:
+      - Rotate/reissue the session identifier immediately upon successful authentication
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: AC-009
+    title: Software/data integrity failure via unverified external fetch or auto-update
+    type: abuse
+    category: Trust boundary / input handling
+    source: "OWASP Top 10 2021, A08"
+    description: >
+      A feature fetches code, configuration, or data from an external
+      source (an unpinned branch, an auto-update mechanism, a deserialized
+      payload) without verifying its integrity, so a compromise of that
+      upstream source propagates directly into the system.
+    applicability_signals:
+      - Feature fetches or auto-updates from an external source not pinned to a specific verified version/hash
+      - Feature deserializes data from an external or user-controlled source
+    typical_severity: high
+    typical_mitigations:
+      - Pin to specific, verified versions/commits/checksums rather than trusting "latest"
+      - Verify signatures on anything auto-updated or deserialized from outside the trust boundary
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: AC-010
+    title: Clickjacking / UI redress on a sensitive action
+    type: abuse
+    category: Social / anti-abuse
+    source: "OWASP Cornucopia (concept); OWASP Top 10 2021 A05-adjacent"
+    description: >
+      A sensitive action's UI (a confirm button, a permission grant) can be
+      framed/overlaid by an attacker-controlled page, tricking an
+      authenticated user into performing the action without realizing it.
+    applicability_signals:
+      - Feature has a one-click sensitive confirm/approve action reachable while authenticated
+      - No frame-busting or X-Frame-Options/CSP frame-ancestors protection mentioned
+    typical_severity: medium
+    typical_mitigations:
+      - Set X-Frame-Options / CSP frame-ancestors to prevent framing
+      - Require re-authentication or an unpredictable token for the most sensitive actions
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: MC-001
+    title: Bulk export used to exfiltrate more data than role requires
+    type: misuse
+    category: Data exposure & exfiltration
+    source: "General least-privilege principle; product-security best practice"
+    description: >
+      A legitimate, authenticated user with a valid business reason to
+      access individual records uses a bulk export feature to pull far
+      more data than their normal usage pattern requires, without any
+      malicious intent necessarily present -- but the outcome (mass data
+      exposure risk) is the same as a deliberate exfiltration.
+    applicability_signals:
+      - Feature supports export/download of more than one record at a time
+      - Exported data includes PII or other sensitive fields
+    typical_severity: medium
+    typical_mitigations:
+      - Rate-limit and log bulk exports distinctly from single-record access
+      - Alert on export volume anomalies relative to a user's historical pattern
+    status: canonical
+    first_added: SEED
+    last_matched: "2026-07-29"
+    times_matched: 1
+    example_instances:
+      - {feature: "Phase 2 - LLM-Assisted Semantic Analysis", repo: "mcp-sentinel", date: "2026-07-29"}
+
+  - id: MC-002
+    title: Invite/referral mechanism farmed for spam distribution
+    type: misuse
+    category: Social / anti-abuse
+    source: "OWASP Cornucopia (anti-automation concept)"
+    description: >
+      An invite, referral, or sharing feature is used at automated scale
+      to distribute spam or unwanted messages, exploiting the fact that
+      the feature was designed for occasional individual use, not bulk
+      automated use.
+    applicability_signals:
+      - Feature sends a message/notification/email on behalf of a user to another party
+      - No rate limit or anomaly detection on invite/referral volume per account
+    typical_severity: low
+    typical_mitigations:
+      - Rate limit invites per account per time window
+      - CAPTCHA or similar friction on bulk-invite flows
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: MC-003
+    title: Insecure default visibility/sharing setting
+    type: misuse
+    category: Insecure defaults & configuration
+    source: "OWASP Top 10 2021, A05 (Security Misconfiguration), general principle"
+    description: >
+      A feature ships with an overly permissive default (e.g., "anyone
+      with the link can view," public-by-default) that most users never
+      change, resulting in unintentional exposure at scale even though
+      each individual user's action was "normal" usage.
+    applicability_signals:
+      - Feature has a visibility/sharing/permission setting with a default value
+    typical_severity: medium
+    typical_mitigations:
+      - Default to the most restrictive reasonable setting; require explicit opt-in to widen
+      - Surface current visibility clearly in the UI, not just in a settings sub-page
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: MC-004
+    title: Unrestricted resource consumption via unbounded pagination/query/file size
+    type: misuse
+    category: Resource & rate abuse
+    source: "OWASP API Security Top 10 2023, API4"
+    description: >
+      A feature with no cap on page size, query complexity, result count,
+      or uploaded file size lets ordinary usage (or slightly-aggressive-
+      but-not-malicious usage) consume disproportionate resources,
+      degrading service or increasing operational cost.
+    applicability_signals:
+      - Feature accepts a page-size, limit, or query-complexity parameter with no server-side cap
+      - Feature accepts file uploads with no size limit
+    typical_severity: medium
+    typical_mitigations:
+      - Enforce server-side maximums independent of client-supplied parameters
+      - Apply per-account quotas, not just per-request limits
+    status: canonical
+    first_added: SEED
+    last_matched: "2026-07-29"
+    times_matched: 1
+    example_instances:
+      - {feature: "Phase 2 - LLM-Assisted Semantic Analysis", repo: "mcp-sentinel", date: "2026-07-29"}
+
+  - id: MC-005
+    title: Sensitive business flow abused by automation at scale
+    type: misuse
+    category: Resource & rate abuse
+    source: "OWASP API Security Top 10 2023, API6 (Unrestricted Access to Sensitive Business Flows)"
+    description: >
+      A business flow that's fine at human scale (account creation,
+      coupon redemption, ticket purchase, appointment booking) is
+      automated by a script to gain a business advantage or cause harm,
+      because the flow itself has no friction distinguishing a human from
+      a bot.
+    applicability_signals:
+      - Feature implements a business flow with real-world value (limited inventory, discount, unique allocation)
+      - No CAPTCHA, rate limit, or behavioral anomaly detection on that flow
+    typical_severity: medium
+    typical_mitigations:
+      - Add friction (CAPTCHA, rate limiting) proportional to the business value at stake
+      - Monitor for behavioral patterns inconsistent with human usage
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: MC-006
+    title: Security misconfiguration exposing internals (verbose errors, debug mode)
+    type: misuse
+    category: Insecure defaults & configuration
+    source: "OWASP API Security Top 10 2023, API8"
+    description: >
+      A feature left in a debug/verbose configuration in production
+      returns stack traces, internal paths, or configuration detail in
+      error responses, which isn't itself an exploit but hands an
+      attacker (or a curious ordinary user) reconnaissance information for
+      free.
+    applicability_signals:
+      - Feature's error handling was built/tested primarily in a debug configuration
+      - No explicit review of what error responses look like in production
+    typical_severity: low
+    typical_mitigations:
+      - Generic error responses in production; detailed errors only in internal logs
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: MC-007
+    title: Improper inventory management (shadow/deprecated API version still reachable)
+    type: misuse
+    category: Insecure defaults & configuration
+    source: "OWASP API Security Top 10 2023, API9"
+    description: >
+      An older or beta version of an API/feature remains reachable after
+      a newer, more secure version replaces it -- security fixes applied
+      to the current version don't retroactively apply to the still-live
+      old one, and it may not even be in current documentation or
+      monitoring.
+    applicability_signals:
+      - Feature has had a prior version, beta, or internal-only variant that may still be deployed
+    typical_severity: medium
+    typical_mitigations:
+      - Maintain an explicit inventory of all live API versions; decommission old ones on a schedule, not indefinitely
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+  - id: MC-008
+    title: Unsafe consumption of a third-party API/webhook payload
+    type: misuse
+    category: Third-party / integration abuse
+    source: "OWASP API Security Top 10 2023, API10"
+    description: >
+      A feature trusts data received from a third-party API or an
+      incoming webhook without independently validating it, so a
+      compromise, bug, or unexpected response shape on the third party's
+      side propagates directly into this system's behavior.
+    applicability_signals:
+      - Feature consumes a response from a third-party API or an incoming webhook payload
+      - No independent validation/schema check on that incoming data beyond "did the request succeed"
+    typical_severity: medium
+    typical_mitigations:
+      - Validate incoming third-party data against an explicit schema, don't trust shape or content blindly
+      - Verify webhook signatures where the provider supports them
+    status: canonical
+    first_added: SEED
+    last_matched: "2026-07-29"
+    times_matched: 1
+    example_instances:
+      - {feature: "Phase 2 - LLM-Assisted Semantic Analysis", repo: "mcp-sentinel", date: "2026-07-29"}
+
+  - id: MC-009
+    title: Missing audit logging on a sensitive action
+    type: misuse
+    category: Data exposure & exfiltration
+    source: "OWASP Top 10 2021, A09 (Security Logging and Monitoring Failures)"
+    description: >
+      A feature that performs a sensitive action (permission change, data
+      export, deletion) doesn't log who did it and when, so misuse --
+      malicious or accidental -- can't be investigated or attributed
+      after the fact. This is the same gap the Repudiation STRIDE
+      category asks about at code-review time; here it's caught earlier,
+      at design time.
+    applicability_signals:
+      - Feature performs a sensitive/destructive/privilege-affecting action
+      - No mention of an audit trail for that action in the spec
+    typical_severity: medium
+    typical_mitigations:
+      - Log actor, timestamp, and action detail for every sensitive action, to a store the action's own actor can't modify
+    status: canonical
+    first_added: SEED
+    last_matched: "2026-07-29"
+    times_matched: 1
+    example_instances:
+      - {feature: "Phase 2 - LLM-Assisted Semantic Analysis", repo: "mcp-sentinel", date: "2026-07-29"}
+
+  - id: MC-010
+    title: Missing anti-automation friction on low-friction sensitive actions
+    type: misuse
+    category: Resource & rate abuse
+    source: "OWASP Cornucopia (anti-automation concept); general best practice"
+    description: >
+      An action that's individually low-risk (request a password reset,
+      create an account, submit a contact form) but costly in aggregate
+      has no rate limiting or bot-detection, letting it be abused at
+      scale even by an actor with no sophisticated attack technique --
+      just a script and patience.
+    applicability_signals:
+      - Feature is a public or lightly-authenticated action triggerable repeatedly with no cost to the requester
+    typical_severity: low
+    typical_mitigations:
+      - Rate limit per account/IP; CAPTCHA on repeated triggers
+    status: canonical
+    first_added: SEED
+    last_matched: ""
+    times_matched: 0
+    example_instances: []
+
+staged_patterns:
+  - id: STAGED-third-party-data-exposure-via-analysis-feature
+    title: Third-party data exposure inherent to a feature's normal, non-malicious operation
+    type: misuse
+    category: AI/agent-specific
+    description: >
+      A feature that, when used exactly as designed by a fully legitimate
+      operator with no excess of role or intent, transmits first-party
+      content to an external, non-org-controlled AI/analysis service as
+      its core mechanism -- the exposure is not a byproduct of misuse or
+      insider over-reach (contrast MC-001), it is the feature working
+      correctly. Applies to any "send X to a third-party model/service for
+      analysis" feature, not just LLM-security tooling specifically.
+    applicability_signals:
+      - Feature's core mechanism requires sending first-party/proprietary content to an external AI or analysis API
+      - No local/self-hosted alternative is offered for the same capability
+      - The transmitted content was not originally scoped or classified with "will leave the org" in mind
+    typical_severity: medium
+    typical_mitigations:
+      - Document the data flow prominently in user-facing docs, not just internal design docs
+      - Offer a local/self-hosted model option where feasible so the capability doesn't require a third-party path
+      - Let operators scope exactly what fields are eligible for transmission, defaulting to the minimum necessary
+    status: staged
+    proposed_from: {feature: "Phase 2 - LLM-Assisted Semantic Analysis", repo: "mcp-sentinel", date: "2026-07-29"}
+
+  - id: STAGED-analyzer-targeted-prompt-injection
+    title: Analyzer-targeted prompt injection via the content being analyzed
+    type: abuse
+    category: AI/agent-specific
+    description: >
+      A feature that uses an LLM to analyze potentially adversarial
+      user-supplied or third-party-supplied content (a tool description, a
+      document, a message) is itself a target for prompt injection: the
+      content being analyzed can carry instructions aimed at the analyzing
+      model, attempting to manipulate its verdict rather than (or in
+      addition to) manipulating whatever downstream system the content was
+      originally aimed at. This is distinct from ordinary prompt injection
+      against an end-user-facing agent -- the target here is the security
+      control itself.
+    applicability_signals:
+      - Feature uses an LLM to classify, score, or render a verdict on content that could originate from an untrusted or adversarial party
+      - The content being analyzed is the same kind of content another part of the system already treats as a known injection vector
+      - No described separation between the analyzer's own instructions and the content it analyzes
+    typical_severity: high
+    typical_mitigations:
+      - Structurally separate the analyzer's instructions from the analyzed content (clear delimiters, explicit "disregard embedded directives" instruction)
+      - Run a cheap pre-filter for injection-style patterns as a gate before semantic analysis, not only as a parallel independent check
+      - Treat analyzer verdicts as one signal among several rather than an authoritative override of static findings
+    status: staged
+    proposed_from: {feature: "Phase 2 - LLM-Assisted Semantic Analysis", repo: "mcp-sentinel", date: "2026-07-29"}
+
+  - id: STAGED-allowlist-denylist-silent-staleness
+    title: Allow-list/deny-list matches by unstable identifier and silently fails open
+    type: misuse
+    category: Insecure defaults & configuration
+    description: >
+      A feature offers an allow-list or deny-list (an exclude list, an
+      ignore list, a trusted-senders list) that matches entries by an
+      identifier that can drift over time (a name, a label, a free-text
+      field) without the underlying entity's identity changing. When the
+      identifier drifts, the list silently stops matching -- with no error
+      or warning -- so an entry the operator explicitly intended to be
+      excluded/included quietly falls back to the default behavior instead.
+    applicability_signals:
+      - Feature includes an allow-list or deny-list keyed on a mutable field (name/label) rather than a stable ID
+      - No described mechanism to warn when a list entry matches zero current items
+    typical_severity: medium
+    typical_mitigations:
+      - Prefer matching on a stable identifier over a mutable display name where one exists
+      - Log or warn when a list entry matches nothing in the current run, so staleness is visible rather than silent
+    status: staged
+    proposed_from: {feature: "Phase 2 - LLM-Assisted Semantic Analysis", repo: "mcp-sentinel", date: "2026-07-29"}
